@@ -24,7 +24,7 @@ source ~/.bashrc  # or ~/.zshrc
 ```
 
 ### Quick Reference
-Use `aliaslist` command to see all available shortcuts and their descriptions.
+Use `shortcuts` command to see all available shortcuts and their descriptions.
 
 ## 📋 Features Overview
 
@@ -202,4 +202,4 @@ Some functions require additional tools:
 
 ---
 
-**Quick Help**: Run `aliaslist` in your terminal for a complete reference of all available commands and functions.
+**Quick Help**: Run `shortcuts` in your terminal for a complete reference of all available commands and functions.

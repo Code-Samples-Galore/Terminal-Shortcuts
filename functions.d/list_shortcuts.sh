@@ -1,14 +1,14 @@
 #!/bin/bash
-# Alias List Display Function
+# Shortcuts List Display Function
 #
-# Description: Displays all defined aliases with descriptions organized by category.
+# Description: Displays all defined shortcuts with descriptions organized by category.
 # Provides a quick reference for available shortcuts and their purposes.
 #
-# Usage: aliaslist
-# Example: $ aliaslist  # Shows all aliases with descriptions
+# Usage: shortcuts
+# Example: $ shortcuts  # Shows all shortcuts with descriptions
 
-aliaslist() {
-  echo "=== AVAILABLE ALIASES ==="
+shortcuts() {
+  echo "=== AVAILABLE SHORTCUTS ==="
   echo
   
   echo "📁 File and Directory Operations:"
@@ -117,6 +117,6 @@ aliaslist() {
   echo "    calc        - Perform mathematical calculations"
   echo
   echo "  📚 Help:"
-  echo "    aliaslist   - Show this complete function reference"
+  echo "    shortcuts   - Show this complete function reference"
   echo
 }
