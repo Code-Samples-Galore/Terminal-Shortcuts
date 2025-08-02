@@ -87,19 +87,19 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "📋 Custom Functions:"
     echo "  🖥️  System Information & Utilities:"
     echo "    sysinfo     - Display comprehensive system information"
-    echo
-    echo "  🐍 Python Development:"
-    echo "    svenv       - Auto-activate Python virtual environment"
-    echo
-    echo "  ⚙️  Process Management:"
     echo "    killcmd     - Kill processes by command name"
+    echo
+
+    echo "  ⚙️  Process Management:"
     echo "    topcpu      - Show top processes by CPU usage"
     echo "    topmem      - Show top processes by memory usage"
     echo
+
     echo "  🌐 Network Monitoring:"
     echo "    isup        - Check if website is accessible"
     echo "    watchlog    - Monitor log file changes in real-time"
     echo "    weather     - Get weather information for a city"
+    echo "    myip        - Display local and external IP addresses"
     echo
     echo "  🔀 Git Enhancements:"
     echo "    gac         - Git add all and commit with auto message"
@@ -121,14 +121,17 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "    hexconv     - Encode/decode hex strings"
     echo "    randstr     - Generate crypto-secure random strings"
     echo "    hashit      - Compute hash of strings or files (md5/sha1/sha256/sha512)"
+    echo "    binconv     - Convert string or integer to binary representation"
+    echo "    svenv       - Auto-activate Python virtual environment"
     echo
+
     echo "  📚 Help:"
     echo "    shortcuts   - Show this complete function reference"
     echo
     echo "🚫 Exclusion Feature:"
     echo "Use EXCLUDE_SHORTCUTS environment variable to exclude specific aliases/functions:"
     echo "  export EXCLUDE_SHORTCUTS=\"p hashit shortcuts\""
-    echo "  source terminal_shortcuts.sh"
+    echo "  source shortcuts.sh"
     echo
   }
 fi

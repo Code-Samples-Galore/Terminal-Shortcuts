@@ -14,6 +14,8 @@
 #   hexconv    - Encode/decode hex strings
 #   genstr     - Generate random strings with special characters
 #   hashit     - Compute hash of string or file (md5, sha1, sha256, sha512)
+#   binconv    - Convert string or integer to binary representation
+#   svenv      - Auto-activate Python virtual environment
 #
 # Usage Examples:
 #   $ jsonpp data.json    # Pretty-print JSON file
@@ -26,6 +28,9 @@
 #   $ genstr 20           # Generate 20-char random string
 #   $ hashit sha256 "text" # Hash string with SHA256
 #   $ hashit md5 file.txt  # Hash file with MD5
+#   $ binconv 255         # Convert integer to binary
+#   $ binconv "A"         # Convert string to binary
+#   $ svenv               # Activate Python virtual environment
 
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
@@ -152,6 +157,52 @@ if ! should_exclude "hashit" 2>/dev/null; then
         sha512)  echo -n "$input" | sha512sum | cut -d' ' -f1 ;;
         *)       echo "Error: Unsupported hash type. Use: md5, sha1, sha256, sha512" && return 1 ;;
       esac
+    fi
+  }
+fi
+
+# Binary converter function
+if ! should_exclude "binconv" 2>/dev/null; then
+  binconv() {
+    if [[ -z "$1" ]]; then
+      echo "Usage: binconv <string_or_integer>"
+      echo "Examples:"
+      echo "  binconv 255     # Convert integer to binary"
+      echo "  binconv \"Hello\" # Convert string to binary"
+      return 1
+    fi
+    
+    local input="$1"
+    
+    # Check if input is a number
+    if [[ "$input" =~ ^[0-9]+$ ]]; then
+      # Convert integer to binary
+      echo "obase=2; $input" | bc
+    else
+      # Convert string to binary (each character)
+      echo -n "$input" | while IFS= read -r -n1 char; do
+        if [[ -n "$char" ]]; then
+          printf "%s " "$(printf '%d' "'$char" | xargs -I {} echo "obase=2; {}" | bc)"
+        fi
+      done
+      echo
+    fi
+  }
+fi
+
+# Python Virtual Environment Auto-Activation Function
+if ! should_exclude "svenv" 2>/dev/null; then
+  svenv() {
+    # Find activate script in current directory and subdirectories
+    local activate_file=$(find . -name "activate" -path "*/bin/activate" -type f 2>/dev/null | head -1)
+    
+    if [[ -n "$activate_file" ]]; then
+      echo "Activating virtual environment: $activate_file"
+      source "$activate_file"
+      return 0
+    else
+      echo "No virtual environment activate script found in current directory"
+      return 1
     fi
   }
 fi

@@ -50,6 +50,7 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 ### 🖥️ System Information & Monitoring
 
 - **System overview**: `sysinfo` for comprehensive system details
+- **Process killing**: `killcmd` with interactive confirmation for killing processes by name
 - **Process monitoring**: `topcpu`, `topmem` for resource usage
 - **Network monitoring**: `isup` for website availability, `weather` info
 - **Log monitoring**: `watchlog` for real-time log file monitoring
@@ -71,7 +72,9 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 - **String generation**: `randstr` for crypto-secure random strings with special characters
 - **Mathematical calculations**: `calc` and `log2` functions
 - **Python module runner**: `pm` for executing Python modules using file paths
+- **Python virtual environment**: `svenv` for automatic venv activation
 - **Hex encoding/decoding**: `hexconv` for hex string conversion
+- **Binary conversion**: `binconv` for converting strings or integers to binary
 - **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing
 - **HTTP servers**: Quick development server setup
 
@@ -80,6 +83,7 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 - **Website monitoring**: Check if services are up
 - **Port monitoring**: View active network connections
 - **Weather information**: Terminal-based weather lookup
+- **IP address display**: Show local and external IP addresses
 
 ## 📖 Detailed Function Reference
 
@@ -137,6 +141,19 @@ $ isup badsite.xyz
 badsite.xyz is DOWN
 ```
 
+Show IP address information:
+
+```bash
+$ myip
+=== IP ADDRESS INFORMATION ===
+
+Local IP Address:
+  192.168.1.100
+
+External IP Address:
+  203.0.113.45
+```
+
 ### File Operations (`extract`)
 
 Universal archive extraction:
@@ -154,6 +171,66 @@ Auto-commit with intelligent messages:
 ```bash
 $ gac
 [main 1a2b3c4] Auto commit: 5 files changed
+```
+
+### Development Tools (`pm`, `log2`, `hexconv`, `randstr`, `hashit`, `binconv`)
+
+#### Binary Converter (`binconv`)
+Convert strings or integers to binary representation:
+
+```bash
+$ binconv 255            # Returns: 11111111
+$ binconv "A"            # Returns: 1000001
+$ binconv "Hello"        # Returns: 1001000 1100101 1101100 1101100 1101111
+```
+
+#### Python Virtual Environment (`svenv`)
+Automatically finds and activates Python virtual environments:
+
+```bash
+$ svenv
+Activating virtual environment: ./venv/bin/activate
+```
+
+#### Python Module Runner (`pm`)
+Run Python modules using file path notation:
+
+```bash
+$ pm src/main.py          # Runs: python3 -m src.main
+$ pm utils/helper.py arg1 # Runs: python3 -m utils.helper arg1
+```
+
+#### Logarithm Calculator (`log2`)
+Calculate base-2 logarithms:
+
+```bash
+$ log2 256               # Returns: 8.000000
+$ log2 1024              # Returns: 10.000000
+```
+
+#### Hex Converter (`hexconv`)
+Encode and decode hex strings:
+
+```bash
+$ hexconv encode "hello"      # Returns: 68656c6c6f
+$ hexconv decode "68656c6c6f" # Returns: hello
+```
+
+#### Random String Generator (`randstr`)
+Generate cryptographically secure random strings:
+
+```bash
+$ randstr              # 16-character string with special chars
+$ randstr 32           # 32-character secure random string
+```
+
+#### Hash Calculator (`hashit`)
+Compute various hash functions for strings or files:
+
+```bash
+$ hashit sha256 "hello world"     # Hash a string
+$ hashit md5 myfile.txt          # Hash a file
+$ hashit sha512 "secret data"    # SHA512 hash
 ```
 
 ### Development Tools (`jsonpp`, `genpass`, `calc`)
@@ -177,6 +254,21 @@ Calculate mathematical expressions:
 ```bash
 calc '2 + 2'      # Returns: 4
 calc 'sin(30)'    # Returns: 0.49999999999999994
+```
+
+### Network Monitoring (`myip`)
+
+Display IP address information:
+
+```bash
+$ myip
+=== IP ADDRESS INFORMATION ===
+
+Local IP Address:
+  192.168.1.100
+
+External IP Address:
+  203.0.113.45
 ```
 
 ## 🎯 Aliases Quick Reference
@@ -262,7 +354,7 @@ source ~/terminal_shortcuts/shortcuts.sh
 
 **Complete exclusion** - exclude everything (useful for testing):
 ```bash
-export EXCLUDE_SHORTCUTS="ll la l .. ... .... ~ mkdir cp mv rm grep tree nu nl ni gs gc gp gu ga gaa gb gco gcb gl gd gdc h j path now nowtime nowdate ports wget ping fastping chown chmod chgrp bashrc zshrc vimrc v n e p sysinfo svenv killcmd topcpu topmem isup watchlog weather gac gitinfo extract mkcd ff replace backup jsonpp genpass calc pm log2 hexconv randstr hashit shortcuts"
+export EXCLUDE_SHORTCUTS="ll la l .. ... .... ~ mkdir cp mv rm grep tree nu nl ni gs gc gp gu ga gaa gb gco gcb gl gd gdc h j path now nowtime nowdate ports wget ping fastping chown chmod chgrp bashrc zshrc vimrc v n e p sysinfo svenv killcmd topcpu topmem isup watchlog weather myip gac gitinfo extract mkcd ff replace backup jsonpp genpass calc pm log2 hexconv randstr hashit binconv shortcuts"
 source ~/terminal_shortcuts/shortcuts.sh
 ```
 
