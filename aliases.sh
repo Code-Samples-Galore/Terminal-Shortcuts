@@ -4,7 +4,7 @@
 # including file management, git operations, system utilities, and navigation.
 
 # File and Directory Operations
-if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lha'; fi
+if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lh'; fi
 if ! should_exclude "la" 2>/dev/null; then alias la='ls -la'; fi
 if ! should_exclude "l" 2>/dev/null; then alias l='ls -CF'; fi
 if ! should_exclude ".." 2>/dev/null; then alias ..='cd ..'; fi

@@ -13,7 +13,7 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo
     
     echo "📁 File and Directory Operations:"
-    echo "  ll          - List files with details (ls -lha)"
+    echo "  ll          - List files with details (ls -lh)"
     echo "  la          - List all files including hidden (ls -la)"
     echo "  l           - List files in columns (ls -CF)"
     echo "  ..          - Go up one directory"
