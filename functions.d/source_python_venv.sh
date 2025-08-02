@@ -8,16 +8,18 @@
 # Usage: svenv
 # Example: $ svenv  # Activates the first virtual environment found
 
-svenv() {
-  # Find activate script in current directory and subdirectories
-  local activate_file=$(find . -name "activate" -path "*/bin/activate" -type f 2>/dev/null | head -1)
-  
-  if [[ -n "$activate_file" ]]; then
-    echo "Activating virtual environment: $activate_file"
-    source "$activate_file"
-    return 0
-  else
-    echo "No virtual environment activate script found in current directory"
-    return 1
-  fi
-}
+if ! should_exclude "svenv" 2>/dev/null; then
+  svenv() {
+    # Find activate script in current directory and subdirectories
+    local activate_file=$(find . -name "activate" -path "*/bin/activate" -type f 2>/dev/null | head -1)
+    
+    if [[ -n "$activate_file" ]]; then
+      echo "Activating virtual environment: $activate_file"
+      source "$activate_file"
+      return 0
+    else
+      echo "No virtual environment activate script found in current directory"
+      return 1
+    fi
+  }
+fi

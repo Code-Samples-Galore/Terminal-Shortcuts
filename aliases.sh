@@ -4,65 +4,65 @@
 # including file management, git operations, system utilities, and navigation.
 
 # File and Directory Operations
-alias ll='ls -lha'
-alias la='ls -la'
-alias l='ls -CF'
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias ~='cd ~'
-alias mkdir='mkdir -pv'
-alias cp='cp -iv'
-alias mv='mv -iv'
-alias rm='rm -iv'
-alias grep='grep --color=auto'
-alias tree='tree -C'
+if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lha'; fi
+if ! should_exclude "la" 2>/dev/null; then alias la='ls -la'; fi
+if ! should_exclude "l" 2>/dev/null; then alias l='ls -CF'; fi
+if ! should_exclude ".." 2>/dev/null; then alias ..='cd ..'; fi
+if ! should_exclude "..." 2>/dev/null; then alias ...='cd ../..'; fi
+if ! should_exclude "...." 2>/dev/null; then alias ....='cd ../../..'; fi
+if ! should_exclude "~" 2>/dev/null; then alias ~='cd ~'; fi
+if ! should_exclude "mkdir" 2>/dev/null; then alias mkdir='mkdir -pv'; fi
+if ! should_exclude "cp" 2>/dev/null; then alias cp='cp -iv'; fi
+if ! should_exclude "mv" 2>/dev/null; then alias mv='mv -iv'; fi
+if ! should_exclude "rm" 2>/dev/null; then alias rm='rm -iv'; fi
+if ! should_exclude "grep" 2>/dev/null; then alias grep='grep --color=auto'; fi
+if ! should_exclude "tree" 2>/dev/null; then alias tree='tree -C'; fi
 
 # Node Version Manager
-alias nu="nvm use"
-alias nl="nvm list"
-alias ni="nvm install"
+if ! should_exclude "nu" 2>/dev/null; then alias nu="nvm use"; fi
+if ! should_exclude "nl" 2>/dev/null; then alias nl="nvm list"; fi
+if ! should_exclude "ni" 2>/dev/null; then alias ni="nvm install"; fi
 
 # Git Operations
-alias gs='git status'
-alias gc='git commit -m'
-alias gp='git push'
-alias gu='git pull'
-alias ga='git add'
-alias gaa='git add .'
-alias gb='git branch'
-alias gco='git checkout'
-alias gcb='git checkout -b'
-alias gl='git log --oneline'
-alias gd='git diff'
-alias gdc='git diff --cached'
+if ! should_exclude "gs" 2>/dev/null; then alias gs='git status'; fi
+if ! should_exclude "gc" 2>/dev/null; then alias gc='git commit -m'; fi
+if ! should_exclude "gp" 2>/dev/null; then alias gp='git push'; fi
+if ! should_exclude "gu" 2>/dev/null; then alias gu='git pull'; fi
+if ! should_exclude "ga" 2>/dev/null; then alias ga='git add'; fi
+if ! should_exclude "gaa" 2>/dev/null; then alias gaa='git add .'; fi
+if ! should_exclude "gb" 2>/dev/null; then alias gb='git branch'; fi
+if ! should_exclude "gco" 2>/dev/null; then alias gco='git checkout'; fi
+if ! should_exclude "gcb" 2>/dev/null; then alias gcb='git checkout -b'; fi
+if ! should_exclude "gl" 2>/dev/null; then alias gl='git log --oneline'; fi
+if ! should_exclude "gd" 2>/dev/null; then alias gd='git diff'; fi
+if ! should_exclude "gdc" 2>/dev/null; then alias gdc='git diff --cached'; fi
 
 # System Utilities
-alias h='history'
-alias j='jobs -l'
-alias path='echo -e ${PATH//:/\\n}'
-alias now='date +"%T"'
-alias nowtime=now
-alias nowdate='date +"%d-%m-%Y"'
+if ! should_exclude "h" 2>/dev/null; then alias h='history'; fi
+if ! should_exclude "j" 2>/dev/null; then alias j='jobs -l'; fi
+if ! should_exclude "path" 2>/dev/null; then alias path='echo -e ${PATH//:/\\n}'; fi
+if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T"'; fi
+if ! should_exclude "nowtime" 2>/dev/null; then alias nowtime=now; fi
+if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%d-%m-%Y"'; fi
 
 # Network and Process
-alias ports='netstat -tulanp'
-alias wget='wget -c'
-alias ping='ping -c 5'
-alias fastping='ping -c 100 -s.2'
+if ! should_exclude "ports" 2>/dev/null; then alias ports='netstat -tulanp'; fi
+if ! should_exclude "wget" 2>/dev/null; then alias wget='wget -c'; fi
+if ! should_exclude "ping" 2>/dev/null; then alias ping='ping -c 5'; fi
+if ! should_exclude "fastping" 2>/dev/null; then alias fastping='ping -c 100 -s.2'; fi
 
 # Safety aliases
-alias chown='chown --preserve-root'
-alias chmod='chmod --preserve-root'
-alias chgrp='chgrp --preserve-root'
+if ! should_exclude "chown" 2>/dev/null; then alias chown='chown --preserve-root'; fi
+if ! should_exclude "chmod" 2>/dev/null; then alias chmod='chmod --preserve-root'; fi
+if ! should_exclude "chgrp" 2>/dev/null; then alias chgrp='chgrp --preserve-root'; fi
 
 # Quick edits
-alias bashrc='${EDITOR:-nano} ~/.bashrc'
-alias zshrc='${EDITOR:-nano} ~/.zshrc'
-alias vimrc='${EDITOR:-nano} ~/.vimrc'
+if ! should_exclude "bashrc" 2>/dev/null; then alias bashrc='vim ~/.bashrc'; fi
+if ! should_exclude "zshrc" 2>/dev/null; then alias zshrc='vim ~/.zshrc'; fi
+if ! should_exclude "vimrc" 2>/dev/null; then alias vimrc='vim ~/.vimrc'; fi
 
 # Programs
-alias v='vim'
-alias n='nano'
-alias e='emacs'
-alias p='python3'
+if ! should_exclude "v" 2>/dev/null; then alias v='vim'; fi
+if ! should_exclude "n" 2>/dev/null; then alias n='nano'; fi
+if ! should_exclude "e" 2>/dev/null; then alias e='emacs'; fi
+if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi

@@ -212,6 +212,83 @@ calc 'sin(30)'    # Returns: 0.49999999999999994
 
 ## 🔧 Customization
 
+### Excluding Specific Shortcuts
+
+You can exclude specific aliases and functions by setting the `EXCLUDE_SHORTCUTS` environment variable before sourcing the shortcuts:
+
+```bash
+# Exclude specific shortcuts
+export EXCLUDE_SHORTCUTS="p hashit shortcuts gs gc"
+source ~/terminal_shortcuts/shortcuts.sh
+```
+
+This will prevent the following from being loaded:
+- `p` alias (Python3)
+- `hashit` function
+- `shortcuts` function  
+- `gs` alias (Git status)
+- `gc` alias (Git commit)
+
+**Note**: Set the exclusion variable before sourcing the shortcuts file in your shell configuration.
+
+#### How the Exclusion System Works
+
+The exclusion system uses a helper function `should_exclude()` that checks if a given alias or function name is listed in the `EXCLUDE_SHORTCUTS` environment variable. Here's how it works:
+
+1. **Environment Variable**: `EXCLUDE_SHORTCUTS` is a space-separated list of alias/function names to exclude
+2. **Check Function**: Each alias and function is wrapped with a check: `if ! should_exclude "name" 2>/dev/null; then`
+3. **Silent Failures**: The `2>/dev/null` ensures no errors if the check function isn't available
+4. **Dynamic Loading**: Only shortcuts not in the exclusion list are loaded
+
+#### Examples
+
+**Basic exclusion** - exclude Python alias and hash function:
+```bash
+export EXCLUDE_SHORTCUTS="p hashit"
+source ~/terminal_shortcuts/shortcuts.sh
+```
+
+**Exclude Git shortcuts** - if you prefer your own Git aliases:
+```bash
+export EXCLUDE_SHORTCUTS="gs gc gp ga gb gco gcb gl gd gdc gaa gu gac gitinfo"
+source ~/terminal_shortcuts/shortcuts.sh
+```
+
+**Exclude system utilities** - if you have conflicting commands:
+```bash
+export EXCLUDE_SHORTCUTS="ll la l h j path now ping ports"
+source ~/terminal_shortcuts/shortcuts.sh
+```
+
+**Complete exclusion** - exclude everything (useful for testing):
+```bash
+export EXCLUDE_SHORTCUTS="ll la l .. ... .... ~ mkdir cp mv rm grep tree nu nl ni gs gc gp gu ga gaa gb gco gcb gl gd gdc h j path now nowtime nowdate ports wget ping fastping chown chmod chgrp bashrc zshrc vimrc v n e p sysinfo svenv killcmd topcpu topmem isup watchlog weather gac gitinfo extract mkcd ff replace backup jsonpp genpass calc pm log2 hexconv randstr hashit shortcuts"
+source ~/terminal_shortcuts/shortcuts.sh
+```
+
+#### Adding Exclusion to Custom Functions
+
+If you create custom functions, you can add exclusion support:
+
+```bash
+# Custom function with exclusion support
+if ! should_exclude "myfunction" 2>/dev/null; then
+  myfunction() {
+    echo "My custom function"
+  }
+fi
+```
+
+#### Permanent Configuration
+
+Add the exclusion to your shell configuration file for permanent effect:
+
+```bash
+# In ~/.bashrc or ~/.zshrc
+export EXCLUDE_SHORTCUTS="p hashit shortcuts"
+source ~/terminal_shortcuts/shortcuts.sh
+```
+
 ### Adding Custom Functions
 
 1. Create a new file in `functions.d/` directory

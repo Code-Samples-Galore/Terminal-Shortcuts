@@ -20,35 +20,45 @@
 #   $ weather London      # Get London weather
 
 # Check if website is up
-isup() {
-  local website=$1
-  if curl -sSf "$website" > /dev/null; then
-    echo "$website is UP"
-  else
-    echo "$website is DOWN"
-  fi
-}
+if ! should_exclude "isup" 2>/dev/null; then
+  isup() {
+    local website=$1
+    if curl -sSf "$website" > /dev/null; then
+      echo "$website is UP"
+    else
+      echo "$website is DOWN"
+    fi
+  }
+fi
 
 # Show top processes by CPU/Memory
-topcpu() {
-  ps aux --sort=-%cpu | head -10
-}
+if ! should_exclude "topcpu" 2>/dev/null; then
+  topcpu() {
+    ps aux --sort=-%cpu | head -10
+  }
+fi
 
-topmem() {
-  ps aux --sort=-%mem | head -10
-}
+if ! should_exclude "topmem" 2>/dev/null; then
+  topmem() {
+    ps aux --sort=-%mem | head -10
+  }
+fi
 
 # Monitor log file
-watchlog() {
-  if [[ -f "$1" ]]; then
-    tail -f "$1"
-  else
-    echo "File not found: $1"
-  fi
-}
+if ! should_exclude "watchlog" 2>/dev/null; then
+  watchlog() {
+    if [[ -f "$1" ]]; then
+      tail -f "$1"
+    else
+      echo "File not found: $1"
+    fi
+  }
+fi
 
 # Weather info (requires curl)
-weather() {
-  local city=${1:-""}
-  curl -s "wttr.in/$city?format=3"
-}
+if ! should_exclude "weather" 2>/dev/null; then
+  weather() {
+    local city=${1:-""}
+    curl -s "wttr.in/$city?format=3"
+  }
+fi
