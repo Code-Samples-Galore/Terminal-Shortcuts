@@ -249,8 +249,15 @@ if ! should_exclude "entropy" 2>/dev/null; then
       data="$input"
     fi
     
-    # Calculate Shannon entropy using awk
-    echo -n "$data" | awk '
+    # Print entropy context information
+    echo "=== ENTROPY INFORMATION ==="
+    echo "Entropy Range: 0.0 (completely predictable) to 8.0 (maximum randomness)"
+    echo "Normal Text:   1.0 - 4.5 (typical range for human-readable text)"
+    echo "Random Data:   6.0 - 8.0 (cryptographic quality randomness)"
+    echo ""
+    
+    # Calculate Shannon entropy using awk with proper locale handling
+    local entropy_value=$(echo -n "$data" | LC_NUMERIC=C awk '
     BEGIN { 
       for (i = 0; i < 256; i++) freq[i] = 0 
     }
@@ -269,8 +276,22 @@ if ! should_exclude "entropy" 2>/dev/null; then
           entropy -= p * log(p) / log(2)
         }
       }
-      printf "%.6f\n", entropy
-    }'
+      printf "%.6f", entropy
+    }')
+    
+    echo "Calculated Entropy: $entropy_value"
+    
+    # Provide interpretation using awk for floating point comparison (bc-independent)
+    local interpretation=$(echo "$entropy_value" | awk '
+    {
+      if ($1 < 1.0) print "Very low entropy - highly predictable data"
+      else if ($1 < 2.0) print "Low entropy - simple or repetitive text"
+      else if ($1 < 4.0) print "Moderate entropy - typical human-readable text"
+      else if ($1 < 6.0) print "High entropy - complex text or mixed data"
+      else print "Very high entropy - random or encrypted data"
+    }')
+    
+    echo "Interpretation: $interpretation"
   }
 fi
 
