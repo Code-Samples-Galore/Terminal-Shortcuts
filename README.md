@@ -9,15 +9,15 @@ A comprehensive collection of bash aliases and functions designed to enhance ter
 1. Clone or download this repository:
 
 ```bash
-git clone <repository-url> ~/terminal_shortcuts
-# or download and extract to ~/terminal_shortcuts
+git clone <repository-url> ~/shortcuts
+# or download and extract to ~/shortcuts
 ```
 
 2. Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
 
 ```bash
 # Add this line to source all terminal shortcuts
-source ~/terminal_shortcuts/terminal_shortcuts.sh
+source ~/terminal_shortcuts/shortcuts.sh
 ```
 
 3. Reload your shell or run:
