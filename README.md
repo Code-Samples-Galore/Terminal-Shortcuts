@@ -9,8 +9,8 @@ A comprehensive collection of bash aliases and functions designed to enhance ter
 1. Clone or download this repository:
 
 ```bash
-git clone <repository-url> ~/shortcuts
-# or download and extract to ~/shortcuts
+git clone <repository-url> ~/terminal_shortcuts
+# or download and extract to ~/terminal_shortcuts
 ```
 
 2. Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
