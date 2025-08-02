@@ -73,7 +73,8 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 - **Mathematical calculations**: `calc` and `log2` functions
 - **Python module runner**: `pm` for executing Python modules using file paths
 - **Python virtual environment**: `svenv` for automatic venv activation
-- **Hex encoding/decoding**: `hexconv` for hex string conversion
+- **Hex encoding/decoding**: `hexconv` for hex string conversion (supports files)
+- **Base64 encoding/decoding**: `base64conv` for base64 conversion (supports files)
 - **Binary conversion**: `binconv` for converting strings or integers to binary
 - **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing
 - **HTTP servers**: Quick development server setup
@@ -173,7 +174,7 @@ $ gac
 [main 1a2b3c4] Auto commit: 5 files changed
 ```
 
-### Development Tools (`pm`, `log2`, `hexconv`, `randstr`, `hashit`, `binconv`)
+### Development Tools (`pm`, `log2`, `hexconv`, `base64conv`, `randstr`, `hashit`, `binconv`)
 
 #### Binary Converter (`binconv`)
 Convert strings or integers to binary representation:
@@ -209,19 +210,23 @@ $ log2 1024              # Returns: 10.000000
 ```
 
 #### Hex Converter (`hexconv`)
-Encode and decode hex strings:
+Encode and decode hex strings or files:
 
 ```bash
 $ hexconv encode "hello"      # Returns: 68656c6c6f
 $ hexconv decode "68656c6c6f" # Returns: hello
+$ hexconv encode myfile.txt   # Hex encode file contents
+$ hexconv decode hexfile.txt  # Hex decode file contents
 ```
 
-#### Random String Generator (`randstr`)
-Generate cryptographically secure random strings:
+#### Base64 Converter (`base64conv`)
+Encode and decode base64 strings or files:
 
 ```bash
-$ randstr              # 16-character string with special chars
-$ randstr 32           # 32-character secure random string
+$ base64conv encode "hello"        # Returns: aGVsbG8=
+$ base64conv decode "aGVsbG8="     # Returns: hello
+$ base64conv encode myfile.txt     # Base64 encode file contents
+$ base64conv decode b64file.txt    # Base64 decode file contents
 ```
 
 #### Hash Calculator (`hashit`)

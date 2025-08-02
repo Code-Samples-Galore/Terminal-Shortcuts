@@ -91,17 +91,55 @@ fi
 if ! should_exclude "hexconv" 2>/dev/null; then
   hexconv() {
     if [[ -z "$1" || -z "$2" ]]; then
-      echo "Usage: hexconv <encode|decode> <string>"
+      echo "Usage: hexconv <encode|decode> <string_or_file>"
       return 1
+    fi
+    
+    local input_source
+    if [[ -f "$2" ]]; then
+      input_source="cat \"$2\""
+    else
+      input_source="echo -n \"$2\""
     fi
     
     case "$1" in
       encode|e)
-        echo -n "$2" | xxd -p | tr -d '\n'
+        eval "$input_source" | xxd -p | tr -d '\n'
         echo
         ;;
       decode|d)
-        echo -n "$2" | xxd -r -p
+        eval "$input_source" | xxd -r -p
+        echo
+        ;;
+      *)
+        echo "Error: Use 'encode' or 'decode'"
+        return 1
+        ;;
+    esac
+  }
+fi
+
+# Base64 encode/decode function
+if ! should_exclude "base64conv" 2>/dev/null; then
+  base64conv() {
+    if [[ -z "$1" || -z "$2" ]]; then
+      echo "Usage: base64conv <encode|decode> <string_or_file>"
+      return 1
+    fi
+    
+    local input_source
+    if [[ -f "$2" ]]; then
+      input_source="cat \"$2\""
+    else
+      input_source="echo -n \"$2\""
+    fi
+    
+    case "$1" in
+      encode|e)
+        eval "$input_source" | base64
+        ;;
+      decode|d)
+        eval "$input_source" | base64 -d
         echo
         ;;
       *)
