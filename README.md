@@ -236,6 +236,10 @@ Some functions require additional tools:
 - `bc` - For calculations
 - `tree` - For directory tree display
 
+## 📄 License
+
+MIT License
+
 ---
 
 **Quick Help**: Run `shortcuts` in your terminal for a complete reference of all available commands and functions.
