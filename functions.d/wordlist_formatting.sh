@@ -33,6 +33,8 @@
 #   $ wordlist -splitpct "50 50" -o halves.txt file.txt    # Split into two 50% files
 #   $ wordlist -r -o random.txt file.txt        # Randomize word order
 #   $ wordlist -min 8 -r -o filtered_random.txt file.txt  # Filter and randomize
+#   $ wordlist -keepws file.txt                 # Keep only words with whitespace
+#   $ wordlist -removews file.txt               # Remove words with whitespace
 
 # Wordlist processing function
 if ! should_exclude "wordlist" 2>/dev/null; then
@@ -55,6 +57,7 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     local notregex_pattern=""
     local case_insensitive=false
     local randomize_flag=false
+    local keep_whitespace=""
     local output_file=""
     local split_size=""
     local split_percentages=""
@@ -248,15 +251,25 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           randomize_flag=true
           shift
           ;;
+        -keepws)
+          keep_whitespace="keep"
+          shift
+          ;;
+        -removews)
+          keep_whitespace="remove"
+          shift
+          ;;
         -*)
           echo "Error: Unknown option '$1'"
-          echo "Usage: wordlist [OPTIONS] "
+          echo "Usage: wordlist [OPTIONS] <file>"
           echo "  -s                Sort the wordlist"
           echo "  -u                Remove duplicate entries"
           echo "  -su               Sort and remove duplicates"
           echo "  -r                Randomize word order"
           echo "  -i                Case-insensitive regex matching"
           echo "  -I                Case-sensitive regex matching (default)"
+          echo "  -keepws           Keep only words containing whitespace"
+          echo "  -removews         Remove words containing whitespace"
           echo "  -o FILE           Save output to file instead of stdout"
           echo "  -split SIZE       Split output into files of max SIZE (e.g., 100MB, 1GB)"
           echo "  -splitpct \"X Y Z\" Split output into files with X%, Y%, Z% of words"
@@ -290,13 +303,15 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     
     # Check if file is provided
     if [[ -z "$input_file" ]]; then
-      echo "Usage: wordlist [OPTIONS] "
+      echo "Usage: wordlist [OPTIONS] <file>"
       echo "  -s                Sort the wordlist"
       echo "  -u                Remove duplicate entries"
       echo "  -su               Sort and remove duplicates"
       echo "  -r                Randomize word order"
       echo "  -i                Case-insensitive regex matching"
       echo "  -I                Case-sensitive regex matching (default)"
+      echo "  -keepws           Keep only words containing whitespace"
+      echo "  -removews         Remove words containing whitespace"
       echo "  -o FILE           Save output to file instead of stdout"
       echo "  -split SIZE       Split output into files of max SIZE (e.g., 100MB, 1GB)"
       echo "  -splitpct \"X Y Z\" Split output into files with X%, Y%, Z% of words"
@@ -557,6 +572,13 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     
     if [[ -n "$notregex_pattern" ]]; then
       processing_pipeline="$processing_pipeline | grep $grep_flags -v -E '$notregex_pattern'"
+    fi
+    
+    # Add whitespace filtering
+    if [[ "$keep_whitespace" == "keep" ]]; then
+      processing_pipeline="$processing_pipeline | grep -E '[[:space:]]'"
+    elif [[ "$keep_whitespace" == "remove" ]]; then
+      processing_pipeline="$processing_pipeline | grep -v -E '[[:space:]]'"
     fi
     
     # Handle sort, unique, and randomize operations efficiently
