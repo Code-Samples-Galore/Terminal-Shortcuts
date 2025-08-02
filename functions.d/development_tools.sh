@@ -228,6 +228,52 @@ if ! should_exclude "binconv" 2>/dev/null; then
   }
 fi
 
+# Entropy calculation function
+if ! should_exclude "entropy" 2>/dev/null; then
+  entropy() {
+    if [[ -z "$1" ]]; then
+      echo "Usage: entropy <string_or_file>"
+      echo "Examples:"
+      echo "  entropy \"hello world\"    # Calculate entropy of string"
+      echo "  entropy myfile.txt        # Calculate entropy of file"
+      return 1
+    fi
+    
+    local input="$1"
+    local data
+    
+    # Check if input is a file
+    if [[ -f "$input" ]]; then
+      data=$(cat "$input")
+    else
+      data="$input"
+    fi
+    
+    # Calculate Shannon entropy using awk
+    echo -n "$data" | awk '
+    BEGIN { 
+      for (i = 0; i < 256; i++) freq[i] = 0 
+    }
+    {
+      for (i = 1; i <= length($0); i++) {
+        char = substr($0, i, 1)
+        freq[sprintf("%c", char)]++
+        total++
+      }
+    }
+    END {
+      entropy = 0
+      for (char in freq) {
+        if (freq[char] > 0) {
+          p = freq[char] / total
+          entropy -= p * log(p) / log(2)
+        }
+      }
+      printf "%.6f\n", entropy
+    }'
+  }
+fi
+
 # Python Virtual Environment Auto-Activation Function
 if ! should_exclude "svenv" 2>/dev/null; then
   svenv() {

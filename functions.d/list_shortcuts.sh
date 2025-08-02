@@ -123,7 +123,17 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "    randstr     - Generate crypto-secure random strings"
     echo "    hashit      - Compute hash of strings or files (md5/sha1/sha256/sha512)"
     echo "    binconv     - Convert string or integer to binary representation"
+    echo "    entropy     - Calculate Shannon entropy of strings or files"
     echo "    svenv       - Auto-activate Python virtual environment"
+    echo
+
+    echo "  📝 Wordlist Processing:"
+    echo "    wordlist    - Advanced wordlist filtering, processing and manipulation"
+    echo "                  • Filter by length, character types, entropy, regex patterns"
+    echo "                  • Sort, remove duplicates, randomize word order"
+    echo "                  • Split output by size (MB/GB) or percentage distribution"
+    echo "                  • Memory-efficient streaming for large files"
+    echo "                  • Case-sensitive/insensitive regex matching"
     echo
 
     echo "  📚 Help:"

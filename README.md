@@ -77,7 +77,9 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 - **Base64 encoding/decoding**: `base64conv` for base64 conversion (supports files)
 - **Binary conversion**: `binconv` for converting strings or integers to binary
 - **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing
+- **Entropy calculation**: `entropy` for calculating Shannon entropy of strings or files
 - **HTTP servers**: Quick development server setup
+- **Wordlist processing**: `wordlist` for advanced wordlist filtering and manipulation
 
 ### 🌐 Network Utilities
 
@@ -238,43 +240,68 @@ $ hashit md5 myfile.txt          # Hash a file
 $ hashit sha512 "secret data"    # SHA512 hash
 ```
 
-### Development Tools (`jsonpp`, `genpass`, `calc`)
-
-Pretty-print JSON files:
-
-```bash
-jsonpp data.json          # Format JSON file
-curl api.example.com | jsonpp  # Format API response
-```
-
-Generate secure passwords:
+#### Entropy Calculator (`entropy`)
+Calculate Shannon entropy for strings or files to measure randomness/complexity:
 
 ```bash
-genpass           # 16-character password (default)
-genpass 32        # 32-character password
+$ entropy "hello world"          # Calculate entropy of string
+$ entropy passwords.txt          # Calculate entropy of file contents
+$ entropy "aaaaaa"               # Low entropy: 0.000000
+$ entropy "random123!@#"         # Higher entropy: ~3.5
 ```
 
-Calculate mathematical expressions:
+Entropy values range from 0 (completely predictable) to ~8 (maximum randomness for byte data). Higher entropy values indicate more complex, less predictable data.
 
+### Wordlist Processing (`wordlist`)
+
+Comprehensive wordlist filtering and manipulation with advanced options:
+
+**Basic Operations:**
+- Sort wordlists alphabetically
+- Remove duplicate entries while preserving order
+- Randomize word order using efficient algorithms
+
+**Length Filtering:**
 ```bash
-calc '2 + 2'      # Returns: 4
-calc 'sin(30)'    # Returns: 0.49999999999999994
+$ wordlist -min 8 -max 16 passwords.txt     # Keep words 8-16 characters
 ```
 
-### Network Monitoring (`myip`)
-
-Display IP address information:
-
+**Character Type Filtering:**
 ```bash
-$ myip
-=== IP ADDRESS INFORMATION ===
-
-Local IP Address:
-  192.168.1.100
-
-External IP Address:
-  203.0.113.45
+$ wordlist -minnum 2 -maxnum 4 passwords.txt        # 2-4 numbers
+$ wordlist -minlower 3 -minupper 1 passwords.txt    # 3+ lowercase, 1+ uppercase
+$ wordlist -minspecial 1 passwords.txt              # At least 1 special char
 ```
+
+**Entropy Filtering:**
+```bash
+$ wordlist -minentropy 3.0 passwords.txt    # High entropy words only
+$ wordlist -maxentropy 2.0 passwords.txt    # Low entropy words only
+```
+
+**Regex Filtering:**
+```bash
+$ wordlist -regex "^admin" passwords.txt     # Words starting with "admin"
+$ wordlist -notregex "@" passwords.txt       # Exclude email-like entries
+$ wordlist -i -regex "PASS" passwords.txt    # Case-insensitive "pass"
+```
+
+**Output Options:**
+```bash
+$ wordlist -o output.txt passwords.txt                          # Save to file
+$ wordlist -split 100MB -o parts.txt passwords.txt              # Size-based split
+$ wordlist -splitpct "25 25 50" -o parts.txt passwords.txt      # Percentage split
+```
+
+**Memory Efficiency:**
+The wordlist function uses streaming processing to handle files of any size without loading everything into memory. This makes it suitable for processing multi-gigabyte wordlists on systems with limited RAM.
+
+**Performance Features:**
+- Line-by-line processing for memory efficiency
+- Pipeline-based filtering for optimal performance
+- Efficient duplicate detection using associative arrays
+- Uses `shuf` command when available for fast randomization
+- Size-based splitting using native `split` command
 
 ## 🎯 Aliases Quick Reference
 
