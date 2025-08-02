@@ -115,6 +115,11 @@ shortcuts() {
   echo "    jsonpp      - Pretty-print JSON files"
   echo "    genpass     - Generate secure random passwords"
   echo "    calc        - Perform mathematical calculations"
+  echo "    pm          - Run Python modules using file path notation"
+  echo "    log2        - Calculate base-2 logarithm of integers"
+  echo "    hexconv     - Encode/decode hex strings"
+  echo "    randstr     - Generate crypto-secure random strings"
+  echo "    hashit      - Compute hash of strings or files (md5/sha1/sha256/sha512)"
   echo
   echo "  📚 Help:"
   echo "    shortcuts   - Show this complete function reference"

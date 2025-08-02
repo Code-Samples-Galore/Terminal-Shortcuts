@@ -68,7 +68,11 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 
 - **JSON formatting**: `jsonpp` for pretty-printing JSON
 - **Password generation**: `genpass` for secure passwords
-- **Mathematical calculations**: `calc` function
+- **String generation**: `randstr` for crypto-secure random strings with special characters
+- **Mathematical calculations**: `calc` and `log2` functions
+- **Python module runner**: `pm` for executing Python modules using file paths
+- **Hex encoding/decoding**: `hexconv` for hex string conversion
+- **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing
 - **HTTP servers**: Quick development server setup
 
 ### 🌐 Network Utilities
@@ -152,7 +156,7 @@ $ gac
 [main 1a2b3c4] Auto commit: 5 files changed
 ```
 
-### Development Tools (`jsonpp`)
+### Development Tools (`jsonpp`, `genpass`, `calc`)
 
 Pretty-print JSON files:
 
@@ -161,13 +165,18 @@ jsonpp data.json          # Format JSON file
 curl api.example.com | jsonpp  # Format API response
 ```
 
-### Password Generation (`genpass`)
-
 Generate secure passwords:
 
 ```bash
 genpass           # 16-character password (default)
 genpass 32        # 32-character password
+```
+
+Calculate mathematical expressions:
+
+```bash
+calc '2 + 2'      # Returns: 4
+calc 'sin(30)'    # Returns: 0.49999999999999994
 ```
 
 ## 🎯 Aliases Quick Reference
