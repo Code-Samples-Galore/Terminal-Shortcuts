@@ -332,8 +332,8 @@ if ! should_exclude "wordlist" 2>/dev/null; then
       return 1
     fi
     
-    # Check if file exists
-    if [[ ! -f "$input_file" ]]; then
+    # Check if file exists (skip check for stdin)
+    if [[ "$input_file" != "-" && ! -f "$input_file" ]]; then
       echo "Error: File '$input_file' not found"
       return 1
     fi
@@ -555,9 +555,18 @@ if ! should_exclude "wordlist" 2>/dev/null; then
       else
         awk_script="$awk_script { if ($filter_conditions) print \$0; }"
       fi
-      processing_pipeline="awk '$awk_script' '$input_file'"
+      
+      if [[ "$input_file" == "-" ]]; then
+        processing_pipeline="awk '$awk_script'"
+      else
+        processing_pipeline="awk '$awk_script' '$input_file'"
+      fi
     else
-      processing_pipeline="cat '$input_file'"
+      if [[ "$input_file" == "-" ]]; then
+        processing_pipeline="cat"
+      else
+        processing_pipeline="cat '$input_file'"
+      fi
     fi
     
     # Add regex filtering

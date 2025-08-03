@@ -131,3 +131,5 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo
   }
 fi
+
+if ! should_exclude "sc" 2>/dev/null; then alias sc='shortcuts'; fi
