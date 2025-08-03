@@ -335,3 +335,8 @@ Status:
 ### 🐍 Python
 - `p` - Python3
 - `pm` - Run Python modules using file path
+-
+- ## 📄 License
+
+MIT License
+
