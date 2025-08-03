@@ -57,14 +57,51 @@ if ! should_exclude "ff" 2>/dev/null; then
   }
 fi
 
-# Find and replace in files
+# Replace text in strings or files
 if ! should_exclude "replace" 2>/dev/null; then
   replace() {
-    if [[ $# -ne 3 ]]; then
-      echo "Usage: replace <search> <replace> <file_pattern>"
+    if [[ $# -lt 3 ]]; then
+      echo "Usage: replace <string_or_file> <search_pattern> <replacement>"
+      echo "Examples:"
+      echo "  replace \"hello world\" \"world\" \"universe\"    # Replace in string"
+      echo "  replace myfile.txt \"old_text\" \"new_text\"     # Replace in file"
+      echo "  replace myfile.txt \"pattern\" \"replacement\" --backup  # Create backup first"
       return 1
     fi
-    grep -rl "$1" . --include="$3" | xargs sed -i "s/$1/$2/g"
+    
+    local input="$1"
+    local search="$2"
+    local replacement="$3"
+    local create_backup=false
+    
+    # Check for backup flag
+    if [[ "$4" == "--backup" ]]; then
+      create_backup=true
+    fi
+    
+    # Check if input is a file
+    if [[ -f "$input" ]]; then
+      # Create backup if requested
+      if [[ "$create_backup" == true ]]; then
+        local backup_name="${input}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$input" "$backup_name"
+        echo "Backup created: $backup_name"
+      fi
+      
+      # Replace in file using sed (cross-platform compatible)
+      if command -v gsed >/dev/null 2>&1; then
+        # Use GNU sed if available (macOS with homebrew)
+        gsed -i "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input"
+      else
+        # Use system sed
+        sed -i.tmp "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input" && rm "${input}.tmp"
+      fi
+      
+      echo "Replaced '${search}' with '${replacement}' in file: $input"
+    else
+      # Treat as string and output result
+      echo "$input" | sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
+    fi
   }
 fi
 

@@ -87,6 +87,7 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "  pipi        - Install Python package (pip install)"
     echo "  pipu        - Upgrade Python package (pip install -U)"
     echo "  pipr        - Install from requirements file (pip install -r)"
+    echo "  svenv       - Auto-activate Python virtual environment"
     echo
     
     echo "📋 Custom Functions:"
@@ -124,11 +125,9 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "    log2        - Calculate base-2 logarithm of integers"
     echo "    hexconv     - Encode/decode hex strings or files"
     echo "    base64conv  - Encode/decode base64 strings or files"
-    echo "    randstr     - Generate crypto-secure random strings"
     echo "    hashit      - Compute hash of strings or files (md5/sha1/sha256/sha512)"
     echo "    binconv     - Convert string or integer to binary representation"
     echo "    entropy     - Calculate Shannon entropy of strings or files"
-    echo "    svenv       - Auto-activate Python virtual environment"
     echo
 
     echo "  📝 Wordlist Processing:"
