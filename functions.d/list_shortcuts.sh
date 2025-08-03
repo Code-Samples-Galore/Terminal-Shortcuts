@@ -79,9 +79,14 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     
     echo "🚀 Programs:"
     echo "  v           - Vim editor"
-    echo "  n           - Nano editor"
-    echo "  e           - Emacs editor"
+    echo
+    
+    echo "🐍 Python:"
     echo "  p           - Python3"
+    echo "  pm          - Run Python modules using file path notation"
+    echo "  pipi        - Install Python package (pip install)"
+    echo "  pipu        - Upgrade Python package (pip install -U)"
+    echo "  pipr        - Install from requirements file (pip install -r)"
     echo
     
     echo "📋 Custom Functions:"
@@ -109,14 +114,13 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "    extract     - Extract any type of archive file"
     echo "    mkcd        - Create directory and navigate into it"
     echo "    ff          - Find files by name pattern"
-    echo "    replace     - Find and replace text in files"
+    echo "    replace     - Find and replace text in strings or files"
     echo "    backup      - Create timestamped backup of file"
     echo
     echo "  🛠️  Development Tools:"
     echo "    jsonpp      - Pretty-print JSON files"
     echo "    genpass     - Generate secure random passwords"
     echo "    calc        - Perform mathematical calculations"
-    echo "    pm          - Run Python modules using file path notation"
     echo "    log2        - Calculate base-2 logarithm of integers"
     echo "    hexconv     - Encode/decode hex strings or files"
     echo "    base64conv  - Encode/decode base64 strings or files"

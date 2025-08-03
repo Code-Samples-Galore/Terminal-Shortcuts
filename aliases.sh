@@ -61,8 +61,11 @@ if ! should_exclude "bashrc" 2>/dev/null; then alias bashrc='vim ~/.bashrc'; fi
 if ! should_exclude "zshrc" 2>/dev/null; then alias zshrc='vim ~/.zshrc'; fi
 if ! should_exclude "vimrc" 2>/dev/null; then alias vimrc='vim ~/.vimrc'; fi
 
+# Python
+if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi
+if ! should_exclude "pipi" 2>/dev/null; then alias pipi='python3 -m pip install'; fi
+if ! should_exclude "pipu" 2>/dev/null; then alias pipu='python3 -m pip install -U'; fi
+if ! should_exclude "pipr" 2>/dev/null; then alias pipr='python3 -m pip install -r'; fi
+
 # Programs
 if ! should_exclude "v" 2>/dev/null; then alias v='vim'; fi
-if ! should_exclude "n" 2>/dev/null; then alias n='nano'; fi
-if ! should_exclude "e" 2>/dev/null; then alias e='emacs'; fi
-if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi

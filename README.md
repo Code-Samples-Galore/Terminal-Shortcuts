@@ -59,6 +59,7 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 
 - **Virtual environment**: `svenv` for automatic venv activation
 - **Quick Python access**: `p` alias for python3
+- **Package management**: `pipi`, `pipu`, `pipr` for pip operations
 
 ### ⚙️ Process Management
 
@@ -167,6 +168,18 @@ extract package.zip       # Extracts zip files
 extract data.7z          # Extracts 7z files
 ```
 
+### Find and Replace (`replace`)
+
+Find and replace text in strings or files:
+
+```bash
+$ replace "hello world" "world" "universe"     # Returns: hello universe
+$ replace myfile.txt "old_text" "new_text"     # Replace in file
+$ replace config.ini "localhost" "127.0.0.1" --backup  # Replace with backup
+```
+
+The `--backup` flag creates a timestamped backup file before making changes.
+
 ### Git Enhancements (`gac`)
 
 Auto-commit with intelligent messages:
@@ -271,6 +284,7 @@ $ wordlist -min 8 -max 16 passwords.txt     # Keep words 8-16 characters
 $ wordlist -minnum 2 -maxnum 4 passwords.txt        # 2-4 numbers
 $ wordlist -minlower 3 -minupper 1 passwords.txt    # 3+ lowercase, 1+ uppercase
 $ wordlist -minspecial 1 passwords.txt              # At least 1 special char
+$ wordlist -replace "old" "new" passwords.txt       # Find and replace text
 ```
 
 **Entropy Filtering:**
@@ -319,6 +333,13 @@ The wordlist function uses streaming processing to handle files of any size with
 - `gc "message"` - Git commit with message
 - `gp` - Git push
 - `gb` - Git branch
+
+### Python Development
+
+- `p` - Python3 interpreter
+- `pipi package` - Install Python package (pip install)
+- `pipu package` - Upgrade Python package (pip install -U)
+- `pipr requirements.txt` - Install from requirements file (pip install -r)
 
 ### System Utilities
 
