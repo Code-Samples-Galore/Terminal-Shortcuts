@@ -27,6 +27,7 @@
 #   $ path                       # Display PATH variable formatted
 
 # System Utilities
+if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
 if ! should_exclude "h" 2>/dev/null; then alias h='history'; fi
 if ! should_exclude "path" 2>/dev/null; then alias path='echo -e ${PATH//:/\\n}'; fi
 if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T "'; fi
