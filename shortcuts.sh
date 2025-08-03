@@ -14,11 +14,9 @@ should_exclude() {
   return 1  # Should not exclude
 }
 
-source "$SCRIPT_DIR/aliases.sh"
-
-# Source all files in functions.d directory
-if [[ -d "$SCRIPT_DIR/functions.d" ]]; then
-  for file in "$SCRIPT_DIR/functions.d"/*; do
+# Source all files in shortcuts.d directory
+if [[ -d "$SCRIPT_DIR/shortcuts.d" ]]; then
+  for file in "$SCRIPT_DIR/shortcuts.d"/*; do
     if [[ -f "$file" ]]; then
       source "$file"
     fi

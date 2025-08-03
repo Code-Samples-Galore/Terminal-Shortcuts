@@ -1,12 +1,37 @@
 #!/bin/bash
-# System Information Display Function
+# System Utilities Functions
 # 
-# Description: Provides comprehensive system information including OS details,
-# CPU specifications, memory usage, GPU information, and disk usage.
-# Works cross-platform (macOS and Linux) with appropriate fallbacks.
+# Description: Comprehensive system information and process management utilities.
+# Includes OS details display, process killing by command name, resource monitoring,
+# and time/date utilities. Works cross-platform (macOS and Linux).
 #
-# Usage: sysinfo
-# Example: $ sysinfo
+# Functions:
+#   sysinfo    - Display comprehensive system information (OS, CPU, memory, GPU, disk)
+#   killcmd    - Interactive process killer by command name
+#   topcpu     - Show top 10 processes by CPU usage
+#   topmem     - Show top 10 processes by memory usage
+#
+# Aliases:
+#   h          - Command history
+#   path       - Display PATH variable formatted
+#   now        - Current time and date
+#   nowtime    - Current time only
+#   nowdate    - Current date only
+#
+# Usage Examples:
+#   $ sysinfo                    # Show comprehensive system information
+#   $ killcmd firefox            # Kill all Firefox processes interactively
+#   $ topcpu                     # Show top CPU-consuming processes
+#   $ topmem                     # Show top memory-consuming processes
+#   $ h                          # Show command history
+#   $ path                       # Display PATH variable formatted
+
+# System Utilities
+if ! should_exclude "h" 2>/dev/null; then alias h='history'; fi
+if ! should_exclude "path" 2>/dev/null; then alias path='echo -e ${PATH//:/\\n}'; fi
+if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T "'; fi
+if ! should_exclude "nowtime" 2>/dev/null; then alias nowtime='date +"%T"'; fi
+if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%d-%m-%Y"'; fi
 
 if ! should_exclude "sysinfo" 2>/dev/null; then
   sysinfo() {
@@ -124,5 +149,18 @@ if ! should_exclude "killcmd" 2>/dev/null; then
     fi
     
     rm "$temp_file"
+  }
+fi
+
+# Show top processes by CPU/Memory
+if ! should_exclude "topcpu" 2>/dev/null; then
+  topcpu() {
+    ps aux --sort=-%cpu | head -10
+  }
+fi
+
+if ! should_exclude "topmem" 2>/dev/null; then
+  topmem() {
+    ps aux --sort=-%mem | head -10
   }
 fi

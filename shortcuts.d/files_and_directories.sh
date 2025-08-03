@@ -19,6 +19,24 @@
 #   $ replace "old" "new" "*.txt"  # Replace text in files
 #   $ backup important.txt      # Create timestamped backup
 
+# File and Directory Operations
+if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lh'; fi
+if ! should_exclude "la" 2>/dev/null; then alias la='ls -la'; fi
+if ! should_exclude "l" 2>/dev/null; then alias l='ls -CF'; fi
+if ! should_exclude ".." 2>/dev/null; then alias ..='cd ..'; fi
+if ! should_exclude "..." 2>/dev/null; then alias ...='cd ../..'; fi
+if ! should_exclude "...." 2>/dev/null; then alias ....='cd ../../..'; fi
+if ! should_exclude "~" 2>/dev/null; then alias ~='cd ~'; fi
+if ! should_exclude "mkdir" 2>/dev/null; then alias mkdir='mkdir -pv'; fi
+if ! should_exclude "cp" 2>/dev/null; then alias cp='cp -iv'; fi
+if ! should_exclude "mv" 2>/dev/null; then alias mv='mv -iv'; fi
+if ! should_exclude "rm" 2>/dev/null; then alias rm='rm -iv'; fi
+if ! should_exclude "grep" 2>/dev/null; then alias grep='grep --color=auto'; fi
+if ! should_exclude "tree" 2>/dev/null; then alias tree='tree -C'; fi
+if ! should_exclude "chown" 2>/dev/null; then alias chown='chown --preserve-root'; fi
+if ! should_exclude "chmod" 2>/dev/null; then alias chmod='chmod --preserve-root'; fi
+if ! should_exclude "chgrp" 2>/dev/null; then alias chgrp='chgrp --preserve-root'; fi
+
 # Extract any archive type
 if ! should_exclude "extract" 2>/dev/null; then
   extract() {
@@ -111,6 +129,17 @@ if ! should_exclude "backup" 2>/dev/null; then
     if [[ -f "$1" ]]; then
       cp "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
       echo "Backup created: $1.backup.$(date +%Y%m%d_%H%M%S)"
+    else
+      echo "File not found: $1"
+    fi
+  }
+fi
+
+# Monitor log file
+if ! should_exclude "watchlog" 2>/dev/null; then
+  watchlog() {
+    if [[ -f "$1" ]]; then
+      tail -f "$1"
     else
       echo "File not found: $1"
     fi
