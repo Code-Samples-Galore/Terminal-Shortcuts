@@ -9,7 +9,7 @@
 #   extract    - Extract any type of archive file
 #   mkcd       - Create directory and navigate into it
 #   ff         - Find files by name pattern
-#   replace    - Find and replace text in files
+#   replace    - Find and replace text in files, strings, or stdin
 #   backup     - Create timestamped backup of file
 #
 # Usage Examples:
@@ -17,6 +17,8 @@
 #   $ mkcd new_project          # Create and enter directory
 #   $ ff "*.py"                 # Find Python files
 #   $ replace "old" "new" "*.txt"  # Replace text in files
+#   $ replace - "old" "new"     # Replace text from stdin
+#   $ echo "hello world" | replace - "world" "universe"  # Replace from stdin
 #   $ backup important.txt      # Create timestamped backup
 
 # File and Directory Operations
@@ -79,11 +81,12 @@ fi
 if ! should_exclude "replace" 2>/dev/null; then
   replace() {
     if [[ $# -lt 3 ]]; then
-      echo "Usage: replace <string_or_file> <search_pattern> <replacement>"
+      echo "Usage: replace <string_or_file|-> <search_pattern> <replacement>"
       echo "Examples:"
       echo "  replace \"hello world\" \"world\" \"universe\"    # Replace in string"
       echo "  replace myfile.txt \"old_text\" \"new_text\"     # Replace in file"
       echo "  replace myfile.txt \"pattern\" \"replacement\" --backup  # Create backup first"
+      echo "  echo \"text\" | replace - \"old\" \"new\"        # Replace from stdin"
       return 1
     fi
     
@@ -97,8 +100,12 @@ if ! should_exclude "replace" 2>/dev/null; then
       create_backup=true
     fi
     
+    # Check if input is stdin
+    if [[ "$input" == "-" ]]; then
+      # Replace in stdin and output result
+      sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
     # Check if input is a file
-    if [[ -f "$input" ]]; then
+    elif [[ -f "$input" ]]; then
       # Create backup if requested
       if [[ "$create_backup" == true ]]; then
         local backup_name="${input}.bak.$(date +%Y%m%d_%H%M%S)"

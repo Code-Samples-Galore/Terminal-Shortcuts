@@ -29,7 +29,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  tree        - Tree view with colors"
     echo "  extract     - Extract any type of archive file"
     echo "  ff          - Find files by name pattern"
-    echo "  replace     - Find and replace text in strings or files"
+    echo "  replace     - Find and replace text in strings, files, or stdin"
     echo "  backup      - Create timestamped backup of file"
     echo "  watchlog    - Monitor log file changes in real-time"
     echo "  chown       - chown with preserve-root safety"

@@ -253,6 +253,7 @@ extract data.7z          # Extracts 7z files
 $ replace "hello world" "world" "universe"     # Returns: hello universe
 $ replace myfile.txt "old_text" "new_text"     # Replace in file
 $ replace config.ini "localhost" "127.0.0.1" --backup  # Replace with backup
+$ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 ```
 
 ### Git Enhancements (`gac`, `gitinfo`)
@@ -294,7 +295,7 @@ Status:
 - `tree` - Tree view with colors
 - `extract` - Extract any type of archive file
 - `ff` - Find files by name pattern
-- `replace` - Find and replace text in strings or files
+- `replace` - Find and replace text in strings, files, or stdin
 - `backup` - Create timestamped backup of file
 - `watchlog` - Monitor log file changes in real-time
 - `chown` - chown with preserve-root safety
