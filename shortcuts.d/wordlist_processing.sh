@@ -359,6 +359,12 @@ if ! should_exclude "wordlist" 2>/dev/null; then
       return 1
     fi
     
+    # Validate that split options require output file
+    if [[ (-n "$split_size" || -n "$split_percentages") && -z "$output_file" ]]; then
+      echo "Error: Split options (-split or -splitpct) require an output file (-o)"
+      return 1
+    fi
+    
     # Validate entropy relationship
     if [[ -n "$min_entropy" && -n "$max_entropy" ]]; then
       # Use awk for floating point comparison since bash doesn't handle floats natively
