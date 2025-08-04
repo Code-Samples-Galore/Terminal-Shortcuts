@@ -39,7 +39,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Archive operations**: Universal `extract` and `compress` functions for any archive type with volume splitting support
 - **File operations**: Find files (`ff`), find-and-replace (`replace`), timestamped backups (`backup`)
 - **Directory creation**: `mkcd` to create and enter directories
-- **Log monitoring**: `watchlog` for real-time log file monitoring
+- **Monitoring**: `watchfile` for real-time file monitoring and `watchdir` for directory content monitoring
 
 ### 🔀 Git Enhancements
 
@@ -369,6 +369,7 @@ search -iEz "^(http|https)://" config/       # Case insensitive URL patterns in 
 - `replace` - Find and replace text in strings, files, or stdin
 - `backup` - Create timestamped backup of files/folders with optional compression
 - `watchlog` - Monitor log file changes in real-time
+- `watchdir` - Monitor directory contents in real-time
 - `chown` - chown with preserve-root safety
 - `chmod` - chmod with preserve-root safety
 - `chgrp` - chgrp with preserve-root safety
@@ -433,7 +434,6 @@ search -iEz "^(http|https)://" config/       # Case insensitive URL patterns in 
 ## 📄 License
 
 MIT License
-- `ports` - Show network ports and connections
 - `wget` - Wget with continue option
 - `ping` - Ping 5 times
 - `fastping` - Fast ping test (100 packets)

@@ -35,7 +35,8 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  ff          - Find files by name pattern"
     echo "  search      - Search for text in files with basic/extended regex, case sensitivity, and optional .gz file support"
     echo "  backup      - Create timestamped backup of files/folders with optional compression"
-    echo "  watchlog    - Monitor log file changes in real-time"
+    echo "  watchfile   - Monitor file changes in real-time"
+    echo "  watchdir    - Monitor directory contents in real-time"
     echo "  chown       - chown with preserve-root safety"
     echo "  chmod       - chmod with preserve-root safety" 
     echo "  chgrp       - chgrp with preserve-root safety"
@@ -119,8 +120,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  pipu        - Upgrade Python package(s), all packages, or from requirements.txt"
     echo "  pipl        - List installed packages (pip list)"
     echo "  svenv       - Auto-activate Python virtual environment"
-    echo
-    
+    echo    
     echo "📦 Node.js:"
     echo "  nu          - Use Node version (nvm use)"
     echo "  nl          - List Node versions (nvm list)"

@@ -3,7 +3,7 @@
 #
 # Description: Enhanced file and directory manipulation utilities including
 # universal archive extraction, directory creation with navigation, file search,
-# text search in files, and automated file/folder backup with timestamps and optional compression.
+# text search in files, directory monitoring, and automated file/folder backup with timestamps and optional compression.
 #
 # Functions:
 #   extract    - Extract any type of archive file
@@ -12,6 +12,8 @@
 #   ff         - Find files by name pattern
 #   search     - Search for text in files with optional recursive directory search
 #   backup     - Create timestamped backup of files or folders with optional compression
+#   watchfile  - Monitor file changes in real-time
+#   watchdir   - Monitor directory contents in real-time
 #
 # Usage Examples:
 #   $ extract archive.tar.gz    # Extract any archive type
@@ -24,6 +26,8 @@
 #   $ backup important.txt      # Create simple copy backup
 #   $ backup project/ --compress tar.gz  # Create compressed folder backup
 #   $ backup config.ini --compress zip   # Create compressed file backup
+#   $ watchfile /var/log/system.log  # Monitor log file
+#   $ watchdir /home/user/downloads  # Monitor directory changes
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "ll"
@@ -47,8 +51,10 @@ cleanup_shortcut "compress"
 cleanup_shortcut "mkcd"
 cleanup_shortcut "ff"
 cleanup_shortcut "backup"
+cleanup_shortcut "watchfile"
 cleanup_shortcut "watchlog"
 cleanup_shortcut "search"
+cleanup_shortcut "watchdir"
 
 # File and Directory Operations
 if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lh'; fi
@@ -358,7 +364,7 @@ if ! should_exclude "search" 2>/dev/null; then
       echo "  search -z \"error\" logfile.gz              # Search in gzip compressed file"
       echo "  search -rz \"exception\" logs/              # Recursive search including .gz files"
       echo "  search -E \"[a-z]+@[a-z]+\\.[a-z]{2,4}\" .  # Extended regex: email pattern"
-      echo "  search -ri \"[Ee]rror\" /var/log            # Case insensitive, recursive"
+      echo "  search -ri \"[Ee]ror\" /var/log            # Case insensitive, recursive"
       echo "  search -E \"^(GET|POST)\" access.log        # Extended regex with alternation"
       return 1
     fi
@@ -722,13 +728,36 @@ if ! should_exclude "backup" 2>/dev/null; then
   }
 fi
 
-# Monitor log file
-if ! should_exclude "watchlog" 2>/dev/null; then
-  watchlog() {
+# Monitor file
+if ! should_exclude "watchfile" 2>/dev/null; then
+  watchfile() {
     if [[ -f "$1" ]]; then
       tail -f "$1"
     else
       echo "File not found: $1"
     fi
+  }
+fi
+
+# Monitor directory contents
+if ! should_exclude "watchdir" 2>/dev/null; then
+  watchdir() {
+    local target_dir="${1:-.}"
+    
+    if [[ ! -d "$target_dir" ]]; then
+      echo "Error: '$target_dir' is not a directory or does not exist"
+      return 1
+    fi
+    
+    if ! command -v watch >/dev/null 2>&1; then
+      echo "Error: 'watch' command not found. Please install it to use this function."
+      return 1
+    fi
+    
+    echo "Monitoring directory: $target_dir"
+    echo "Press Ctrl+C to stop monitoring"
+    echo ""
+    
+    watch -n 2 "ls -lh '$target_dir'"
   }
 fi
