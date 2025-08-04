@@ -33,6 +33,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  extract     - Extract any type of archive file"
     echo "  compress    - Create any type of archive file (with volume splitting support)"
     echo "  ff          - Find files by name pattern"
+    echo "  search      - Search for text in files with basic/extended regex and case sensitivity options"
     echo "  backup      - Create timestamped backup of files/folders with optional compression"
     echo "  watchlog    - Monitor log file changes in real-time"
     echo "  chown       - chown with preserve-root safety"

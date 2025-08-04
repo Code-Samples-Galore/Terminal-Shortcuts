@@ -239,7 +239,7 @@ $ wordlist -su -o output.txt passwords.txt   # Sort, unique, save to file
 $ wordlist -split 100MB -o parts.txt large.txt  # Split into 100MB files
 ```
 
-### File Operations (`extract`, `compress`, `mkcd`, `ff`, `replace`, `backup`)
+### File Operations (`extract`, `compress`, `mkcd`, `ff`, `search`, `replace`, `backup`)
 
 #### Universal Archive Operations
 ```bash
@@ -292,6 +292,85 @@ $ replace config.ini "localhost" "127.0.0.1" --backup  # Replace with backup
 $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 ```
 
+#### Text Search in Files (`search`)
+Search for text patterns in files with optional recursive directory searching, regex support, and case sensitivity control:
+
+```bash
+# Basic text searching
+search "TODO" file.txt                    # Search in single file
+search "function" *.py                    # Search in Python files using wildcards
+search "error" config.ini settings.conf  # Search in multiple specific files
+
+# Directory searching
+search "class" src/                       # Search in all files in src/ directory (non-recursive)
+search -r "import" .                      # Search recursively in current directory
+search --recursive "password" /etc/       # Search recursively in system config
+
+# Case insensitive searching
+search -i "ERROR" logs/                   # Case insensitive search
+search -ri "password" .                   # Recursive case insensitive search
+
+# Basic regular expression searching (default)
+search "[a-z][0-9]" *.txt                # Letter followed by digit
+search "^function" src/                   # Lines starting with "function"
+search "error$" logs/                     # Lines ending with "error"
+search "[Ee]rror" logs/                   # Match "Error" or "error"
+search "test[0-9]\\{3\\}" files/          # "test" followed by exactly 3 digits
+
+# Extended regular expression searching (with -E flag)
+search -E "[a-z]+@[a-z]+\.[a-z]{2,4}" .  # Email pattern
+search -E "^(GET|POST)" access.log       # Lines starting with GET or POST
+search -E "function.*\(.*\)" src/        # Function definitions
+search -E "import.*\{.*\}" *.js          # ES6 import statements
+
+# Combined options
+search -riE "error|warning|critical" logs/  # Recursive, case insensitive, extended regex
+search -iE "^(http|https)://" config/       # Case insensitive URL patterns
+```
+
+**Options:**
+- `-r, --recursive`: Search recursively in subdirectories
+- `-i, --ignore-case`: Case insensitive search
+- `-E, --extended-regexp`: Use extended regular expressions (ERE)
+- **Option combinations**: `-ri`, `-rE`, `-iE`, `-riE` for multiple options
+
+**Regex Support:**
+
+*Basic Regular Expressions (BRE) - Default:*
+- `[a-z]` - Character classes
+- `^pattern` - Start of line anchor
+- `pattern$` - End of line anchor
+- `.` - Any single character
+- `*` - Zero or more of preceding character
+- `\{n\}` - Exactly n occurrences (escaped braces)
+- `\{n,m\}` - Between n and m occurrences (escaped braces)
+
+*Extended Regular Expressions (ERE) - With `-E` flag:*
+- `+` - One or more of preceding character
+- `?` - Zero or one of preceding character
+- `{n}` - Exactly n occurrences (unescaped braces)
+- `{n,m}` - Between n and m occurrences (unescaped braces)
+- `(pattern1|pattern2)` - Alternation (OR)
+- `()` - Grouping
+
+**Features:**
+- **File targeting**: Search in specific files, wildcards, or directories
+- **Recursive search**: Use `-r` or `--recursive` for subdirectory search
+- **Case control**: Use `-i` or `--ignore-case` for case insensitive matching
+- **Regex support**: Basic regex by default, extended regex with `-E` flag
+- **Line numbers**: Shows file path and line number for each match
+- **Pattern matching**: Supports literal text and regular expressions
+- **Multiple targets**: Can search across multiple files or patterns
+
+**Output format**: `filepath:line_number:matched_line`
+
+**Common Regex Examples:**
+- `[a-z]1234` - Any lowercase letter followed by "1234"
+- `^Error:` - Lines starting with "Error:"
+- `\.txt$` - Lines ending with ".txt"
+- `[0-9]{3}-[0-9]{2}-[0-9]{4}` - SSN format (with -E flag)
+- `(error|warning|info)` - Match any of the three words (with -E flag)
+
 ## 🎯 Complete Aliases and Functions Reference
 
 ### 📁 File and Directory Operations
@@ -312,6 +391,7 @@ $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 - `extract` - Extract any type of archive file
 - `compress` - Create any type of archive file with volume splitting support
 - `ff` - Find files by name pattern
+- `search` - Search for text in files with regex and case sensitivity options
 - `replace` - Find and replace text in strings, files, or stdin
 - `backup` - Create timestamped backup of files/folders with optional compression
 - `watchlog` - Monitor log file changes in real-time

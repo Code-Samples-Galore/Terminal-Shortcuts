@@ -3,13 +3,14 @@
 #
 # Description: Enhanced file and directory manipulation utilities including
 # universal archive extraction, directory creation with navigation, file search,
-# and automated file/folder backup with timestamps and optional compression.
+# text search in files, and automated file/folder backup with timestamps and optional compression.
 #
 # Functions:
 #   extract    - Extract any type of archive file
 #   compress   - Create any type of archive file
 #   mkcd       - Create directory and navigate into it
 #   ff         - Find files by name pattern
+#   search     - Search for text in files with optional recursive directory search
 #   backup     - Create timestamped backup of files or folders with optional compression
 #
 # Usage Examples:
@@ -18,6 +19,8 @@
 #   $ compress backup.zip *.txt                 # Create zip archive
 #   $ mkcd new_project          # Create and enter directory
 #   $ ff "*.py"                 # Find Python files
+#   $ search "TODO" file.txt    # Search for text in specific file
+#   $ search -r "function" .    # Search recursively in current directory
 #   $ backup important.txt      # Create simple copy backup
 #   $ backup project/ --compress tar.gz  # Create compressed folder backup
 #   $ backup config.ini --compress zip   # Create compressed file backup
@@ -45,6 +48,7 @@ cleanup_shortcut "mkcd"
 cleanup_shortcut "ff"
 cleanup_shortcut "backup"
 cleanup_shortcut "watchlog"
+cleanup_shortcut "search"
 
 # File and Directory Operations
 if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lh'; fi
@@ -314,6 +318,201 @@ if ! should_exclude "ff" 2>/dev/null; then
   }
 fi
 
+# Search for text in files with optional recursive directory search
+if ! should_exclude "search" 2>/dev/null; then
+  search() {
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: search [-r|--recursive] [-i|--ignore-case] [-E|--extended-regexp] <pattern> [file_or_directory]"
+      echo "Options:"
+      echo "  -r, --recursive       Search recursively in directories"
+      echo "  -i, --ignore-case     Case insensitive search"
+      echo "  -E, --extended-regexp Use extended regular expressions (ERE)"
+      echo ""
+      echo "Regex Support:"
+      echo "  By default, supports basic regular expressions (BRE):"
+      echo "    [a-z]         - Character class"
+      echo "    [0-9]\\{4\\}    - Exactly 4 digits (escaped braces)"
+      echo "    ^pattern      - Start of line"
+      echo "    pattern\$      - End of line"
+      echo "    .             - Any character"
+      echo "    *             - Zero or more of preceding"
+      echo ""
+      echo "  With -E flag, supports extended regular expressions (ERE):"
+      echo "    [a-z]+        - One or more lowercase letters"
+      echo "    [0-9]{4}      - Exactly 4 digits (unescaped braces)"
+      echo "    (pattern1|pattern2) - Alternation"
+      echo "    pattern?      - Zero or one occurrence"
+      echo ""
+      echo "Examples:"
+      echo "  search \"TODO\" file.txt                     # Literal text search"
+      echo "  search \"[a-z][0-9]\" *.txt                 # Basic regex: letter followed by digit"
+      echo "  search \"^function\" *.py                   # Lines starting with 'function'"
+      echo "  search \"error\$\" logs/                     # Lines ending with 'error'"
+      echo "  search \"pattern\" .                        # Search in current directory"
+      echo "  search -r \"pattern\" .                     # Search recursively in current directory"
+      echo "  search -E \"[a-z]+@[a-z]+\\.[a-z]{2,4}\" .  # Extended regex: email pattern"
+      echo "  search -ri \"[Ee]rror\" /var/log            # Case insensitive, recursive"
+      echo "  search -E \"^(GET|POST)\" access.log        # Extended regex with alternation"
+      return 1
+    fi
+    
+    local recursive=false
+    local ignore_case=false
+    local extended_regex=false
+    local pattern=""
+    local target=""
+    
+    # Parse options
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        -r|--recursive)
+          recursive=true
+          shift
+          ;;
+        -i|--ignore-case)
+          ignore_case=true
+          shift
+          ;;
+        -E|--extended-regexp)
+          extended_regex=true
+          shift
+          ;;
+        -ri|-ir)
+          recursive=true
+          ignore_case=true
+          shift
+          ;;
+        -rE|-Er)
+          recursive=true
+          extended_regex=true
+          shift
+          ;;
+        -iE|-Ei)
+          ignore_case=true
+          extended_regex=true
+          shift
+          ;;
+        -riE|-rEi|-irE|-iEr|-Eri|-Eir)
+          recursive=true
+          ignore_case=true
+          extended_regex=true
+          shift
+          ;;
+        *)
+          if [[ -z "$pattern" ]]; then
+            pattern="$1"
+          elif [[ -z "$target" ]]; then
+            target="$1"
+          else
+            echo "Error: Too many arguments"
+            return 1
+          fi
+          shift
+          ;;
+      esac
+    done
+    
+    if [[ -z "$pattern" ]]; then
+      echo "Error: Search pattern is required"
+      return 1
+    fi
+    
+    # Default to current directory if no target specified
+    if [[ -z "$target" ]]; then
+      target="."
+    fi
+    
+    # Check if target exists
+    if [[ ! -e "$target" ]]; then
+      echo "Error: '$target' does not exist"
+      return 1
+    fi
+    
+    # Build grep options
+    local grep_options="-n"
+    local color_option=""
+    
+    # Check if grep supports --color and we have a TTY
+    if [[ -t 1 ]] && grep --color=auto --version >/dev/null 2>&1; then
+      color_option="--color=always"
+    fi
+    
+    if [[ "$ignore_case" == true ]]; then
+      grep_options+="i"
+    fi
+    if [[ "$extended_regex" == true ]]; then
+      grep_options+="E"
+    fi
+    if [[ "$recursive" == true ]]; then
+      grep_options+="r"
+    fi
+    
+    echo "=== SEARCH RESULTS ==="
+    echo "Pattern: '$pattern'"
+    if [[ "$target" == "." ]]; then
+      echo "Target: current directory"
+    else
+      echo "Target: '$target'"
+    fi
+    echo "Recursive: $recursive"
+    echo "Case insensitive: $ignore_case"
+    if [[ "$extended_regex" == true ]]; then
+      echo "Regex mode: Extended (ERE)"
+    else
+      echo "Regex mode: Basic (BRE) - supports [a-z], ^, \$, ., *, \\{\\}"
+    fi
+    echo ""
+    
+    local results_found=false
+    
+    if [[ -f "$target" ]]; then
+      # Search in a specific file
+      if grep $grep_options $color_option "$pattern" "$target" 2>/dev/null; then
+        results_found=true
+      fi
+    elif [[ -d "$target" ]]; then
+      # Search in directory
+      if [[ "$recursive" == true ]]; then
+        # Recursive search in directory
+        local temp_results=$(grep $grep_options $color_option "$pattern" "$target" 2>/dev/null)
+        if [[ -n "$temp_results" ]]; then
+          echo "$temp_results"
+          results_found=true
+        fi
+      else
+        # Non-recursive search (only files in the specified directory)
+        local temp_results=$(find "$target" -maxdepth 1 -type f -exec grep -l $grep_options "$pattern" {} \; 2>/dev/null | while read -r file; do
+          grep $grep_options $color_option "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|"
+        done)
+        if [[ -n "$temp_results" ]]; then
+          echo "$temp_results"
+          results_found=true
+        fi
+      fi
+    else
+      # Handle wildcards and multiple files
+      local temp_results=""
+      for file in $target; do
+        if [[ -f "$file" ]]; then
+          local file_results=$(grep $grep_options $color_option "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|")
+          if [[ -n "$file_results" ]]; then
+            temp_results+="$file_results"$'\n'
+          fi
+        fi
+      done
+      if [[ -n "$temp_results" ]]; then
+        echo "$temp_results"
+        results_found=true
+      fi
+    fi
+    
+    if [[ "$results_found" == false ]]; then
+      echo "No matches found for pattern '$pattern'"
+      return 1
+    fi
+  }
+fi
+
 # Backup file or folder with timestamp and optional compression
 if ! should_exclude "backup" 2>/dev/null; then
   backup() {
@@ -391,64 +590,6 @@ if ! should_exclude "backup" 2>/dev/null; then
         echo "Error: '$source_path' is neither a file nor a directory"
         return 1
       fi
-    fi
-  }
-fi
-
-# Monitor log file
-if ! should_exclude "watchlog" 2>/dev/null; then
-  watchlog() {
-    if [[ -f "$1" ]]; then
-      tail -f "$1"
-    else
-      echo "File not found: $1"
-    fi
-  }
-fi
-    
-    # Check for backup flag
-    if [[ "$4" == "--backup" ]]; then
-      create_backup=true
-    fi
-    
-    # Check if input is stdin
-    if [[ "$input" == "-" ]]; then
-      # Replace in stdin and output result
-      sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
-    # Check if input is a file
-    elif [[ -f "$input" ]]; then
-      # Create backup if requested
-      if [[ "$create_backup" == true ]]; then
-        local backup_name="${input}.bak.$(date +%Y%m%d_%H%M%S)"
-        cp "$input" "$backup_name"
-        echo "Backup created: $backup_name"
-      fi
-      
-      # Replace in file using sed (cross-platform compatible)
-      if command -v gsed >/dev/null 2>&1; then
-        # Use GNU sed if available (macOS with homebrew)
-        gsed -i "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input"
-      else
-        # Use system sed
-        sed -i.tmp "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input" && rm "${input}.tmp"
-      fi
-      
-      echo "Replaced '${search}' with '${replacement}' in file: $input"
-    else
-      # Treat as string and output result
-      echo "$input" | sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
-    fi
-  }
-fi
-
-# Backup file with timestamp
-if ! should_exclude "backup" 2>/dev/null; then
-  backup() {
-    if [[ -f "$1" ]]; then
-      cp "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
-      echo "Backup created: $1.backup.$(date +%Y%m%d_%H%M%S)"
-    else
-      echo "File not found: $1"
     fi
   }
 fi
