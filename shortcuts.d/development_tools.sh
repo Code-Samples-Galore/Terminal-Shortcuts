@@ -19,17 +19,21 @@
 # Usage Examples:
 #   $ hashit sha256 "text"        # Hash string with SHA256
 #   $ hashit md5 file.txt         # Hash file with MD5
+#   $ echo "data" | hashit sha1 - # Hash stdin with SHA1
 #   $ randstr 20                  # Generate 20-character password
 #   $ calc "2 + 2 * 3"           # Calculate mathematical expression
 #   $ log2 256                   # Calculate log2(256) = 8
 #   $ hexconv encode "hello"     # Hex encode string
 #   $ hexconv decode "68656c6c6f" # Hex decode string
+#   $ echo "hello" | hexconv encode - # Hex encode from stdin
 #   $ base64conv encode "data"   # Base64 encode string
+#   $ echo "data" | base64conv encode - # Base64 encode from stdin
 #   $ binconv 255                # Convert integer to binary
 #   $ binconv "A"                # Convert string to binary
+#   $ echo "text" | binconv -    # Convert stdin to binary
 #   $ entropy "hello world"      # Calculate entropy of string
 #   $ entropy myfile.txt         # Calculate entropy of file
-#   $ jsonpp data.json           # Pretty-print JSON file
+#   $ echo "data" | entropy -    # Calculate entropy of stdin
 
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
@@ -72,12 +76,15 @@ fi
 if ! should_exclude "hexconv" 2>/dev/null; then
   hexconv() {
     if [[ -z "$1" || -z "$2" ]]; then
-      echo "Usage: hexconv <encode|decode> <string_or_file>"
+      echo "Usage: hexconv <encode|decode> <string_or_file|->"
+      echo "Use '-' to read from stdin"
       return 1
     fi
     
     local input_source
-    if [[ -f "$2" ]]; then
+    if [[ "$2" == "-" ]]; then
+      input_source="cat"
+    elif [[ -f "$2" ]]; then
       input_source="cat \"$2\""
     else
       input_source="echo -n \"$2\""
@@ -104,12 +111,15 @@ fi
 if ! should_exclude "base64conv" 2>/dev/null; then
   base64conv() {
     if [[ -z "$1" || -z "$2" ]]; then
-      echo "Usage: base64conv <encode|decode> <string_or_file>"
+      echo "Usage: base64conv <encode|decode> <string_or_file|->"
+      echo "Use '-' to read from stdin"
       return 1
     fi
     
     local input_source
-    if [[ -f "$2" ]]; then
+    if [[ "$2" == "-" ]]; then
+      input_source="cat"
+    elif [[ -f "$2" ]]; then
       input_source="cat \"$2\""
     else
       input_source="echo -n \"$2\""
@@ -135,16 +145,26 @@ fi
 if ! should_exclude "hashit" 2>/dev/null; then
   hashit() {
     if [[ -z "$1" || -z "$2" ]]; then
-      echo "Usage: hashit <hash_type> <string_or_file>"
+      echo "Usage: hashit <hash_type> <string_or_file|->"
       echo "Hash types: md5, sha1, sha256, sha512"
+      echo "Use '-' to read from stdin"
       return 1
     fi
     
     local hash_type="$1"
     local input="$2"
     
+    # Check if input is stdin
+    if [[ "$input" == "-" ]]; then
+      case "$hash_type" in
+        md5)     md5sum | cut -d' ' -f1 ;;
+        sha1)    sha1sum | cut -d' ' -f1 ;;
+        sha256)  sha256sum | cut -d' ' -f1 ;;
+        sha512)  sha512sum | cut -d' ' -f1 ;;
+        *)       echo "Error: Unsupported hash type. Use: md5, sha1, sha256, sha512" && return 1 ;;
+      esac
     # Check if input is a file
-    if [[ -f "$input" ]]; then
+    elif [[ -f "$input" ]]; then
       case "$hash_type" in
         md5)     md5sum "$input" | cut -d' ' -f1 ;;
         sha1)    sha1sum "$input" | cut -d' ' -f1 ;;
@@ -169,14 +189,20 @@ fi
 if ! should_exclude "binconv" 2>/dev/null; then
   binconv() {
     if [[ -z "$1" ]]; then
-      echo "Usage: binconv <string_or_integer>"
+      echo "Usage: binconv <string_or_integer|->"
       echo "Examples:"
       echo "  binconv 255     # Convert integer to binary"
       echo "  binconv \"Hello\" # Convert string to binary"
+      echo "  echo \"data\" | binconv -  # Convert stdin to binary"
       return 1
     fi
     
     local input="$1"
+    
+    # Check if input is stdin
+    if [[ "$input" == "-" ]]; then
+      input=$(cat)
+    fi
     
     # Check if input is a number
     if [[ "$input" =~ ^[0-9]+$ ]]; then
@@ -198,18 +224,22 @@ fi
 if ! should_exclude "entropy" 2>/dev/null; then
   entropy() {
     if [[ -z "$1" ]]; then
-      echo "Usage: entropy <string_or_file>"
+      echo "Usage: entropy <string_or_file|->"
       echo "Examples:"
       echo "  entropy \"hello world\"    # Calculate entropy of string"
       echo "  entropy myfile.txt        # Calculate entropy of file"
+      echo "  echo \"data\" | entropy -  # Calculate entropy of stdin"
       return 1
     fi
     
     local input="$1"
     local data
     
+    # Check if input is stdin
+    if [[ "$input" == "-" ]]; then
+      data=$(cat)
     # Check if input is a file
-    if [[ -f "$input" ]]; then
+    elif [[ -f "$input" ]]; then
       data=$(cat "$input")
     else
       data="$input"

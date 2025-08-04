@@ -112,15 +112,15 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo
 
     echo "🛠️  Development Tools:"
-    echo "  hashit      - Compute hash of strings or files (md5/sha1/sha256/sha512)"
+    echo "  hashit      - Compute hash of strings, files, or stdin (md5/sha1/sha256/sha512)"
     echo "  randstr     - Generate secure random passwords"
     echo "  calc        - Perform mathematical calculations"
     echo "  log2        - Calculate base-2 logarithm of integers"
     echo "  jsonpp      - Pretty-print JSON files"
-    echo "  entropy     - Calculate Shannon entropy of strings or files"
-    echo "  hexconv     - Encode/decode hex strings or files"
-    echo "  base64conv  - Encode/decode base64 strings or files"
-    echo "  binconv     - Convert string or integer to binary representation"
+    echo "  entropy     - Calculate Shannon entropy of strings, files, or stdin"
+    echo "  hexconv     - Encode/decode hex strings, files, or stdin"
+    echo "  base64conv  - Encode/decode base64 strings, files, or stdin"
+    echo "  binconv     - Convert string, integer, or stdin to binary representation"
     echo
 
     echo "📚 Help:"

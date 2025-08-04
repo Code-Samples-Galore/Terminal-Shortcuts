@@ -85,11 +85,11 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 ### 🛠️ Development Tools
 
-- **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing of strings or files
+- **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing of strings, files, or stdin
 - **Password generation**: `randstr` for secure random passwords
-- **Encoding/decoding**: `hexconv` and `base64conv` for data conversion
-- **Binary conversion**: `binconv` for converting strings or integers to binary
-- **Entropy analysis**: `entropy` for calculating Shannon entropy of strings or files
+- **Encoding/decoding**: `hexconv` and `base64conv` for data conversion from strings, files, or stdin
+- **Binary conversion**: `binconv` for converting strings, integers, or stdin to binary
+- **Entropy analysis**: `entropy` for calculating Shannon entropy of strings, files, or stdin
 - **Mathematical calculations**: `calc` and `log2` functions
 - **JSON formatting**: `jsonpp` for pretty-printing JSON
 
@@ -164,32 +164,37 @@ External IP Address:
 ### Development Tools
 
 #### Hash Calculator (`hashit`)
-Compute various hash functions for strings or files:
+Compute various hash functions for strings, files, or stdin:
 
 ```bash
 $ hashit sha256 "hello world"     # Hash a string
 $ hashit md5 myfile.txt          # Hash a file
+$ echo "data" | hashit sha1 -    # Hash stdin
 $ hashit sha512 "secret data"    # SHA512 hash
 ```
 
 #### Entropy Calculator (`entropy`)
-Calculate Shannon entropy for strings or files to measure randomness/complexity:
+Calculate Shannon entropy for strings, files, or stdin to measure randomness/complexity:
 
 ```bash
 $ entropy "hello world"          # Calculate entropy of string
 $ entropy passwords.txt          # Calculate entropy of file contents
+$ echo "random data" | entropy - # Calculate entropy of stdin
 ```
 
 Entropy values range from 0 (completely predictable) to ~8 (maximum randomness for byte data).
 
 #### Encoding/Decoding Tools
-Convert between different data formats:
+Convert between different data formats from strings, files, or stdin:
 
 ```bash
 $ hexconv encode "hello"         # Returns: 68656c6c6f
 $ hexconv decode "68656c6c6f"    # Returns: hello
+$ echo "hello" | hexconv encode - # Hex encode from stdin
 $ base64conv encode "data"       # Base64 encode
+$ echo "data" | base64conv encode - # Base64 encode from stdin
 $ binconv 255                    # Convert to binary: 11111111
+$ echo "text" | binconv -        # Convert stdin to binary
 ```
 
 ### Python Development (`svenv`, `pm`)
