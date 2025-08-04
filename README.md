@@ -36,7 +36,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 - **Enhanced file listing**: `ll`, `la`, `l` with colors and details
 - **Smart navigation**: `..`, `...`, `....` for quick directory traversal
-- **Archive operations**: Universal `extract` and `compress` functions for any archive type
+- **Archive operations**: Universal `extract` and `compress` functions for any archive type with volume splitting support
 - **File operations**: Find files (`ff`), find-and-replace (`replace`), timestamped backups (`backup`)
 - **Directory creation**: `mkcd` to create and enter directories
 - **Log monitoring**: `watchlog` for real-time log file monitoring
@@ -253,7 +253,19 @@ compress backup.tar.gz file1.txt file2.txt dir1/  # Create gzip tar archive
 compress project.zip src/ docs/ README.md         # Create zip archive
 compress data.7z *.csv *.json                     # Create 7z archive
 compress single.gz important.txt                  # Compress single file
+
+# Create archives with volume splitting
+compress --split 100m large.tar.gz bigdir/        # Split into 100MB volumes
+compress -s 1g archive.zip files/                 # Split into 1GB volumes
+compress --split 500k data.tar.bz2 *.txt          # Split into 500KB volumes
+compress -s 2g backup.7z project/                 # Split into 2GB volumes
 ```
+
+**Volume Splitting Support:**
+- **Supported formats**: .tar.gz, .tgz, .tar.bz2, .tbz2, .tar, .zip, .7z
+- **Size units**: b (bytes), k (KB), m (MB), g (GB)
+- **Examples**: 100m, 1g, 500k, 1024b
+- **Output**: Creates multiple volume files that can be extracted as a single archive
 
 #### Find and Replace (`replace`)
 ```bash
@@ -281,7 +293,7 @@ $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 - `grep` - Grep with color highlighting
 - `tree` - Tree view with colors
 - `extract` - Extract any type of archive file
-- `compress` - Create any type of archive file
+- `compress` - Create any type of archive file with volume splitting support
 - `ff` - Find files by name pattern
 - `replace` - Find and replace text in strings, files, or stdin
 - `backup` - Create timestamped backup of file
