@@ -3,14 +3,13 @@
 #
 # Description: Enhanced file and directory manipulation utilities including
 # universal archive extraction, directory creation with navigation, file search,
-# find-and-replace operations, and automated file backup with timestamps.
+# and automated file backup with timestamps.
 #
 # Functions:
 #   extract    - Extract any type of archive file
 #   compress   - Create any type of archive file
 #   mkcd       - Create directory and navigate into it
 #   ff         - Find files by name pattern
-#   replace    - Find and replace text in files, strings, or stdin
 #   backup     - Create timestamped backup of file
 #
 # Usage Examples:
@@ -19,9 +18,6 @@
 #   $ compress backup.zip *.txt                 # Create zip archive
 #   $ mkcd new_project          # Create and enter directory
 #   $ ff "*.py"                 # Find Python files
-#   $ replace "old" "new" "*.txt"  # Replace text in files
-#   $ replace - "old" "new"     # Replace text from stdin
-#   $ echo "hello world" | replace - "world" "universe"  # Replace from stdin
 #   $ backup important.txt      # Create timestamped backup
 
 # Unset any existing conflicting aliases/functions before defining new ones
@@ -45,7 +41,6 @@ cleanup_shortcut "extract"
 cleanup_shortcut "compress"
 cleanup_shortcut "mkcd"
 cleanup_shortcut "ff"
-cleanup_shortcut "replace"
 cleanup_shortcut "backup"
 cleanup_shortcut "watchlog"
 
@@ -317,23 +312,28 @@ if ! should_exclude "ff" 2>/dev/null; then
   }
 fi
 
-# Replace text in strings or files
-if ! should_exclude "replace" 2>/dev/null; then
-  replace() {
-    if [[ $# -lt 3 ]]; then
-      echo "Usage: replace <string_or_file|-> <search_pattern> <replacement>"
-      echo "Examples:"
-      echo "  replace \"hello world\" \"world\" \"universe\"    # Replace in string"
-      echo "  replace myfile.txt \"old_text\" \"new_text\"     # Replace in file"
-      echo "  replace myfile.txt \"pattern\" \"replacement\" --backup  # Create backup first"
-      echo "  echo \"text\" | replace - \"old\" \"new\"        # Replace from stdin"
-      return 1
+# Backup file with timestamp
+if ! should_exclude "backup" 2>/dev/null; then
+  backup() {
+    if [[ -f "$1" ]]; then
+      cp "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
+      echo "Backup created: $1.backup.$(date +%Y%m%d_%H%M%S)"
+    else
+      echo "File not found: $1"
     fi
-    
-    local input="$1"
-    local search="$2"
-    local replacement="$3"
-    local create_backup=false
+  }
+fi
+
+# Monitor log file
+if ! should_exclude "watchlog" 2>/dev/null; then
+  watchlog() {
+    if [[ -f "$1" ]]; then
+      tail -f "$1"
+    else
+      echo "File not found: $1"
+    fi
+  }
+fi
     
     # Check for backup flag
     if [[ "$4" == "--backup" ]]; then

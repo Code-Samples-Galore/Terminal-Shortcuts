@@ -33,7 +33,6 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  extract     - Extract any type of archive file"
     echo "  compress    - Create any type of archive file (with volume splitting support)"
     echo "  ff          - Find files by name pattern"
-    echo "  replace     - Find and replace text in strings, files, or stdin"
     echo "  backup      - Create timestamped backup of file"
     echo "  watchlog    - Monitor log file changes in real-time"
     echo "  chown       - chown with preserve-root safety"
@@ -109,6 +108,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  hexconv     - Encode/decode hex strings, files, or stdin"
     echo "  base64conv  - Encode/decode base64 strings, files, or stdin"
     echo "  binconv     - Convert string, integer, or stdin to binary representation"
+    echo "  replace     - Find and replace text in strings, files, or stdin"
     echo
 
     echo "🐍 Python:"

@@ -2,8 +2,8 @@
 # Development Tools Functions
 #
 # Description: Essential development utilities including hash computation, password generation,
-# mathematical calculations, encoding/decoding operations, entropy analysis, and JSON formatting.
-# Designed to streamline common development and administrative tasks.
+# mathematical calculations, encoding/decoding operations, entropy analysis, text replacement,
+# and JSON formatting. Designed to streamline common development and administrative tasks.
 #
 # Functions:
 #   hashit     - Compute hash of strings or files (md5/sha1/sha256/sha512)
@@ -15,6 +15,7 @@
 #   binconv    - Convert string or integer to binary representation
 #   entropy    - Calculate Shannon entropy of strings or files
 #   jsonpp     - Pretty-print JSON files or stdin
+#   replace    - Find and replace text in strings, files, or stdin
 #
 # Usage Examples:
 #   $ hashit sha256 "text"        # Hash string with SHA256
@@ -34,6 +35,9 @@
 #   $ entropy "hello world"      # Calculate entropy of string
 #   $ entropy myfile.txt         # Calculate entropy of file
 #   $ echo "data" | entropy -    # Calculate entropy of stdin
+#   $ replace "hello world" "world" "universe" # Replace in string
+#   $ replace myfile.txt "old" "new" --backup # Replace in file with backup
+#   $ echo "text" | replace - "old" "new" # Replace from stdin
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "jsonpp"
@@ -45,6 +49,7 @@ cleanup_shortcut "base64conv"
 cleanup_shortcut "hashit"
 cleanup_shortcut "binconv"
 cleanup_shortcut "entropy"
+cleanup_shortcut "replace"
 
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
@@ -299,6 +304,59 @@ if ! should_exclude "entropy" 2>/dev/null; then
     }')
     
     echo "Interpretation: $interpretation"
+  }
+fi
+
+# Replace text in strings or files
+if ! should_exclude "replace" 2>/dev/null; then
+  replace() {
+    if [[ $# -lt 3 ]]; then
+      echo "Usage: replace <string_or_file|-> <search_pattern> <replacement>"
+      echo "Examples:"
+      echo "  replace \"hello world\" \"world\" \"universe\"    # Replace in string"
+      echo "  replace myfile.txt \"old_text\" \"new_text\"     # Replace in file"
+      echo "  replace myfile.txt \"pattern\" \"replacement\" --backup  # Create backup first"
+      echo "  echo \"text\" | replace - \"old\" \"new\"        # Replace from stdin"
+      return 1
+    fi
+    
+    local input="$1"
+    local search="$2"
+    local replacement="$3"
+    local create_backup=false
+    
+    # Check for backup flag
+    if [[ "$4" == "--backup" ]]; then
+      create_backup=true
+    fi
+    
+    # Check if input is stdin
+    if [[ "$input" == "-" ]]; then
+      # Replace in stdin and output result
+      sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
+    # Check if input is a file
+    elif [[ -f "$input" ]]; then
+      # Create backup if requested
+      if [[ "$create_backup" == true ]]; then
+        local backup_name="${input}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$input" "$backup_name"
+        echo "Backup created: $backup_name"
+      fi
+      
+      # Replace in file using sed (cross-platform compatible)
+      if command -v gsed >/dev/null 2>&1; then
+        # Use GNU sed if available (macOS with homebrew)
+        gsed -i "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input"
+      else
+        # Use system sed
+        sed -i.tmp "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input" && rm "${input}.tmp"
+      fi
+      
+      echo "Replaced '${search}' with '${replacement}' in file: $input"
+    else
+      # Treat as string and output result
+      echo "$input" | sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
+    fi
   }
 fi
 
