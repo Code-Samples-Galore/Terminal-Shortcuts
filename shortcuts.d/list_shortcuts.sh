@@ -136,4 +136,3 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo
   }
 fi
-fi
