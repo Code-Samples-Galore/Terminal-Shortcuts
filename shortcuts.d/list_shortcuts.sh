@@ -40,27 +40,9 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  chown       - chown with preserve-root safety"
     echo "  chmod       - chmod with preserve-root safety" 
     echo "  chgrp       - chgrp with preserve-root safety"
-    echo
+    echo 
     
-    echo "🔀 Git:"
-    echo "  gitinfo     - Display Git repository information"
-    echo "  gs          - Git status"
-    echo "  gc          - Git commit with message"
-    echo "  gp          - Git push"
-    echo "  gu          - Git pull"
-    echo "  ga          - Git add"
-    echo "  gaa         - Git add all files"
-    echo "  gac         - Git add all and commit with auto message"
-    echo "  gb          - Git branch"
-    echo "  gco         - Git checkout"
-    echo "  gcb         - Git checkout new branch"
-    echo "  gl          - Git log one line"
-    echo "  gd          - Git diff"
-    echo "  gdc         - Git diff cached"
-    echo "  gr          - Git remove from cache"
-    echo    
-    
-    echo "⚙️  System Utilities:"
+    echo "⚙️ System Utilities:"
     echo "  h           - Show command history"
     echo "  path        - Display PATH variable (formatted)"
     echo "  now         - Show current time and date"
@@ -81,7 +63,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  myip        - Display local and external IP addresses"
     echo    
 
-    echo "✏️  Quick Edits:"
+    echo "✏️ Quick Edits:"
     echo "  bashrc      - Edit ~/.bashrc"
     echo "  zshrc       - Edit ~/.zshrc"
     echo "  vimrc       - Edit ~/.vimrc"
@@ -91,16 +73,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  v           - Vim editor"
     echo
 
-    echo "📝 Wordlist Processing:"
-    echo "  wordlist    - Advanced wordlist filtering, processing and manipulation"
-    echo "                • Filter by length, character types, entropy, regex patterns"
-    echo "                • Sort, remove duplicates, randomize word order"
-    echo "                • Split output by size (MB/GB) or percentage distribution"
-    echo "                • Memory-efficient streaming for large files"
-    echo "                • Case-sensitive/insensitive regex matching"
-    echo
-
-    echo "🛠️  Development Tools:"
+    echo "🛠️ Development Tools:"
     echo "  hashit      - Compute hash of strings, files, or stdin (md5/sha1/sha256/sha512)"
     echo "  randstr     - Generate secure random passwords"
     echo "  calc        - Perform mathematical calculations"
@@ -111,6 +84,12 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  base64conv  - Encode/decode base64 strings, files, or stdin"
     echo "  binconv     - Convert string, integer, or stdin to binary representation"
     echo "  replace     - Find and replace text in strings, files, or stdin"
+    echo "  wordlist    - Advanced wordlist filtering, processing and manipulation"
+    echo "                • Filter by length, character types, entropy, regex patterns"
+    echo "                • Sort, remove duplicates, randomize word order"
+    echo "                • Split output by size (MB/GB) or percentage distribution"
+    echo "                • Memory-efficient streaming for large files"
+    echo "                • Case-sensitive/insensitive regex matching"
     echo
 
     echo "🐍 Python:"
@@ -121,12 +100,31 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  pipl        - List installed packages (pip list)"
     echo "  svenv       - Auto-activate Python virtual environment"
     echo    
+
     echo "📦 Node.js:"
     echo "  nu          - Use Node version (nvm use)"
     echo "  nl          - List Node versions (nvm list)"
     echo "  ni          - Install Node version (nvm install)"
     echo
 
+    echo "🔀 Git:"
+    echo "  gitinfo     - Display Git repository information"
+    echo "  gs          - Git status"
+    echo "  gc          - Git commit with message"
+    echo "  gp          - Git push"
+    echo "  gu          - Git pull"
+    echo "  ga          - Git add"
+    echo "  gaa         - Git add all files"
+    echo "  gac         - Git add all and commit with auto message"
+    echo "  gb          - Git branch"
+    echo "  gco         - Git checkout"
+    echo "  gcb         - Git checkout new branch"
+    echo "  gl          - Git log one line"
+    echo "  gd          - Git diff"
+    echo "  gdc         - Git diff cached"
+    echo "  gr          - Git remove from cache"
+    echo   
+  
     echo "📚 Help:"
     echo "  sc          - Show this complete function reference"
     echo
