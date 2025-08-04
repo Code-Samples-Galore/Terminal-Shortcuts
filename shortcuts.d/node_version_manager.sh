@@ -15,6 +15,11 @@
 #   $ nu 16.20.0                 # Switch to Node.js version 16.20.0
 #   $ nu                         # Use Node version specified in .nvmrc
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "nu"
+cleanup_shortcut "nl"
+cleanup_shortcut "ni"
+
 # Node Version Manager
 if ! should_exclude "nu" 2>/dev/null; then alias nu="nvm use"; fi
 if ! should_exclude "nl" 2>/dev/null; then alias nl="nvm list"; fi

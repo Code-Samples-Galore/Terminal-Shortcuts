@@ -9,30 +9,51 @@
 #   svenv      - Auto-activate Python virtual environment in current directory
 #   pm         - Run Python modules using file path notation
 #   pipu       - Upgrade Python package(s) or from requirements file
+#   pipi       - Install Python package(s) or from requirements file
 #
 # Aliases:
 #   p          - Python3 interpreter
-#   pipi       - Install Python package (pip install)
-#   pipr       - Install from requirements file (pip install -r)
 #   pipl       - List installed packages (pip list)
 #
 # Usage Examples:
 #   $ p                          # Start Python3 interpreter
 #   $ pipi requests              # Install requests package
+#   $ pipi requirements.txt      # Install from requirements file
 #   $ pipu numpy                 # Upgrade numpy package
 #   $ pipu                       # Upgrade all packages
 #   $ pipu requirements.txt      # Upgrade packages from requirements file
-#   $ pipr requirements.txt      # Install from requirements file
 #   $ pipl                       # List installed packages
 #   $ svenv                      # Activate virtual environment
 #   $ pm src/main.py             # Run python -m src.main
 #   $ pm utils/helper.py arg1    # Run python -m utils.helper arg1
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "p"
+cleanup_shortcut "pipl"
+cleanup_shortcut "pipi"
+cleanup_shortcut "pipu"
+cleanup_shortcut "svenv"
+cleanup_shortcut "pm"
+
 # Python
 if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi
-if ! should_exclude "pipi" 2>/dev/null; then alias pipi='python3 -m pip install'; fi
-if ! should_exclude "pipr" 2>/dev/null; then alias pipr='python3 -m pip install -r'; fi
 if ! should_exclude "pipl" 2>/dev/null; then alias pipl='python3 -m pip list'; fi
+
+# Python package install function - install specific package(s) or from requirements file
+if ! should_exclude "pipi" 2>/dev/null; then
+  pipi() {
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: pipi <package_name> or pipi <requirements_file>"
+      return 1
+    elif [[ "$1" == "requirements.txt" || "$1" == *.txt ]]; then
+      # Install packages from requirements file
+      python3 -m pip install -r "$@"
+    else
+      # Install specific package(s)
+      python3 -m pip install "$@"
+    fi
+  }
+fi
 
 # Python package upgrade function - upgrade specific package, all packages, or from requirements file
 if ! should_exclude "pipu" 2>/dev/null; then

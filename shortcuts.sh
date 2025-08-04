@@ -14,6 +14,15 @@ should_exclude() {
   return 1  # Should not exclude
 }
 
+# Function to clean up existing aliases and functions
+cleanup_shortcut() {
+  local name="$1"
+  if ! should_exclude "$name" 2>/dev/null; then
+    unalias "$name" 2>/dev/null || true
+    unset -f "$name" 2>/dev/null || true
+  fi
+}
+
 # Source all files in shortcuts.d directory
 if [[ -d "$SCRIPT_DIR/shortcuts.d" ]]; then
   for file in "$SCRIPT_DIR/shortcuts.d"/*; do
@@ -23,5 +32,6 @@ if [[ -d "$SCRIPT_DIR/shortcuts.d" ]]; then
   done
 fi
 
-# Clean up the function after all files are sourced
+# Clean up the functions after all files are sourced
 unset -f should_exclude
+unset -f cleanup_shortcut

@@ -26,6 +26,18 @@
 #   $ h                          # Show command history
 #   $ path                       # Display PATH variable formatted
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "so"
+cleanup_shortcut "h"
+cleanup_shortcut "path"
+cleanup_shortcut "now"
+cleanup_shortcut "nowtime"
+cleanup_shortcut "nowdate"
+cleanup_shortcut "sysinfo"
+cleanup_shortcut "killcmd"
+cleanup_shortcut "topcpu"
+cleanup_shortcut "topmem"
+
 # System Utilities
 if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
 if ! should_exclude "h" 2>/dev/null; then alias h='history'; fi

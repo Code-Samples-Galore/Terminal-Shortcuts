@@ -7,6 +7,9 @@
 # Usage: sc
 # Example: $ sc  # Shows all shortcuts with descriptions
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "sc"
+
 if ! should_exclude "sc" 2>/dev/null; then
   sc() {
     echo "=== AVAILABLE SHORTCUTS ==="
@@ -95,9 +98,8 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "🐍 Python:"
     echo "  p           - Python3"
     echo "  pm          - Run Python modules using file path notation"
-    echo "  pipi        - Install Python package (pip install)"
+    echo "  pipi        - Install Python package(s) or from requirements file"
     echo "  pipu        - Upgrade Python package(s), all packages, or from requirements.txt"
-    echo "  pipr        - Install from requirements file (pip install -r)"
     echo "  pipl        - List installed packages (pip list)"
     echo "  svenv       - Auto-activate Python virtual environment"
     echo
@@ -133,4 +135,5 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  source shortcuts.sh"
     echo
   }
+fi
 fi

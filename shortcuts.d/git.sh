@@ -33,6 +33,23 @@
 #   $ gcb feature-branch         # Create and checkout new branch
 #   $ gr file.txt                # Remove file from git cache
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "gs"
+cleanup_shortcut "gc"
+cleanup_shortcut "gp"
+cleanup_shortcut "gu"
+cleanup_shortcut "ga"
+cleanup_shortcut "gaa"
+cleanup_shortcut "gb"
+cleanup_shortcut "gco"
+cleanup_shortcut "gcb"
+cleanup_shortcut "gl"
+cleanup_shortcut "gd"
+cleanup_shortcut "gdc"
+cleanup_shortcut "gr"
+cleanup_shortcut "gac"
+cleanup_shortcut "gitinfo"
+
 # Git Operations
 if ! should_exclude "gs" 2>/dev/null; then alias gs='git status'; fi
 if ! should_exclude "gc" 2>/dev/null; then alias gc='git commit -m'; fi

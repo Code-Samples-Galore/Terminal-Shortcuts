@@ -67,7 +67,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 - **Virtual environment**: `svenv` for automatic venv activation
 - **Quick Python access**: `p` alias for python3
-- **Package management**: `pipi`, `pipu`, `pipr`, `pipl` for pip operations
+- **Package management**: `pipi`, `pipu`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
 
 ### 📦 Node.js Development
@@ -220,10 +220,10 @@ Enhanced pip operations:
 
 ```bash
 $ pipi requests           # Install requests package
+$ pipi requirements.txt   # Install from requirements file
 $ pipu numpy             # Upgrade numpy package
 $ pipu                   # Upgrade all outdated packages
 $ pipu requirements.txt  # Upgrade packages from requirements file
-$ pipr requirements.txt  # Install from requirements file
 $ pipl                   # List all installed packages
 ```
 
@@ -262,8 +262,6 @@ $ replace myfile.txt "old_text" "new_text"     # Replace in file
 $ replace config.ini "localhost" "127.0.0.1" --backup  # Replace with backup
 $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 ```
-
-# ...existing code...
 
 ## 🎯 Complete Aliases and Functions Reference
 
@@ -344,19 +342,8 @@ $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 ### 🐍 Python
 - `p` - Python3
 - `pm` - Run Python modules using file path
-- `pipi` - Install Python package (pip install)
+- `pipi` - Install Python package(s) or from requirements file
 - `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
-- `pipr` - Install from requirements file (pip install -r)
-- `pipl` - List installed packages (pip list)
-- `svenv` - Auto-activate Python virtual environment
-
-## 📄 License
-
-MIT License
-- `pm` - Run Python modules using file path
-- `pipi` - Install Python package (pip install)
-- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
-- `pipr` - Install from requirements file (pip install -r)
 - `pipl` - List installed packages (pip list)
 - `svenv` - Auto-activate Python virtual environment
 

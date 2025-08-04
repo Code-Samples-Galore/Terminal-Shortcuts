@@ -22,6 +22,14 @@
 #   $ ping google.com            # Ping Google 5 times
 #   $ fastping 8.8.8.8          # Fast ping test to Google DNS
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "ports"
+cleanup_shortcut "wget"
+cleanup_shortcut "ping"
+cleanup_shortcut "fastping"
+cleanup_shortcut "isup"
+cleanup_shortcut "myip"
+
 # Network and Process
 if ! should_exclude "ports" 2>/dev/null; then alias ports='netstat -tulan'; fi
 if ! should_exclude "wget" 2>/dev/null; then alias wget='wget -c'; fi

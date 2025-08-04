@@ -38,6 +38,9 @@
 #   $ cat passwords.txt | wordlist -su -        # Read from stdin, sort and unique
 #   $ echo -e "word1\nword2" | wordlist -min 5 - # Read from stdin with filtering
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "wordlist"
+
 # Wordlist processing function
 if ! should_exclude "wordlist" 2>/dev/null; then
   wordlist() {

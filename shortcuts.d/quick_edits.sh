@@ -14,6 +14,11 @@
 #   $ zshrc                      # Edit Zsh configuration
 #   $ vimrc                      # Edit Vim configuration
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "bashrc"
+cleanup_shortcut "zshrc"
+cleanup_shortcut "vimrc"
+
 # Quick edits
 if ! should_exclude "bashrc" 2>/dev/null; then alias bashrc='vim ~/.bashrc'; fi
 if ! should_exclude "zshrc" 2>/dev/null; then alias zshrc='vim ~/.zshrc'; fi

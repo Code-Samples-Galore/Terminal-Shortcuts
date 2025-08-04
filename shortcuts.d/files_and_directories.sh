@@ -24,6 +24,31 @@
 #   $ echo "hello world" | replace - "world" "universe"  # Replace from stdin
 #   $ backup important.txt      # Create timestamped backup
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "ll"
+cleanup_shortcut "la"
+cleanup_shortcut "l"
+cleanup_shortcut ".."
+cleanup_shortcut "..."
+cleanup_shortcut "...."
+cleanup_shortcut "~"
+cleanup_shortcut "mkdir"
+cleanup_shortcut "cp"
+cleanup_shortcut "mv"
+cleanup_shortcut "rm"
+cleanup_shortcut "grep"
+cleanup_shortcut "tree"
+cleanup_shortcut "chown"
+cleanup_shortcut "chmod"
+cleanup_shortcut "chgrp"
+cleanup_shortcut "extract"
+cleanup_shortcut "compress"
+cleanup_shortcut "mkcd"
+cleanup_shortcut "ff"
+cleanup_shortcut "replace"
+cleanup_shortcut "backup"
+cleanup_shortcut "watchlog"
+
 # File and Directory Operations
 if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lh'; fi
 if ! should_exclude "la" 2>/dev/null; then alias la='ls -la'; fi

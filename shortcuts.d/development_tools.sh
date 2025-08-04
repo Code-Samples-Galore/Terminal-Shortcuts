@@ -35,6 +35,17 @@
 #   $ entropy myfile.txt         # Calculate entropy of file
 #   $ echo "data" | entropy -    # Calculate entropy of stdin
 
+# Unset any existing conflicting aliases/functions before defining new ones
+cleanup_shortcut "jsonpp"
+cleanup_shortcut "randstr"
+cleanup_shortcut "calc"
+cleanup_shortcut "log2"
+cleanup_shortcut "hexconv"
+cleanup_shortcut "base64conv"
+cleanup_shortcut "hashit"
+cleanup_shortcut "binconv"
+cleanup_shortcut "entropy"
+
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
   jsonpp() {
