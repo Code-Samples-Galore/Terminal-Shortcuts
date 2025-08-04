@@ -35,6 +35,8 @@
 #   $ wordlist -min 8 -r -o filtered_random.txt file.txt  # Filter and randomize
 #   $ wordlist -keepws file.txt                 # Keep only words with whitespace
 #   $ wordlist -removews file.txt               # Remove words with whitespace
+#   $ cat passwords.txt | wordlist -su -        # Read from stdin, sort and unique
+#   $ echo -e "word1\nword2" | wordlist -min 5 - # Read from stdin with filtering
 
 # Wordlist processing function
 if ! should_exclude "wordlist" 2>/dev/null; then
@@ -261,7 +263,7 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           ;;
         -*)
           echo "Error: Unknown option '$1'"
-          echo "Usage: wordlist [OPTIONS] <file>"
+          echo "Usage: wordlist [OPTIONS] <file|-> "
           echo "  -s                Sort the wordlist"
           echo "  -u                Remove duplicate entries"
           echo "  -su               Sort and remove duplicates"
@@ -287,8 +289,10 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           echo "  -maxspecial N     Keep words with maximum N special characters"
           echo "  -regex PATTERN    Keep words matching regex pattern"
           echo "  -notregex PATTERN Exclude words matching regex pattern"
+          echo "Note: Use '-' as filename to read from stdin"
           return 1
           ;;
+
         *)
           if [[ -z "$input_file" ]]; then
             input_file="$1"
@@ -303,7 +307,7 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     
     # Check if file is provided
     if [[ -z "$input_file" ]]; then
-      echo "Usage: wordlist [OPTIONS] <file>"
+      echo "Usage: wordlist [OPTIONS] <file|->"
       echo "  -s                Sort the wordlist"
       echo "  -u                Remove duplicate entries"
       echo "  -su               Sort and remove duplicates"
@@ -329,6 +333,7 @@ if ! should_exclude "wordlist" 2>/dev/null; then
       echo "  -maxspecial N     Keep words with maximum N special characters"
       echo "  -regex PATTERN    Keep words matching regex pattern"
       echo "  -notregex PATTERN Exclude words matching regex pattern"
+      echo "Note: Use '-' as filename to read from stdin"
       return 1
     fi
     

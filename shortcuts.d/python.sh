@@ -12,14 +12,18 @@
 # Aliases:
 #   p          - Python3 interpreter
 #   pipi       - Install Python package (pip install)
-#   pipu       - Upgrade Python package (pip install -U)
+#   pipu       - Upgrade Python package(s) (pip install -U)
 #   pipr       - Install from requirements file (pip install -r)
+#   pipl       - List installed packages (pip list)
 #
 # Usage Examples:
 #   $ p                          # Start Python3 interpreter
 #   $ pipi requests              # Install requests package
 #   $ pipu numpy                 # Upgrade numpy package
+#   $ pipu                       # Upgrade all packages
+#   $ pipu requirements.txt      # Upgrade packages from requirements file
 #   $ pipr requirements.txt      # Install from requirements file
+#   $ pipl                       # List installed packages
 #   $ svenv                      # Activate virtual environment
 #   $ pm src/main.py             # Run python -m src.main
 #   $ pm utils/helper.py arg1    # Run python -m utils.helper arg1
@@ -27,8 +31,25 @@
 # Python
 if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi
 if ! should_exclude "pipi" 2>/dev/null; then alias pipi='python3 -m pip install'; fi
-if ! should_exclude "pipu" 2>/dev/null; then alias pipu='python3 -m pip install -U'; fi
 if ! should_exclude "pipr" 2>/dev/null; then alias pipr='python3 -m pip install -r'; fi
+if ! should_exclude "pipl" 2>/dev/null; then alias pipl='python3 -m pip list'; fi
+
+# Python package upgrade function - upgrade specific package, all packages, or from requirements file
+if ! should_exclude "pipu" 2>/dev/null; then
+  pipu() {
+    if [[ $# -eq 0 ]]; then
+      # No arguments provided, upgrade all packages
+      echo "Upgrading all packages..."
+      python3 -m pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 python3 -m pip install -U
+    elif [[ "$1" == "requirements.txt" || "$1" == *.txt ]]; then
+      # Upgrade packages from requirements file
+      python3 -m pip install -U -r "$@"
+    else
+      # Upgrade specific package(s)
+      python3 -m pip install -U "$@"
+    fi
+  }
+fi
 
 # Python Virtual Environment Auto-Activation Function
 if ! should_exclude "svenv" 2>/dev/null; then

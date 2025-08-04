@@ -4,11 +4,11 @@
 # Description: Displays all defined shortcuts with descriptions organized by category.
 # Provides a quick reference for available shortcuts and their purposes.
 #
-# Usage: shortcuts
-# Example: $ shortcuts  # Shows all shortcuts with descriptions
+# Usage: sc
+# Example: $ sc  # Shows all shortcuts with descriptions
 
-if ! should_exclude "shortcuts" 2>/dev/null; then
-  shortcuts() {
+if ! should_exclude "sc" 2>/dev/null; then
+  sc() {
     echo "=== AVAILABLE SHORTCUTS ==="
     echo
     
@@ -58,6 +58,7 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "  gl          - Git log one line"
     echo "  gd          - Git diff"
     echo "  gdc         - Git diff cached"
+    echo "  gr          - Git remove from cache"
     echo
     
     echo "⚙️  System Utilities:"
@@ -79,8 +80,8 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "  fastping    - Fast ping test (100 packets)"
     echo "  isup        - Check if website is accessible"
     echo "  myip        - Display local and external IP addresses"
-    echo
-    
+    echo    
+
     echo "✏️  Quick Edits:"
     echo "  bashrc      - Edit ~/.bashrc"
     echo "  zshrc       - Edit ~/.zshrc"
@@ -95,8 +96,9 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo "  p           - Python3"
     echo "  pm          - Run Python modules using file path notation"
     echo "  pipi        - Install Python package (pip install)"
-    echo "  pipu        - Upgrade Python package (pip install -U)"
+    echo "  pipu        - Upgrade Python package(s), all packages, or from requirements.txt"
     echo "  pipr        - Install from requirements file (pip install -r)"
+    echo "  pipl        - List installed packages (pip list)"
     echo "  svenv       - Auto-activate Python virtual environment"
     echo
     
@@ -122,14 +124,14 @@ if ! should_exclude "shortcuts" 2>/dev/null; then
     echo
 
     echo "📚 Help:"
-    echo "  shortcuts   - Show this complete function reference"
+    echo "  sc          - Show this complete function reference"
     echo
+
     echo "🚫 Exclusion Feature:"
     echo "Use EXCLUDE_SHORTCUTS environment variable to exclude specific aliases/functions:"
-    echo "  export EXCLUDE_SHORTCUTS=\"p hashit shortcuts\""
+    echo "  export EXCLUDE_SHORTCUTS=\"p hashit sc\""
     echo "  source shortcuts.sh"
     echo
   }
 fi
-
-if ! should_exclude "sc" 2>/dev/null; then alias sc='shortcuts'; fi
+fi

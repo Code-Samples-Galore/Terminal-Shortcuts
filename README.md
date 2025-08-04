@@ -28,7 +28,7 @@ source ~/.bashrc  # or ~/.zshrc
 
 ### Quick Reference
 
-Use `shortcuts` command to see all available shortcuts and their descriptions.
+Use `sc` command to see all available shortcuts and their descriptions.
 
 ## 📋 Features Overview
 
@@ -67,7 +67,7 @@ Use `shortcuts` command to see all available shortcuts and their descriptions.
 
 - **Virtual environment**: `svenv` for automatic venv activation
 - **Quick Python access**: `p` alias for python3
-- **Package management**: `pipi`, `pipu`, `pipr` for pip operations
+- **Package management**: `pipi`, `pipu`, `pipr`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
 
 ### 📦 Node.js Development
@@ -210,6 +210,18 @@ $ pm src/main.py          # Runs: python3 -m src.main
 $ pm utils/helper.py arg1 # Runs: python3 -m utils.helper arg1
 ```
 
+#### Package Management
+Enhanced pip operations:
+
+```bash
+$ pipi requests           # Install requests package
+$ pipu numpy             # Upgrade numpy package
+$ pipu                   # Upgrade all outdated packages
+$ pipu requirements.txt  # Upgrade packages from requirements file
+$ pipr requirements.txt  # Install from requirements file
+$ pipl                   # List all installed packages
+```
+
 ### Wordlist Processing (`wordlist`)
 
 Comprehensive wordlist filtering and manipulation:
@@ -303,6 +315,7 @@ Status:
 - `gl` - Git log one line
 - `gd` - Git diff
 - `gdc` - Git diff cached
+- `gr` - Git remove from cache
 - `gitinfo` - Display Git repository information
 
 ### ⚙️ System Utilities
@@ -335,8 +348,13 @@ Status:
 ### 🐍 Python
 - `p` - Python3
 - `pm` - Run Python modules using file path
--
-- ## 📄 License
+- `pipi` - Install Python package (pip install)
+- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
+- `pipr` - Install from requirements file (pip install -r)
+- `pipl` - List installed packages (pip list)
+- `svenv` - Auto-activate Python virtual environment
+
+## 📄 License
 
 MIT License
 

@@ -22,6 +22,7 @@
 #   gl         - Git log one line
 #   gd         - Git diff
 #   gdc        - Git diff cached
+#   gr         - Git remove from cache
 #
 # Usage Examples:
 #   $ gs                         # Show git status
@@ -30,6 +31,7 @@
 #   $ gac                        # Add all files and commit with auto message
 #   $ gitinfo                    # Show current repo status and info
 #   $ gcb feature-branch         # Create and checkout new branch
+#   $ gr file.txt                # Remove file from git cache
 
 # Git Operations
 if ! should_exclude "gs" 2>/dev/null; then alias gs='git status'; fi
@@ -44,6 +46,7 @@ if ! should_exclude "gcb" 2>/dev/null; then alias gcb='git checkout -b'; fi
 if ! should_exclude "gl" 2>/dev/null; then alias gl='git log --oneline'; fi
 if ! should_exclude "gd" 2>/dev/null; then alias gd='git diff'; fi
 if ! should_exclude "gdc" 2>/dev/null; then alias gdc='git diff --cached'; fi
+if ! should_exclude "gr" 2>/dev/null; then alias gr='git rm --cached'; fi
 
 # Git commit with auto-generated message based on changes
 if ! should_exclude "gac" 2>/dev/null; then
