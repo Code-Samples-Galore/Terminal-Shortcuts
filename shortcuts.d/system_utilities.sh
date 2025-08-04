@@ -42,9 +42,9 @@ cleanup_shortcut "topmem"
 if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
 if ! should_exclude "h" 2>/dev/null; then alias h='history'; fi
 if ! should_exclude "path" 2>/dev/null; then alias path='echo -e ${PATH//:/\\n}'; fi
-if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T "'; fi
+if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T %Y-%m-%d"'; fi
 if ! should_exclude "nowtime" 2>/dev/null; then alias nowtime='date +"%T"'; fi
-if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%d-%m-%Y"'; fi
+if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%Y-%m-%d"'; fi
 
 if ! should_exclude "sysinfo" 2>/dev/null; then
   sysinfo() {
