@@ -3,14 +3,14 @@
 #
 # Description: Enhanced file and directory manipulation utilities including
 # universal archive extraction, directory creation with navigation, file search,
-# and automated file backup with timestamps.
+# and automated file/folder backup with timestamps and optional compression.
 #
 # Functions:
 #   extract    - Extract any type of archive file
 #   compress   - Create any type of archive file
 #   mkcd       - Create directory and navigate into it
 #   ff         - Find files by name pattern
-#   backup     - Create timestamped backup of file
+#   backup     - Create timestamped backup of files or folders with optional compression
 #
 # Usage Examples:
 #   $ extract archive.tar.gz    # Extract any archive type
@@ -18,7 +18,9 @@
 #   $ compress backup.zip *.txt                 # Create zip archive
 #   $ mkcd new_project          # Create and enter directory
 #   $ ff "*.py"                 # Find Python files
-#   $ backup important.txt      # Create timestamped backup
+#   $ backup important.txt      # Create simple copy backup
+#   $ backup project/ --compress tar.gz  # Create compressed folder backup
+#   $ backup config.ini --compress zip   # Create compressed file backup
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "ll"
@@ -312,14 +314,83 @@ if ! should_exclude "ff" 2>/dev/null; then
   }
 fi
 
-# Backup file with timestamp
+# Backup file or folder with timestamp and optional compression
 if ! should_exclude "backup" 2>/dev/null; then
   backup() {
-    if [[ -f "$1" ]]; then
-      cp "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
-      echo "Backup created: $1.backup.$(date +%Y%m%d_%H%M%S)"
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: backup <file_or_folder> [--compress <format>]"
+      echo "Compression formats: tar.gz, tar.bz2, zip, 7z, tar"
+      echo "Examples:"
+      echo "  backup important.txt                   # Simple copy backup"
+      echo "  backup project/                        # Simple folder backup"
+      echo "  backup config.ini --compress zip       # Compressed file backup"
+      echo "  backup project/ --compress tar.gz      # Compressed folder backup"
+      echo "  backup data/ --compress 7z             # 7z compressed backup"
+      return 1
+    fi
+    
+    local source_path="$1"
+    local compress_format=""
+    local use_compression=false
+    
+    # Parse compression option
+    if [[ "$2" == "--compress" && -n "$3" ]]; then
+      compress_format="$3"
+      use_compression=true
+    fi
+    
+    # Check if source exists
+    if [[ ! -e "$source_path" ]]; then
+      echo "Error: '$source_path' does not exist"
+      return 1
+    fi
+    
+    # Generate timestamp
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local basename=$(basename "$source_path")
+    
+    # Remove trailing slash for consistency
+    source_path="${source_path%/}"
+    basename="${basename%/}"
+    
+    if [[ "$use_compression" == true ]]; then
+      # Validate compression format
+      case "$compress_format" in
+        tar.gz|tar.bz2|zip|7z|tar)
+          ;;
+        *)
+          echo "Error: Unsupported compression format '$compress_format'"
+          echo "Supported formats: tar.gz, tar.bz2, zip, 7z, tar"
+          return 1
+          ;;
+      esac
+      
+      # Create compressed backup
+      local backup_name="${basename}.backup.${timestamp}.${compress_format}"
+      
+      echo "Creating compressed backup: $backup_name"
+      if compress "$backup_name" "$source_path"; then
+        echo "Compressed backup created successfully: $backup_name"
+      else
+        echo "Error: Failed to create compressed backup"
+        return 1
+      fi
     else
-      echo "File not found: $1"
+      # Create simple copy backup
+      if [[ -f "$source_path" ]]; then
+        # File backup
+        local backup_name="${source_path}.backup.${timestamp}"
+        cp "$source_path" "$backup_name"
+        echo "File backup created: $backup_name"
+      elif [[ -d "$source_path" ]]; then
+        # Directory backup
+        local backup_name="${basename}.backup.${timestamp}"
+        cp -r "$source_path" "$backup_name"
+        echo "Folder backup created: $backup_name"
+      else
+        echo "Error: '$source_path' is neither a file nor a directory"
+        return 1
+      fi
     fi
   }
 fi

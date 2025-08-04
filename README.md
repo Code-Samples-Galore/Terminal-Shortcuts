@@ -267,6 +267,23 @@ compress -s 2g backup.7z project/                 # Split into 2GB volumes
 - **Examples**: 100m, 1g, 500k, 1024b
 - **Output**: Creates multiple volume files that can be extracted as a single archive
 
+#### File and Folder Backup (`backup`)
+Create timestamped backups of files or folders with optional compression:
+
+```bash
+# Simple copy backups
+backup important.txt                    # File backup: important.txt.backup.20240101_143022
+backup project/                        # Folder backup: project.backup.20240101_143022/
+
+# Compressed backups
+backup config.ini --compress zip       # Creates: config.ini.backup.20240101_143022.zip
+backup project/ --compress tar.gz      # Creates: project.backup.20240101_143022.tar.gz
+backup data/ --compress 7z             # Creates: data.backup.20240101_143022.7z
+backup logs/ --compress tar.bz2        # Creates: logs.backup.20240101_143022.tar.bz2
+```
+
+**Compression formats supported**: tar.gz, tar.bz2, zip, 7z, tar
+
 #### Find and Replace (`replace`)
 ```bash
 $ replace "hello world" "world" "universe"     # Returns: hello universe
@@ -296,7 +313,7 @@ $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 - `compress` - Create any type of archive file with volume splitting support
 - `ff` - Find files by name pattern
 - `replace` - Find and replace text in strings, files, or stdin
-- `backup` - Create timestamped backup of file
+- `backup` - Create timestamped backup of files/folders with optional compression
 - `watchlog` - Monitor log file changes in real-time
 - `chown` - chown with preserve-root safety
 - `chmod` - chmod with preserve-root safety
