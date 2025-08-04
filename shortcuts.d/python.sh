@@ -8,11 +8,11 @@
 # Functions:
 #   svenv      - Auto-activate Python virtual environment in current directory
 #   pm         - Run Python modules using file path notation
+#   pipu       - Upgrade Python package(s) or from requirements file
 #
 # Aliases:
 #   p          - Python3 interpreter
 #   pipi       - Install Python package (pip install)
-#   pipu       - Upgrade Python package(s) (pip install -U)
 #   pipr       - Install from requirements file (pip install -r)
 #   pipl       - List installed packages (pip list)
 #
