@@ -168,12 +168,24 @@ fi
 # Show top processes by CPU/Memory
 if ! should_exclude "topcpu" 2>/dev/null; then
   topcpu() {
-    ps aux --sort=-%cpu | head -10
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      # macOS - use BSD-style ps
+      ps aux | sort -k3 -nr | head -10
+    else
+      # Linux - use GNU-style ps
+      ps aux --sort=-%cpu | head -10
+    fi
   }
 fi
 
 if ! should_exclude "topmem" 2>/dev/null; then
   topmem() {
-    ps aux --sort=-%mem | head -10
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      # macOS - use BSD-style ps
+      ps aux | sort -k4 -nr | head -10
+    else
+      # Linux - use GNU-style ps
+      ps aux --sort=-%mem | head -10
+    fi
   }
 fi

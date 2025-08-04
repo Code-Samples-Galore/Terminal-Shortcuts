@@ -34,7 +34,7 @@ cleanup_shortcut "myip"
 if ! should_exclude "ports" 2>/dev/null; then alias ports='netstat -tulan'; fi
 if ! should_exclude "wget" 2>/dev/null; then alias wget='wget -c'; fi
 if ! should_exclude "ping" 2>/dev/null; then alias ping='ping -c 5'; fi
-if ! should_exclude "fastping" 2>/dev/null; then alias fastping='ping -c 100 -s.2'; fi
+if ! should_exclude "fastping" 2>/dev/null; then alias fastping='ping -c 100 -i 0.2'; fi
 
 # Check if website is up
 if ! should_exclude "isup" 2>/dev/null; then

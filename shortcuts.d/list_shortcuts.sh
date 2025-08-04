@@ -41,12 +41,6 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  chgrp       - chgrp with preserve-root safety"
     echo
     
-    echo "📦 Node Version Manager:"
-    echo "  nu          - Use Node version (nvm use)"
-    echo "  nl          - List Node versions (nvm list)"
-    echo "  ni          - Install Node version (nvm install)"
-    echo
-    
     echo "🔀 Git:"
     echo "  gitinfo     - Display Git repository information"
     echo "  gs          - Git status"
@@ -64,6 +58,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  gdc         - Git diff cached"
     echo "  gr          - Git remove from cache"
     echo    
+    
     echo "⚙️  System Utilities:"
     echo "  h           - Show command history"
     echo "  path        - Display PATH variable (formatted)"
@@ -94,16 +89,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "🚀 Programs:"
     echo "  v           - Vim editor"
     echo
-    
-    echo "🐍 Python:"
-    echo "  p           - Python3"
-    echo "  pm          - Run Python modules using file path notation"
-    echo "  pipi        - Install Python package(s) or from requirements file"
-    echo "  pipu        - Upgrade Python package(s), all packages, or from requirements.txt"
-    echo "  pipl        - List installed packages (pip list)"
-    echo "  svenv       - Auto-activate Python virtual environment"
-    echo
-    
+
     echo "📝 Wordlist Processing:"
     echo "  wordlist    - Advanced wordlist filtering, processing and manipulation"
     echo "                • Filter by length, character types, entropy, regex patterns"
@@ -123,6 +109,21 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  hexconv     - Encode/decode hex strings, files, or stdin"
     echo "  base64conv  - Encode/decode base64 strings, files, or stdin"
     echo "  binconv     - Convert string, integer, or stdin to binary representation"
+    echo
+
+    echo "🐍 Python:"
+    echo "  p           - Python3"
+    echo "  pm          - Run Python modules using file path notation"
+    echo "  pipi        - Install Python package(s) or from requirements file"
+    echo "  pipu        - Upgrade Python package(s), all packages, or from requirements.txt"
+    echo "  pipl        - List installed packages (pip list)"
+    echo "  svenv       - Auto-activate Python virtual environment"
+    echo
+    
+    echo "📦 Node.js:"
+    echo "  nu          - Use Node version (nvm use)"
+    echo "  nl          - List Node versions (nvm list)"
+    echo "  ni          - Install Node version (nvm install)"
     echo
 
     echo "📚 Help:"
