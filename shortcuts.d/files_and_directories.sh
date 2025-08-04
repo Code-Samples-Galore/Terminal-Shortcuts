@@ -82,7 +82,20 @@ if ! should_exclude "extract" 2>/dev/null; then
         *.tgz)       tar xzf "$1"     ;;
         *.zip)       unzip "$1"       ;;
         *.Z)         uncompress "$1"  ;;
-        *.7z)        7z x "$1"        ;;
+        *.7z)        
+          local sevenzip_cmd=""
+          if command -v 7z >/dev/null 2>&1; then
+            sevenzip_cmd="7z"
+          elif command -v 7zz >/dev/null 2>&1; then
+            sevenzip_cmd="7zz"
+          elif command -v 7za >/dev/null 2>&1; then
+            sevenzip_cmd="7za"
+          else
+            echo "Error: No 7-Zip command found. Please install 7-Zip (7z, 7zz, or 7za)."
+            return 1
+          fi
+          "$sevenzip_cmd" x "$1"
+          ;;
         *)           echo "'$1' cannot be extracted" ;;
       esac
     else
@@ -222,26 +235,33 @@ if ! should_exclude "compress" 2>/dev/null; then
         fi
         ;;
       *.7z)
+        local sevenzip_cmd=""
         if command -v 7z >/dev/null 2>&1; then
-          if [[ -n "$split_size" ]]; then
-            # Convert size format for 7z
-            local szip_size
-            case "${split_size: -1}" in
-              b) szip_size="${split_size%b}b" ;;
-              k) szip_size="${split_size%k}k" ;;
-              m) szip_size="${split_size%m}m" ;;
-              g) szip_size="${split_size%g}g" ;;
-              *) szip_size="${split_size}b" ;;
-            esac
-            7z a -v"$szip_size" "$archive_name" "${files[@]}"
-            echo "Created 7-Zip archive with volumes: ${archive_name%.7z}.7z.* (${split_size} each)"
-          else
-            7z a "$archive_name" "${files[@]}"
-            echo "Created 7-Zip archive: $archive_name"
-          fi
+          sevenzip_cmd="7z"
+        elif command -v 7zz >/dev/null 2>&1; then
+          sevenzip_cmd="7zz"
+        elif command -v 7za >/dev/null 2>&1; then
+          sevenzip_cmd="7za"
         else
-          echo "Error: '7z' command not found. Please install p7zip utility."
+          echo "Error: No 7-Zip command found. Please install 7-Zip (7z, 7zz, or 7za)."
           return 1
+        fi
+        
+        if [[ -n "$split_size" ]]; then
+          # Convert size format for 7z
+          local szip_size
+          case "${split_size: -1}" in
+            b) szip_size="${split_size%b}b" ;;
+            k) szip_size="${split_size%k}k" ;;
+            m) szip_size="${split_size%m}m" ;;
+            g) szip_size="${split_size%g}g" ;;
+            *) szip_size="${split_size}b" ;;
+          esac
+          "$sevenzip_cmd" a -v"$szip_size" "$archive_name" "${files[@]}"
+          echo "Created 7-Zip archive with volumes: ${archive_name%.7z}.7z.* (${split_size} each)"
+        else
+          "$sevenzip_cmd" a "$archive_name" "${files[@]}"
+          echo "Created 7-Zip archive: $archive_name"
         fi
         ;;
       *.gz)
