@@ -322,11 +322,16 @@ fi
 if ! should_exclude "search" 2>/dev/null; then
   search() {
     if [[ $# -eq 0 ]]; then
-      echo "Usage: search [-r|--recursive] [-i|--ignore-case] [-E|--extended-regexp] <pattern> [file_or_directory]"
+      echo "Usage: search [-r|--recursive] [-i|--ignore-case] [-E|--extended-regexp] [-z|--gzip] <pattern> [file_or_directory]"
       echo "Options:"
       echo "  -r, --recursive       Search recursively in directories"
       echo "  -i, --ignore-case     Case insensitive search"
       echo "  -E, --extended-regexp Use extended regular expressions (ERE)"
+      echo "  -z, --gzip           Include gzip compressed files (.gz) in search"
+      echo ""
+      echo "Supported file types:"
+      echo "  • Regular text files (always searched)"
+      echo "  • Gzip compressed files (.gz) - only with -z/--gzip option"
       echo ""
       echo "Regex Support:"
       echo "  By default, supports basic regular expressions (BRE):"
@@ -350,6 +355,8 @@ if ! should_exclude "search" 2>/dev/null; then
       echo "  search \"error\$\" logs/                     # Lines ending with 'error'"
       echo "  search \"pattern\" .                        # Search in current directory"
       echo "  search -r \"pattern\" .                     # Search recursively in current directory"
+      echo "  search -z \"error\" logfile.gz              # Search in gzip compressed file"
+      echo "  search -rz \"exception\" logs/              # Recursive search including .gz files"
       echo "  search -E \"[a-z]+@[a-z]+\\.[a-z]{2,4}\" .  # Extended regex: email pattern"
       echo "  search -ri \"[Ee]rror\" /var/log            # Case insensitive, recursive"
       echo "  search -E \"^(GET|POST)\" access.log        # Extended regex with alternation"
@@ -359,6 +366,7 @@ if ! should_exclude "search" 2>/dev/null; then
     local recursive=false
     local ignore_case=false
     local extended_regex=false
+    local include_gzip=false
     local pattern=""
     local target=""
     
@@ -377,6 +385,10 @@ if ! should_exclude "search" 2>/dev/null; then
           extended_regex=true
           shift
           ;;
+        -z|--gzip)
+          include_gzip=true
+          shift
+          ;;
         -ri|-ir)
           recursive=true
           ignore_case=true
@@ -387,15 +399,55 @@ if ! should_exclude "search" 2>/dev/null; then
           extended_regex=true
           shift
           ;;
+        -rz|-zr)
+          recursive=true
+          include_gzip=true
+          shift
+          ;;
         -iE|-Ei)
           ignore_case=true
           extended_regex=true
+          shift
+          ;;
+        -iz|-zi)
+          ignore_case=true
+          include_gzip=true
+          shift
+          ;;
+        -Ez|-zE)
+          extended_regex=true
+          include_gzip=true
           shift
           ;;
         -riE|-rEi|-irE|-iEr|-Eri|-Eir)
           recursive=true
           ignore_case=true
           extended_regex=true
+          shift
+          ;;
+        -riz|-rzi|-irz|-izr|-zri|-zir)
+          recursive=true
+          ignore_case=true
+          include_gzip=true
+          shift
+          ;;
+        -rEz|-rZe|-Erz|-Ezr|-zrE|-zEr)
+          recursive=true
+          extended_regex=true
+          include_gzip=true
+          shift
+          ;;
+        -iEz|-iZe|-Eiz|-Ezi|-ziE|-zEi)
+          ignore_case=true
+          extended_regex=true
+          include_gzip=true
+          shift
+          ;;
+        -riEz|-riZe|-rEiz|-rEzi|-irEz|-irZe|-iErz|-iEzr|-Eriz|-Erzi|-Eirz|-Eizr|-zriE|-zrEi|-zirE|-ziEr|-zEri|-zEir)
+          recursive=true
+          ignore_case=true
+          extended_regex=true
+          include_gzip=true
           shift
           ;;
         *)
@@ -456,6 +508,7 @@ if ! should_exclude "search" 2>/dev/null; then
     fi
     echo "Recursive: $recursive"
     echo "Case insensitive: $ignore_case"
+    echo "Include gzip files: $include_gzip"
     if [[ "$extended_regex" == true ]]; then
       echo "Regex mode: Extended (ERE)"
     else
@@ -463,29 +516,100 @@ if ! should_exclude "search" 2>/dev/null; then
     fi
     echo ""
     
+    # Helper function to search in a single file (regular or gzipped)
+    search_file() {
+      local file="$1"
+      local pattern="$2"
+      local grep_opts="$3"
+      local color_opt="$4"
+      local allow_gz="$5"
+      
+      if [[ "$file" == *.gz && "$allow_gz" == true ]]; then
+        # Use zgrep for gzip files only if gzip option is enabled
+        if command -v zgrep >/dev/null 2>&1; then
+          zgrep $grep_opts $color_opt "$pattern" "$file" 2>/dev/null
+        else
+          # Fallback: decompress and pipe to grep
+          zcat "$file" 2>/dev/null | grep $grep_opts $color_opt "$pattern" | sed "s|^|${file}:|"
+        fi
+      elif [[ "$file" != *.gz ]]; then
+        # Use regular grep for normal files
+        grep $grep_opts $color_opt "$pattern" "$file" 2>/dev/null
+      fi
+      # Skip gz files if gzip option is not enabled
+    }
+    
     local results_found=false
+    local result_count=0
     
     if [[ -f "$target" ]]; then
-      # Search in a specific file
-      if grep $grep_options $color_option "$pattern" "$target" 2>/dev/null; then
+      # Search in a specific file (regular or gzipped)
+      local temp_results=$(search_file "$target" "$pattern" "$grep_options" "$color_option" "$include_gzip")
+      if [[ -n "$temp_results" ]]; then
+        echo "$temp_results"
+        result_count=$(echo "$temp_results" | wc -l)
         results_found=true
       fi
     elif [[ -d "$target" ]]; then
       # Search in directory
       if [[ "$recursive" == true ]]; then
-        # Recursive search in directory
-        local temp_results=$(grep $grep_options $color_option "$pattern" "$target" 2>/dev/null)
+        # Recursive search in directory - handle both regular and gz files
+        local temp_results=""
+        
+        # Search regular files
+        local regular_results=$(grep $grep_options $color_option "$pattern" "$target" 2>/dev/null)
+        if [[ -n "$regular_results" ]]; then
+          temp_results+="$regular_results"$'\n'
+        fi
+        
+        # Search gz files recursively only if gzip option is enabled
+        if [[ "$include_gzip" == true ]]; then
+          if command -v zgrep >/dev/null 2>&1; then
+            local gz_results=$(find "$target" -name "*.gz" -type f -exec zgrep $grep_options $color_option "$pattern" {} \; 2>/dev/null)
+            if [[ -n "$gz_results" ]]; then
+              temp_results+="$gz_results"$'\n'
+            fi
+          else
+            # Fallback for systems without zgrep
+            local gz_results=$(find "$target" -name "*.gz" -type f -exec sh -c 'zcat "$1" 2>/dev/null | grep '"$grep_options"' '"$color_option"' "'"$pattern"'" | sed "s|^|$1:|"' _ {} \; 2>/dev/null)
+            if [[ -n "$gz_results" ]]; then
+              temp_results+="$gz_results"$'\n'
+            fi
+          fi
+        fi
+        
         if [[ -n "$temp_results" ]]; then
           echo "$temp_results"
+          result_count=$(echo "$temp_results" | wc -l)
           results_found=true
         fi
       else
         # Non-recursive search (only files in the specified directory)
-        local temp_results=$(find "$target" -maxdepth 1 -type f -exec grep -l $grep_options "$pattern" {} \; 2>/dev/null | while read -r file; do
-          grep $grep_options $color_option "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|"
-        done)
+        local temp_results=""
+        
+        # Search regular files
+        local regular_files=$(find "$target" -maxdepth 1 -type f ! -name "*.gz" -exec grep -l $grep_options "$pattern" {} \; 2>/dev/null)
+        for file in $regular_files; do
+          local file_results=$(grep $grep_options $color_option "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|")
+          if [[ -n "$file_results" ]]; then
+            temp_results+="$file_results"$'\n'
+          fi
+        done
+        
+        # Search gz files only if gzip option is enabled
+        if [[ "$include_gzip" == true ]]; then
+          local gz_files=$(find "$target" -maxdepth 1 -name "*.gz" -type f 2>/dev/null)
+          for file in $gz_files; do
+            local file_results=$(search_file "$file" "$pattern" "$grep_options" "$color_option" "$include_gzip" | sed "s|^|${file}:|")
+            if [[ -n "$file_results" ]]; then
+              temp_results+="$file_results"$'\n'
+            fi
+          done
+        fi
+        
         if [[ -n "$temp_results" ]]; then
           echo "$temp_results"
+          result_count=$(echo "$temp_results" | wc -l)
           results_found=true
         fi
       fi
@@ -494,7 +618,7 @@ if ! should_exclude "search" 2>/dev/null; then
       local temp_results=""
       for file in $target; do
         if [[ -f "$file" ]]; then
-          local file_results=$(grep $grep_options $color_option "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|")
+          local file_results=$(search_file "$file" "$pattern" "$grep_options" "$color_option" "$include_gzip" | sed "s|^|${file}:|")
           if [[ -n "$file_results" ]]; then
             temp_results+="$file_results"$'\n'
           fi
@@ -502,6 +626,7 @@ if ! should_exclude "search" 2>/dev/null; then
       done
       if [[ -n "$temp_results" ]]; then
         echo "$temp_results"
+        result_count=$(echo "$temp_results" | wc -l)
         results_found=true
       fi
     fi
@@ -509,6 +634,9 @@ if ! should_exclude "search" 2>/dev/null; then
     if [[ "$results_found" == false ]]; then
       echo "No matches found for pattern '$pattern'"
       return 1
+    else
+      echo ""
+      echo "Found $result_count match(es)"
     fi
   }
 fi

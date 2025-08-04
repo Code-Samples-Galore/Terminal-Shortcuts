@@ -293,7 +293,7 @@ $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 ```
 
 #### Text Search in Files (`search`)
-Search for text patterns in files with optional recursive directory searching, regex support, and case sensitivity control:
+Search for text patterns in files with optional recursive directory searching, regex support, case sensitivity control, and optional gzip file handling:
 
 ```bash
 # Basic text searching
@@ -305,6 +305,11 @@ search "error" config.ini settings.conf  # Search in multiple specific files
 search "class" src/                       # Search in all files in src/ directory (non-recursive)
 search -r "import" .                      # Search recursively in current directory
 search --recursive "password" /etc/       # Search recursively in system config
+
+# Gzip file searching (with -z option)
+search -z "error" logfile.gz              # Search in gzip compressed file
+search -rz "exception" logs/              # Recursive search including .gz files
+search -z "pattern" *.gz                  # Search in multiple gzip files
 
 # Case insensitive searching
 search -i "ERROR" logs/                   # Case insensitive search
@@ -324,52 +329,21 @@ search -E "function.*\(.*\)" src/        # Function definitions
 search -E "import.*\{.*\}" *.js          # ES6 import statements
 
 # Combined options
-search -riE "error|warning|critical" logs/  # Recursive, case insensitive, extended regex
-search -iE "^(http|https)://" config/       # Case insensitive URL patterns
+search -riEz "error|warning|critical" logs/  # Recursive, case insensitive, extended regex, including .gz
+search -iEz "^(http|https)://" config/       # Case insensitive URL patterns in .gz files
 ```
 
 **Options:**
 - `-r, --recursive`: Search recursively in subdirectories
 - `-i, --ignore-case`: Case insensitive search
 - `-E, --extended-regexp`: Use extended regular expressions (ERE)
-- **Option combinations**: `-ri`, `-rE`, `-iE`, `-riE` for multiple options
+- `-z, --gzip`: Include gzip compressed files (.gz) in search
+- **Option combinations**: `-ri`, `-rE`, `-rz`, `-iE`, `-iz`, `-Ez`, `-riE`, `-riz`, `-rEz`, `-iEz`, `-riEz` for multiple options
 
-**Regex Support:**
-
-*Basic Regular Expressions (BRE) - Default:*
-- `[a-z]` - Character classes
-- `^pattern` - Start of line anchor
-- `pattern$` - End of line anchor
-- `.` - Any single character
-- `*` - Zero or more of preceding character
-- `\{n\}` - Exactly n occurrences (escaped braces)
-- `\{n,m\}` - Between n and m occurrences (escaped braces)
-
-*Extended Regular Expressions (ERE) - With `-E` flag:*
-- `+` - One or more of preceding character
-- `?` - Zero or one of preceding character
-- `{n}` - Exactly n occurrences (unescaped braces)
-- `{n,m}` - Between n and m occurrences (unescaped braces)
-- `(pattern1|pattern2)` - Alternation (OR)
-- `()` - Grouping
-
-**Features:**
-- **File targeting**: Search in specific files, wildcards, or directories
-- **Recursive search**: Use `-r` or `--recursive` for subdirectory search
-- **Case control**: Use `-i` or `--ignore-case` for case insensitive matching
-- **Regex support**: Basic regex by default, extended regex with `-E` flag
-- **Line numbers**: Shows file path and line number for each match
-- **Pattern matching**: Supports literal text and regular expressions
-- **Multiple targets**: Can search across multiple files or patterns
-
-**Output format**: `filepath:line_number:matched_line`
-
-**Common Regex Examples:**
-- `[a-z]1234` - Any lowercase letter followed by "1234"
-- `^Error:` - Lines starting with "Error:"
-- `\.txt$` - Lines ending with ".txt"
-- `[0-9]{3}-[0-9]{2}-[0-9]{4}` - SSN format (with -E flag)
-- `(error|warning|info)` - Match any of the three words (with -E flag)
+**Supported File Types:**
+- **Regular text files**: Always searched by default
+- **Gzip compressed files (.gz)**: Only searched when `-z` or `--gzip` option is specified
+- **Mixed directories**: Seamlessly searches both regular and compressed files when gzip option is enabled
 
 ## 🎯 Complete Aliases and Functions Reference
 
@@ -391,7 +365,7 @@ search -iE "^(http|https)://" config/       # Case insensitive URL patterns
 - `extract` - Extract any type of archive file
 - `compress` - Create any type of archive file with volume splitting support
 - `ff` - Find files by name pattern
-- `search` - Search for text in files with regex and case sensitivity options
+- `search` - Search for text in files with basic/extended regex, case sensitivity, and optional .gz file support
 - `replace` - Find and replace text in strings, files, or stdin
 - `backup` - Create timestamped backup of files/folders with optional compression
 - `watchlog` - Monitor log file changes in real-time
@@ -433,6 +407,32 @@ search -iE "^(http|https)://" config/       # Case insensitive URL patterns
 - `topmem` - Show top processes by memory usage
 
 ### 🌐 Network
+- `ports` - Show network ports and connections
+- `wget` - Wget with continue option
+- `ping` - Ping 5 times
+- `fastping` - Fast ping test (100 packets)
+- `isup` - Check if website is accessible
+- `myip` - Display local and external IP addresses
+
+### ✏️ Quick Edits
+- `bashrc` - Edit ~/.bashrc
+- `zshrc` - Edit ~/.zshrc
+- `vimrc` - Edit ~/.vimrc
+
+### 🚀 Programs
+- `v` - Vim editor
+
+### 🐍 Python
+- `p` - Python3
+- `pm` - Run Python modules using file path
+- `pipi` - Install Python package(s) or from requirements file
+- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
+- `pipl` - List installed packages (pip list)
+- `svenv` - Auto-activate Python virtual environment
+
+## 📄 License
+
+MIT License
 - `ports` - Show network ports and connections
 - `wget` - Wget with continue option
 - `ping` - Ping 5 times
