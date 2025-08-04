@@ -28,6 +28,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  grep        - Grep with color highlighting"
     echo "  tree        - Tree view with colors"
     echo "  extract     - Extract any type of archive file"
+    echo "  compress    - Create any type of archive file"
     echo "  ff          - Find files by name pattern"
     echo "  replace     - Find and replace text in strings, files, or stdin"
     echo "  backup      - Create timestamped backup of file"
@@ -59,8 +60,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  gd          - Git diff"
     echo "  gdc         - Git diff cached"
     echo "  gr          - Git remove from cache"
-    echo
-    
+    echo    
     echo "⚙️  System Utilities:"
     echo "  h           - Show command history"
     echo "  path        - Display PATH variable (formatted)"

@@ -36,7 +36,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 - **Enhanced file listing**: `ll`, `la`, `l` with colors and details
 - **Smart navigation**: `..`, `...`, `....` for quick directory traversal
-- **Archive extraction**: Universal `extract` function for any archive type
+- **Archive operations**: Universal `extract` and `compress` functions for any archive type
 - **File operations**: Find files (`ff`), find-and-replace (`replace`), timestamped backups (`backup`)
 - **Directory creation**: `mkcd` to create and enter directories
 - **Log monitoring**: `watchlog` for real-time log file monitoring
@@ -239,13 +239,20 @@ $ wordlist -su -o output.txt passwords.txt   # Sort, unique, save to file
 $ wordlist -split 100MB -o parts.txt large.txt  # Split into 100MB files
 ```
 
-### File Operations (`extract`, `mkcd`, `ff`, `replace`, `backup`)
+### File Operations (`extract`, `compress`, `mkcd`, `ff`, `replace`, `backup`)
 
-#### Universal Archive Extraction (`extract`)
+#### Universal Archive Operations
 ```bash
+# Extract archives
 extract archive.tar.gz    # Extracts tar.gz files
 extract package.zip       # Extracts zip files
 extract data.7z          # Extracts 7z files
+
+# Create archives
+compress backup.tar.gz file1.txt file2.txt dir1/  # Create gzip tar archive
+compress project.zip src/ docs/ README.md         # Create zip archive
+compress data.7z *.csv *.json                     # Create 7z archive
+compress single.gz important.txt                  # Compress single file
 ```
 
 #### Find and Replace (`replace`)
@@ -256,25 +263,7 @@ $ replace config.ini "localhost" "127.0.0.1" --backup  # Replace with backup
 $ echo "hello world" | replace - "world" "universe"    # Replace from stdin
 ```
 
-### Git Enhancements (`gac`, `gitinfo`)
-
-#### Auto-commit (`gac`)
-```bash
-$ gac
-[main 1a2b3c4] Auto commit: 5 files changed
-```
-
-#### Repository Information (`gitinfo`)
-```bash
-$ gitinfo
-=== GIT REPOSITORY INFO ===
-Current branch: main
-Repository: my-project
-Last commit: 1a2b3c4 - Fix bug in parser (2 hours ago)
-Status:
- M src/main.py
-?? new_file.txt
-```
+# ...existing code...
 
 ## 🎯 Complete Aliases and Functions Reference
 
@@ -294,6 +283,7 @@ Status:
 - `grep` - Grep with color highlighting
 - `tree` - Tree view with colors
 - `extract` - Extract any type of archive file
+- `compress` - Create any type of archive file
 - `ff` - Find files by name pattern
 - `replace` - Find and replace text in strings, files, or stdin
 - `backup` - Create timestamped backup of file
@@ -353,6 +343,16 @@ Status:
 
 ### 🐍 Python
 - `p` - Python3
+- `pm` - Run Python modules using file path
+- `pipi` - Install Python package (pip install)
+- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
+- `pipr` - Install from requirements file (pip install -r)
+- `pipl` - List installed packages (pip list)
+- `svenv` - Auto-activate Python virtual environment
+
+## 📄 License
+
+MIT License
 - `pm` - Run Python modules using file path
 - `pipi` - Install Python package (pip install)
 - `pipu` - Upgrade Python package(s), all packages, or from requirements.txt

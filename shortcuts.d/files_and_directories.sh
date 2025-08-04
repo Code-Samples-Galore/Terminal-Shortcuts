@@ -7,6 +7,7 @@
 #
 # Functions:
 #   extract    - Extract any type of archive file
+#   compress   - Create any type of archive file
 #   mkcd       - Create directory and navigate into it
 #   ff         - Find files by name pattern
 #   replace    - Find and replace text in files, strings, or stdin
@@ -14,6 +15,8 @@
 #
 # Usage Examples:
 #   $ extract archive.tar.gz    # Extract any archive type
+#   $ compress myfiles.tar.gz file1 file2 dir1  # Create tar.gz archive
+#   $ compress backup.zip *.txt                 # Create zip archive
 #   $ mkcd new_project          # Create and enter directory
 #   $ ff "*.py"                 # Find Python files
 #   $ replace "old" "new" "*.txt"  # Replace text in files
@@ -60,6 +63,103 @@ if ! should_exclude "extract" 2>/dev/null; then
     else
       echo "'$1' is not a valid file"
     fi
+  }
+fi
+
+# Compress files/directories into any archive type
+if ! should_exclude "compress" 2>/dev/null; then
+  compress() {
+    if [[ $# -lt 2 ]]; then
+      echo "Usage: compress <archive_name> <files_or_directories...>"
+      echo "Supported formats:"
+      echo "  .tar.gz, .tgz    - Gzip compressed tar archive"
+      echo "  .tar.bz2, .tbz2  - Bzip2 compressed tar archive"
+      echo "  .tar             - Uncompressed tar archive"
+      echo "  .zip             - ZIP archive"
+      echo "  .7z              - 7-Zip archive"
+      echo "  .gz              - Gzip single file (first file only)"
+      echo "  .bz2             - Bzip2 single file (first file only)"
+      echo ""
+      echo "Examples:"
+      echo "  compress backup.tar.gz file1.txt file2.txt dir1/"
+      echo "  compress project.zip src/ docs/ README.md"
+      echo "  compress data.7z *.csv *.json"
+      return 1
+    fi
+    
+    local archive_name="$1"
+    shift
+    local files=("$@")
+    
+    # Check if files/directories exist
+    for item in "${files[@]}"; do
+      if [[ ! -e "$item" ]]; then
+        echo "Error: '$item' does not exist"
+        return 1
+      fi
+    done
+    
+    case "$archive_name" in
+      *.tar.gz|*.tgz)
+        tar czf "$archive_name" "${files[@]}"
+        echo "Created gzip compressed tar archive: $archive_name"
+        ;;
+      *.tar.bz2|*.tbz2)
+        tar cjf "$archive_name" "${files[@]}"
+        echo "Created bzip2 compressed tar archive: $archive_name"
+        ;;
+      *.tar)
+        tar cf "$archive_name" "${files[@]}"
+        echo "Created tar archive: $archive_name"
+        ;;
+      *.zip)
+        if command -v zip >/dev/null 2>&1; then
+          zip -r "$archive_name" "${files[@]}"
+          echo "Created ZIP archive: $archive_name"
+        else
+          echo "Error: 'zip' command not found. Please install zip utility."
+          return 1
+        fi
+        ;;
+      *.7z)
+        if command -v 7z >/dev/null 2>&1; then
+          7z a "$archive_name" "${files[@]}"
+          echo "Created 7-Zip archive: $archive_name"
+        else
+          echo "Error: '7z' command not found. Please install p7zip utility."
+          return 1
+        fi
+        ;;
+      *.gz)
+        if [[ ${#files[@]} -gt 1 ]]; then
+          echo "Warning: gzip can only compress single files. Using first file: ${files[0]}"
+        fi
+        if [[ -f "${files[0]}" ]]; then
+          gzip -c "${files[0]}" > "$archive_name"
+          echo "Created gzip compressed file: $archive_name"
+        else
+          echo "Error: '${files[0]}' is not a regular file"
+          return 1
+        fi
+        ;;
+      *.bz2)
+        if [[ ${#files[@]} -gt 1 ]]; then
+          echo "Warning: bzip2 can only compress single files. Using first file: ${files[0]}"
+        fi
+        if [[ -f "${files[0]}" ]]; then
+          bzip2 -c "${files[0]}" > "$archive_name"
+          echo "Created bzip2 compressed file: $archive_name"
+        else
+          echo "Error: '${files[0]}' is not a regular file"
+          return 1
+        fi
+        ;;
+      *)
+        echo "Error: Unsupported archive format for '$archive_name'"
+        echo "Supported formats: .tar.gz, .tgz, .tar.bz2, .tbz2, .tar, .zip, .7z, .gz, .bz2"
+        return 1
+        ;;
+    esac
   }
 fi
 
