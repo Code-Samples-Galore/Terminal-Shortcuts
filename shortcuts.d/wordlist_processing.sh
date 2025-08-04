@@ -232,19 +232,26 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           fi
           # Validate percentage format and sum
           local pct_string="$2"
-          local pct_array=($pct_string)
+          if [[ -n "$ZSH_VERSION" ]]; then
+            # zsh - use explicit word splitting
+            pct_array=(${=pct_string})
+          else
+            # bash and other shells
+            pct_array=($pct_string)
+          fi
           local total_pct=0
           
           for pct in "${pct_array[@]}"; do
-            if [[ ! "$pct" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-              echo "Error: Invalid percentage format '$pct'. Use numbers only."
+            # Check if percentage is a valid integer
+            if [[ ! "$pct" =~ ^[0-9]+$ ]]; then
+              echo "Error: Invalid percentage format '$pct'. Use integers only (e.g., \"20 80\", \"30 30 40\")."
               return 1
             fi
-            total_pct=$(echo "$total_pct + $pct" | bc -l)
+            total_pct=$((total_pct + pct))
           done
           
-          # Check if percentages sum to 100 (allow small floating point errors)
-          if (( $(echo "$total_pct < 99.99 || $total_pct > 100.01" | bc -l) )); then
+          # Check if percentages sum to 100
+          if [[ $total_pct -ne 100 ]]; then
             echo "Error: Percentages must sum to 100. Current sum: $total_pct"
             return 1
           fi
@@ -353,9 +360,14 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     fi
     
     # Validate entropy relationship
-    if [[ -n "$min_entropy" && -n "$max_entropy" ]] && (( $(echo "$min_entropy > $max_entropy" | bc -l) )); then
-      echo "Error: Minimum entropy ($min_entropy) cannot be greater than maximum entropy ($max_entropy)"
-      return 1
+    if [[ -n "$min_entropy" && -n "$max_entropy" ]]; then
+      # Use awk for floating point comparison since bash doesn't handle floats natively
+      local entropy_check
+      entropy_check=$(awk "BEGIN { if ($min_entropy > $max_entropy) print \"invalid\"; else print \"valid\" }")
+      if [[ "$entropy_check" == "invalid" ]]; then
+        echo "Error: Minimum entropy ($min_entropy) cannot be greater than maximum entropy ($max_entropy)"
+        return 1
+      fi
     fi
     
     # Validate character type min/max relationships
@@ -640,10 +652,14 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           else
             extension=".$extension"
           fi
-          
-          # Check for existing split files
-          local existing_splits=(${base_name}_part_*${extension})
-          if [[ ${#existing_splits[@]} -gt 0 && -f "${existing_splits[0]}" ]]; then
+            
+          # Check for existing split files with portable glob handling
+          local existing_splits=""
+          if find . -maxdepth 1 -name "${base_name}_part_*${extension}" -type f -print -quit 2>/dev/null | grep -q .; then
+            existing_splits="found"
+          fi
+
+          if [[ -n "$existing_splits" ]]; then
             echo -n "Split files '${base_name}_part_*${extension}' exist. Overwrite? (y/N): "
             read -r response
             if [[ ! "$response" =~ ^[Yy]$ ]]; then
@@ -651,7 +667,7 @@ if ! should_exclude "wordlist" 2>/dev/null; then
               return 1
             fi
             # Remove existing split files
-            rm -f ${base_name}_part_*${extension}
+            rm -f ${base_name}_part_*${extension} 2>/dev/null
           fi
         else
           # Check if output file exists and prompt for confirmation
@@ -687,19 +703,25 @@ if ! should_exclude "wordlist" 2>/dev/null; then
         # Create temporary file to store all processed output
         local temp_file=$(mktemp)
         eval "$processing_pipeline" > "$temp_file"
-        local exit_code=${PIPESTATUS[0]}
+        local exit_code=$?
         
         if [[ $exit_code -eq 0 ]]; then
           local total_words=$(wc -l < "$temp_file")
-          local pct_array=($split_percentages)
+          if [[ -n "$ZSH_VERSION" ]]; then
+            # zsh - use explicit word splitting
+            pct_array=(${=pct_string})
+          else
+            # bash and other shells
+            pct_array=($pct_string)
+          fi
           local current_line=1
           local file_index=1
-          
+            
           echo "Splitting $total_words words into ${#pct_array[@]} percentage-based files:"
           
           for pct in "${pct_array[@]}"; do
-            local words_in_file=$(echo "scale=0; $total_words * $pct / 100" | bc -l)
-            words_in_file=${words_in_file%.*}  # Remove decimal part
+            # Use bash arithmetic for percentage calculation
+            local words_in_file=$((total_words * pct / 100))
             
             # For the last file, take all remaining words to handle rounding
             if [[ $file_index -eq ${#pct_array[@]} ]]; then
@@ -711,7 +733,7 @@ if ! should_exclude "wordlist" 2>/dev/null; then
             if [[ $words_in_file -gt 0 ]]; then
               sed -n "${current_line},$((current_line + words_in_file - 1))p" "$temp_file" > "$output_part"
               local actual_words=$(wc -l < "$output_part")
-              local actual_pct=$(echo "scale=1; $actual_words * 100 / $total_words" | bc -l)
+              local actual_pct=$((actual_words * 100 / total_words))
               local size=$(ls -lh "$output_part" | awk '{print $5}')
               echo "  $output_part: $actual_words words (${actual_pct}%, $size)"
               current_line=$((current_line + words_in_file))
@@ -758,20 +780,31 @@ if ! should_exclude "wordlist" 2>/dev/null; then
         
         local exit_code=${PIPESTATUS[0]}
         if [[ $exit_code -eq 0 ]]; then
-          local split_files=(${base_name}_part_*${extension})
+          local split_files=""
+          # Use ls with error handling instead of shell globbing
+          if ls ${base_name}_part_*${extension} 2>/dev/null >/dev/null; then
+            split_files=$(ls ${base_name}_part_*${extension} 2>/dev/null)
+          fi
           local total_words=0
-          local file_count=${#split_files[@]}
+          local file_count=0
           
-          echo "Processed wordlist split into $file_count files:"
-          for file in "${split_files[@]}"; do
-            if [[ -f "$file" ]]; then
-              local words=$(wc -l < "$file" 2>/dev/null || echo "0")
-              local size=$(ls -lh "$file" | awk '{print $5}')
-              echo "  $file: $words words ($size)"
-              total_words=$((total_words + words))
-            fi
-          done
-          echo "Total: $total_words words"
+          if [[ -n "$split_files" ]]; then
+            echo "Processed wordlist split into files:"
+            echo "$split_files" | while IFS= read -r file; do
+              if [[ -f "$file" ]]; then
+                local words=$(wc -l < "$file" 2>/dev/null || echo "0")
+                local size=$(ls -lh "$file" | awk '{print $5}')
+                echo "  $file: $words words ($size)"
+                file_count=$((file_count + 1))
+                total_words=$((total_words + words))
+              fi
+            done
+            # Count files for summary
+            file_count=$(echo "$split_files" | wc -l)
+            echo "Total: split into $file_count files"
+          else
+            echo "No split files were created"
+          fi
         else
           echo "Error: Failed to process wordlist"
           return $exit_code
