@@ -61,7 +61,7 @@ if ! should_exclude "pipu" 2>/dev/null; then
     if [[ $# -eq 0 ]]; then
       # No arguments provided, upgrade all packages
       echo "Upgrading all packages..."
-      python3 -m pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 python3 -m pip install -U
+      python3 -m pip list --outdated | grep -v '^\-e' | awk '{print $1}' | tail -n +3 | xargs -n1 python3 -m pip install -U
     elif [[ "$1" == "requirements.txt" || "$1" == *.txt ]]; then
       # Upgrade packages from requirements file
       python3 -m pip install -U -r "$@"
