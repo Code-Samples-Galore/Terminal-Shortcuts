@@ -220,12 +220,12 @@ if ! should_exclude "binconv" 2>/dev/null; then
       # Convert integer to binary
       echo "obase=2; $input" | bc
     else
-      # Convert string to binary (each character)
-      echo -n "$input" | while IFS= read -r -n1 char; do
-        if [[ -n "$char" ]]; then
-          printf "%s " "$(printf '%d' "'$char" | xargs -I {} echo "obase=2; {}" | bc)"
+      # Convert string to binary (each character) using od for reliable character processing
+      echo -n "$input" | od -An -tu1 | tr -s ' ' '\n' | while read -r byte; do
+        if [[ -n "$byte" && "$byte" != "0" ]]; then
+          echo "obase=2; $byte" | bc
         fi
-      done
+      done | tr '\n' ' '
       echo
     fi
   }
