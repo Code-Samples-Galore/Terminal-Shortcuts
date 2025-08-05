@@ -54,6 +54,20 @@ cleanup_shortcut "replace"
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
   jsonpp() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: jsonpp [file]"
+      echo ""
+      echo "Pretty-print JSON data with proper indentation and formatting."
+      echo "If no file specified, reads from stdin."
+      echo ""
+      echo "Examples:"
+      echo "  jsonpp data.json             # Format JSON file"
+      echo "  echo '{\"key\":\"value\"}' | jsonpp    # Format JSON from stdin"
+      echo "  curl -s api.example.com | jsonpp     # Format API response"
+      echo "  cat response.json | jsonpp   # Format via pipe"
+      return 0
+    fi
+    
     if [[ -n "$1" ]]; then
       cat "$1" | python3 -m json.tool
     else
@@ -65,7 +79,26 @@ fi
 # Generate random password
 if ! should_exclude "randstr" 2>/dev/null; then
   randstr() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: randstr [length]"
+      echo ""
+      echo "Generate a secure random password using base64 encoding."
+      echo "Default length is 16 characters if not specified."
+      echo ""
+      echo "Examples:"
+      echo "  randstr                      # Generate 16-character password"
+      echo "  randstr 32                   # Generate 32-character password"
+      echo "  randstr 8                    # Generate 8-character password"
+      echo "  randstr 64                   # Generate 64-character password"
+      return 0
+    fi
+    
     local length=${1:-16}
+    if ! [[ "$length" =~ ^[0-9]+$ ]]; then
+      echo "Error: Length must be a positive integer"
+      echo "Usage: randstr [length]"
+      return 1
+    fi
     openssl rand -base64 32 | head -c "$length" && echo
   }
 fi
@@ -73,6 +106,23 @@ fi
 # Calculator function
 if ! should_exclude "calc" 2>/dev/null; then
   calc() {
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: calc <mathematical_expression>"
+      echo ""
+      echo "Perform mathematical calculations with floating point precision."
+      echo "Supports standard arithmetic operations and functions."
+      echo ""
+      echo "Operators: +, -, *, /, ^, %, sqrt(), sin(), cos(), log(), etc."
+      echo ""
+      echo "Examples:"
+      echo "  calc \"2 + 2\"                # Basic addition: 4"
+      echo "  calc \"3.14 * 2^2\"          # Pi times radius squared"
+      echo "  calc \"sqrt(16)\"             # Square root: 4"
+      echo "  calc \"10 / 3\"               # Division with decimals"
+      echo "  calc \"2^10\"                 # Powers: 1024"
+      echo "  calc \"sin(3.14159/2)\"       # Trigonometry"
+      return 1
+    fi
     echo "scale=3; $*" | bc -l
   }
 fi
@@ -80,10 +130,26 @@ fi
 # Base-2 logarithm function
 if ! should_exclude "log2" 2>/dev/null; then
   log2() {
-    if [[ -z "$1" ]]; then
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: log2 <integer>"
+      echo ""
+      echo "Calculate the base-2 logarithm of a positive integer."
+      echo "Useful for determining bit lengths, tree depths, etc."
+      echo ""
+      echo "Examples:"
+      echo "  log2 256                     # Result: 8 (2^8 = 256)"
+      echo "  log2 1024                    # Result: 10 (2^10 = 1024)"
+      echo "  log2 7                       # Result: 2.807 (between 2^2 and 2^3)"
+      echo "  log2 1                       # Result: 0 (2^0 = 1)"
+      echo "  log2 65536                   # Result: 16 (2^16 = 65536)"
       return 1
     fi
+    
+    if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+      echo "Error: Input must be a positive integer"
+      return 1
+    fi
+    
     echo "scale=6; l($1)/l(2)" | bc -l
   }
 fi
@@ -91,9 +157,25 @@ fi
 # Hex encode/decode function
 if ! should_exclude "hexconv" 2>/dev/null; then
   hexconv() {
-    if [[ -z "$1" || -z "$2" ]]; then
+    if [[ -z "$1" || -z "$2" || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: hexconv <encode|decode> <string_or_file|->"
-      echo "Use '-' to read from stdin"
+      echo ""
+      echo "Encode or decode data to/from hexadecimal representation."
+      echo "Can process strings, files, or stdin input."
+      echo ""
+      echo "Commands:"
+      echo "  encode, e    Convert data to hexadecimal"
+      echo "  decode, d    Convert hexadecimal back to original data"
+      echo ""
+      echo "Examples:"
+      echo "  hexconv encode \"hello\"           # Encode string to hex"
+      echo "  hexconv decode \"68656c6c6f\"      # Decode hex to string"
+      echo "  hexconv e myfile.txt             # Encode file contents"
+      echo "  hexconv d hexfile.txt            # Decode hex file"
+      echo "  echo \"hello\" | hexconv encode -  # Encode from stdin"
+      echo "  echo \"68656c6c6f\" | hexconv decode -  # Decode from stdin"
+      echo ""
+      echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
     
@@ -126,9 +208,25 @@ fi
 # Base64 encode/decode function
 if ! should_exclude "base64conv" 2>/dev/null; then
   base64conv() {
-    if [[ -z "$1" || -z "$2" ]]; then
+    if [[ -z "$1" || -z "$2" || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: base64conv <encode|decode> <string_or_file|->"
-      echo "Use '-' to read from stdin"
+      echo ""
+      echo "Encode or decode data to/from Base64 representation."
+      echo "Can process strings, files, or stdin input."
+      echo ""
+      echo "Commands:"
+      echo "  encode, e    Convert data to Base64"
+      echo "  decode, d    Convert Base64 back to original data"
+      echo ""
+      echo "Examples:"
+      echo "  base64conv encode \"hello world\"   # Encode string to Base64"
+      echo "  base64conv decode \"aGVsbG8gd29ybGQ=\"  # Decode Base64 to string"
+      echo "  base64conv e document.pdf          # Encode file contents"
+      echo "  base64conv d encoded.txt           # Decode Base64 file"
+      echo "  echo \"data\" | base64conv encode -  # Encode from stdin"
+      echo "  cat encoded.txt | base64conv decode -  # Decode from stdin"
+      echo ""
+      echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
     
@@ -160,10 +258,30 @@ fi
 # Hash function for strings and files
 if ! should_exclude "hashit" 2>/dev/null; then
   hashit() {
-    if [[ -z "$1" || -z "$2" ]]; then
+    if [[ -z "$1" || -z "$2" || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: hashit <hash_type> <string_or_file|->"
-      echo "Hash types: md5, sha1, sha256, sha512"
-      echo "Use '-' to read from stdin"
+      echo ""
+      echo "Compute cryptographic hash of strings, files, or stdin input."
+      echo "Supports multiple hash algorithms for different security needs."
+      echo ""
+      echo "Hash types:"
+      echo "  md5      128-bit hash (legacy, not secure)"
+      echo "  sha1     160-bit hash (legacy, not secure)"
+      echo "  sha256   256-bit hash (secure, recommended)"
+      echo "  sha512   512-bit hash (secure, high security)"
+      echo ""
+      echo "Examples:"
+      echo "  hashit sha256 \"hello world\"       # Hash string with SHA256"
+      echo "  hashit md5 document.pdf           # Hash file with MD5"
+      echo "  hashit sha512 /etc/passwd         # Hash system file"
+      echo "  echo \"password\" | hashit sha256 -  # Hash stdin input"
+      echo "  cat largefile.zip | hashit sha1 -  # Hash large file via pipe"
+      echo ""
+      echo "Security recommendations:"
+      echo "  • Use SHA256 or SHA512 for new applications"
+      echo "  • Avoid MD5 and SHA1 for security-critical uses"
+      echo ""
+      echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
     
@@ -204,12 +322,31 @@ fi
 # Binary converter function
 if ! should_exclude "binconv" 2>/dev/null; then
   binconv() {
-    if [[ -z "$1" ]]; then
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: binconv <string_or_integer|->"
+      echo ""
+      echo "Convert strings or integers to binary representation."
+      echo "Handles both numeric and text input automatically."
+      echo ""
+      echo "Input types:"
+      echo "  Integer    Converts to binary number representation"
+      echo "  String     Converts each character to binary (ASCII/UTF-8)"
+      echo "  Stdin      Processes piped input"
+      echo ""
       echo "Examples:"
-      echo "  binconv 255     # Convert integer to binary"
-      echo "  binconv \"Hello\" # Convert string to binary"
-      echo "  echo \"data\" | binconv -  # Convert stdin to binary"
+      echo "  binconv 255                    # Integer: 11111111"
+      echo "  binconv 1024                   # Integer: 10000000000"
+      echo "  binconv \"A\"                   # String: 01000001"
+      echo "  binconv \"Hello\"               # String: multiple binary values"
+      echo "  echo \"World\" | binconv -       # Stdin: binary for each character"
+      echo "  binconv 0                      # Integer: 0"
+      echo ""
+      echo "Use cases:"
+      echo "  • Learning binary representation"
+      echo "  • Debugging character encoding"
+      echo "  • Understanding data storage"
+      echo ""
+      echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
     
@@ -239,12 +376,34 @@ fi
 # Entropy calculation function
 if ! should_exclude "entropy" 2>/dev/null; then
   entropy() {
-    if [[ -z "$1" ]]; then
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: entropy <string_or_file|->"
+      echo ""
+      echo "Calculate Shannon entropy to measure randomness and information content."
+      echo "Higher entropy indicates more randomness and unpredictability."
+      echo ""
+      echo "Entropy scale:"
+      echo "  0.0 - 1.0    Very low (repetitive, predictable)"
+      echo "  1.0 - 2.0    Low (simple patterns)"
+      echo "  2.0 - 4.0    Moderate (typical text)"
+      echo "  4.0 - 6.0    High (complex text, mixed data)"
+      echo "  6.0 - 8.0    Very high (random, encrypted data)"
+      echo ""
       echo "Examples:"
-      echo "  entropy \"hello world\"    # Calculate entropy of string"
-      echo "  entropy myfile.txt        # Calculate entropy of file"
-      echo "  echo \"data\" | entropy -  # Calculate entropy of stdin"
+      echo "  entropy \"hello world\"          # Analyze text entropy"
+      echo "  entropy \"aaaaaaaaaa\"           # Low entropy (repetitive)"
+      echo "  entropy document.txt           # Analyze file entropy"
+      echo "  entropy /dev/random            # Very high entropy"
+      echo "  echo \"password123\" | entropy -  # Analyze via stdin"
+      echo "  entropy encrypted.bin          # Check encryption quality"
+      echo ""
+      echo "Use cases:"
+      echo "  • Password strength analysis"
+      echo "  • Data compression potential"
+      echo "  • Encryption quality verification"
+      echo "  • Random number generator testing"
+      echo ""
+      echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
     
@@ -310,13 +469,34 @@ fi
 # Replace text in strings or files
 if ! should_exclude "replace" 2>/dev/null; then
   replace() {
-    if [[ $# -lt 3 ]]; then
-      echo "Usage: replace <string_or_file|-> <search_pattern> <replacement>"
+    if [[ $# -lt 3 || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: replace <string_or_file|-> <search_pattern> <replacement> [--backup]"
+      echo ""
+      echo "Find and replace text in strings, files, or stdin input."
+      echo "Supports literal text replacement with optional backup creation."
+      echo ""
+      echo "Options:"
+      echo "  --backup     Create timestamped backup before modifying files"
+      echo ""
+      echo "Input types:"
+      echo "  String       Direct text manipulation"
+      echo "  File         In-place file modification"
+      echo "  Stdin (-)    Process piped input"
+      echo ""
       echo "Examples:"
-      echo "  replace \"hello world\" \"world\" \"universe\"    # Replace in string"
-      echo "  replace myfile.txt \"old_text\" \"new_text\"     # Replace in file"
-      echo "  replace myfile.txt \"pattern\" \"replacement\" --backup  # Create backup first"
-      echo "  echo \"text\" | replace - \"old\" \"new\"        # Replace from stdin"
+      echo "  replace \"hello world\" \"world\" \"universe\"    # String replacement"
+      echo "  replace config.txt \"old_value\" \"new_value\"   # File replacement"
+      echo "  replace data.txt \"pattern\" \"replacement\" --backup  # With backup"
+      echo "  echo \"test data\" | replace - \"test\" \"demo\"   # Stdin replacement"
+      echo "  replace script.sh \"#!/bin/bash\" \"#!/bin/zsh\"  # Shebang replacement"
+      echo ""
+      echo "Backup format:"
+      echo "  original_file.bak.YYYYMMDD_HHMMSS"
+      echo ""
+      echo "Note:"
+      echo "  • Use '-' as first argument to read from stdin"
+      echo "  • File modifications are permanent unless --backup is used"
+      echo "  • Pattern matching is literal (not regex)"
       return 1
     fi
     
@@ -359,6 +539,3 @@ if ! should_exclude "replace" 2>/dev/null; then
     fi
   }
 fi
-
-
-

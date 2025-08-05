@@ -84,36 +84,104 @@ if ! should_exclude "tle" 2>/dev/null; then alias tle='less +G'; fi
 # Extract any archive type
 if ! should_exclude "extract" 2>/dev/null; then
   extract() {
-    if [[ -f "$1" ]]; then
-      case "$1" in
-        *.tar.bz2)   tar xjf "$1"     ;;
-        *.tar.gz)    tar xzf "$1"     ;;
-        *.bz2)       bunzip2 "$1"     ;;
-        *.rar)       unrar x "$1"     ;;
-        *.gz)        gunzip "$1"      ;;
-        *.tar)       tar xf "$1"      ;;
-        *.tbz2)      tar xjf "$1"     ;;
-        *.tgz)       tar xzf "$1"     ;;
-        *.zip)       unzip "$1"       ;;
-        *.Z)         uncompress "$1"  ;;
-        *.7z)        
-          local sevenzip_cmd=""
-          if command -v 7z >/dev/null 2>&1; then
-            sevenzip_cmd="7z"
-          elif command -v 7zz >/dev/null 2>&1; then
-            sevenzip_cmd="7zz"
-          elif command -v 7za >/dev/null 2>&1; then
-            sevenzip_cmd="7za"
-          else
-            echo "Error: No 7-Zip command found. Please install 7-Zip (7z, 7zz, or 7za)."
-            return 1
-          fi
-          "$sevenzip_cmd" x "$1"
-          ;;
-        *)           echo "'$1' cannot be extracted" ;;
-      esac
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: extract <archive_file>"
+      echo ""
+      echo "Extract any type of archive file automatically based on file extension."
+      echo "Supports all common archive formats and compression types."
+      echo ""
+      echo "Supported formats:"
+      echo "  .tar.gz, .tgz     Gzip compressed tar archives"
+      echo "  .tar.bz2, .tbz2   Bzip2 compressed tar archives"
+      echo "  .tar              Uncompressed tar archives"
+      echo "  .zip              ZIP archives"
+      echo "  .7z               7-Zip archives"
+      echo "  .rar              RAR archives (requires unrar)"
+      echo "  .gz               Gzip compressed files"
+      echo "  .bz2              Bzip2 compressed files"
+      echo "  .Z                Compress format files"
+      echo ""
+      echo "Examples:"
+      echo "  extract archive.tar.gz         # Extract gzip tar archive"
+      echo "  extract project.zip            # Extract ZIP file"
+      echo "  extract backup.7z              # Extract 7-Zip archive"
+      echo "  extract data.tar.bz2           # Extract bzip2 tar archive"
+      echo "  extract document.rar           # Extract RAR archive"
+      echo "  extract file.gz                # Decompress gzip file"
+      echo ""
+      echo "Notes:"
+      echo "  • Files are extracted to the current directory"
+      echo "  • Original archive file is preserved"
+      echo "  • For 7z files: requires 7z, 7zz, or 7za command"
+      echo "  • For RAR files: requires unrar command"
+      return 1
+    fi
+    
+    if [[ ! -f "$1" ]]; then
+      echo "Error: '$1' is not a valid file or does not exist"
+      return 1
+    fi
+    
+    echo "Extracting: $1"
+    
+    case "$1" in
+      *.tar.bz2)   tar xjf "$1"     ;;
+      *.tar.gz)    tar xzf "$1"     ;;
+      *.bz2)       bunzip2 "$1"     ;;
+      *.rar)       
+        if command -v unrar >/dev/null 2>&1; then
+          unrar x "$1"
+        else
+          echo "Error: 'unrar' command not found. Please install unrar to extract RAR files."
+          return 1
+        fi
+        ;;
+      *.gz)        gunzip "$1"      ;;
+      *.tar)       tar xf "$1"      ;;
+      *.tbz2)      tar xjf "$1"     ;;
+      *.tgz)       tar xzf "$1"     ;;
+      *.zip)       
+        if command -v unzip >/dev/null 2>&1; then
+          unzip "$1"
+        else
+          echo "Error: 'unzip' command not found. Please install unzip to extract ZIP files."
+          return 1
+        fi
+        ;;
+      *.Z)         
+        if command -v uncompress >/dev/null 2>&1; then
+          uncompress "$1"
+        else
+          echo "Error: 'uncompress' command not found. Please install compress utilities."
+          return 1
+        fi
+        ;;
+      *.7z)        
+        local sevenzip_cmd=""
+        if command -v 7z >/dev/null 2>&1; then
+          sevenzip_cmd="7z"
+        elif command -v 7zz >/dev/null 2>&1; then
+          sevenzip_cmd="7zz"
+        elif command -v 7za >/dev/null 2>&1; then
+          sevenzip_cmd="7za"
+        else
+          echo "Error: No 7-Zip command found. Please install 7-Zip (7z, 7zz, or 7za)."
+          return 1
+        fi
+        "$sevenzip_cmd" x "$1"
+        ;;
+      *)           
+        echo "Error: '$1' cannot be extracted - unsupported format"
+        echo "Supported formats: .tar.gz, .tgz, .tar.bz2, .tbz2, .tar, .zip, .7z, .rar, .gz, .bz2, .Z"
+        return 1
+        ;;
+    esac
+    
+    if [[ $? -eq 0 ]]; then
+      echo "Successfully extracted: $1"
     else
-      echo "'$1' is not a valid file"
+      echo "Error: Failed to extract '$1'"
+      return 1
     fi
   }
 fi
@@ -320,6 +388,17 @@ fi
 # Create directory and cd into it
 if ! should_exclude "mkcd" 2>/dev/null; then
   mkcd() {
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: mkcd <directory_name>"
+      echo ""
+      echo "Create a directory and navigate into it in one command."
+      echo ""
+      echo "Examples:"
+      echo "  mkcd new_project           # Create and enter 'new_project' directory"
+      echo "  mkcd path/to/deep/dir      # Create nested directories and enter"
+      echo "  mkcd \"My Project\"          # Create directory with spaces in name"
+      return 1
+    fi
     mkdir -p "$1" && cd "$1"
   }
 fi
@@ -327,6 +406,19 @@ fi
 # Find files by name
 if ! should_exclude "ff" 2>/dev/null; then
   ff() {
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: ff <pattern>"
+      echo ""
+      echo "Find files by name pattern in current directory and subdirectories."
+      echo ""
+      echo "Examples:"
+      echo "  ff \"*.py\"                  # Find all Python files"
+      echo "  ff \"test\"                  # Find files containing 'test' in name"
+      echo "  ff \"*.log\"                 # Find all log files"
+      echo "  ff \"config\"                # Find files with 'config' in name"
+      echo "  ff \"*.txt\"                 # Find all text files"
+      return 1
+    fi
     find . -type f -name "*$1*" 2>/dev/null
   }
 fi
@@ -738,6 +830,20 @@ fi
 # Monitor file
 if ! should_exclude "watchfile" 2>/dev/null; then
   watchfile() {
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: watchfile <file_path>"
+      echo ""
+      echo "Monitor a file for changes in real-time (like tail -f)."
+      echo ""
+      echo "Examples:"
+      echo "  watchfile /var/log/system.log    # Monitor system log"
+      echo "  watchfile app.log                # Monitor application log"
+      echo "  watchfile access.log             # Monitor web server access log"
+      echo ""
+      echo "Note: Press Ctrl+C to stop monitoring"
+      return 1
+    fi
+    
     if [[ -f "$1" ]]; then
       tail -f "$1"
     else
@@ -749,6 +855,22 @@ fi
 # Monitor directory contents
 if ! should_exclude "watchdir" 2>/dev/null; then
   watchdir() {
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: watchdir [directory_path]"
+      echo ""
+      echo "Monitor directory contents for changes in real-time."
+      echo "If no directory specified, monitors current directory."
+      echo ""
+      echo "Examples:"
+      echo "  watchdir                         # Monitor current directory"
+      echo "  watchdir /home/user/downloads    # Monitor downloads folder"
+      echo "  watchdir /var/www                # Monitor web directory"
+      echo "  watchdir logs/                   # Monitor logs directory"
+      echo ""
+      echo "Note: Press Ctrl+C to stop monitoring"
+      return 1
+    fi
+    
     local target_dir="${1:-.}"
     
     if [[ ! -d "$target_dir" ]]; then

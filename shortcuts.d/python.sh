@@ -43,7 +43,18 @@ if ! should_exclude "pipl" 2>/dev/null; then alias pipl='python3 -m pip list'; f
 if ! should_exclude "pipi" 2>/dev/null; then
   pipi() {
     if [[ $# -eq 0 ]]; then
-      echo "Usage: pipi <package_name> or pipi <requirements_file>"
+      echo "Usage: pipi <package_name> [package_name2 ...] | pipi <requirements_file>"
+      echo ""
+      echo "Install Python packages using pip."
+      echo "Can install individual packages or from a requirements file."
+      echo ""
+      echo "Examples:"
+      echo "  pipi requests                    # Install requests package"
+      echo "  pipi numpy pandas matplotlib     # Install multiple packages"
+      echo "  pipi requirements.txt            # Install from requirements file"
+      echo "  pipi dev-requirements.txt        # Install from custom requirements file"
+      echo "  pipi flask==2.0.1               # Install specific version"
+      echo "  pipi 'requests>=2.25.0'         # Install with version constraint"
       return 1
     elif [[ "$1" == "requirements.txt" || "$1" == *.txt ]]; then
       # Install packages from requirements file
@@ -58,9 +69,33 @@ fi
 # Python package upgrade function - upgrade specific package, all packages, or from requirements file
 if ! should_exclude "pipu" 2>/dev/null; then
   pipu() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: pipu [package_name] [package_name2 ...] | pipu <requirements_file> | pipu"
+      echo ""
+      echo "Upgrade Python packages using pip."
+      echo "If no arguments provided, upgrades all outdated packages."
+      echo ""
+      echo "Examples:"
+      echo "  pipu                             # Upgrade all outdated packages"
+      echo "  pipu requests                    # Upgrade requests package"
+      echo "  pipu numpy pandas                # Upgrade multiple packages"
+      echo "  pipu requirements.txt            # Upgrade packages from requirements file"
+      echo "  pipu dev-requirements.txt        # Upgrade from custom requirements file"
+      echo ""
+      echo "Note: Use with caution when upgrading all packages as it may break compatibility"
+      return 0
+    fi
+    
     if [[ $# -eq 0 ]]; then
       # No arguments provided, upgrade all packages
-      echo "Upgrading all packages..."
+      echo "Upgrading all outdated packages..."
+      echo "Note: This may take a while and could potentially break compatibility"
+      echo -n "Continue? (y/N): "
+      read -r confirm
+      if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Operation cancelled"
+        return 1
+      fi
       python3 -m pip list --outdated | grep -v '^\-e' | awk '{print $1}' | tail -n +3 | xargs -n1 python3 -m pip install -U
     elif [[ "$1" == "requirements.txt" || "$1" == *.txt ]]; then
       # Upgrade packages from requirements file
@@ -75,6 +110,32 @@ fi
 # Python Virtual Environment Auto-Activation Function
 if ! should_exclude "svenv" 2>/dev/null; then
   svenv() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: svenv"
+      echo ""
+      echo "Auto-activate Python virtual environment in current directory."
+      echo "Searches for 'activate' script in current directory and subdirectories."
+      echo ""
+      echo "Examples:"
+      echo "  svenv                            # Activate virtual environment"
+      echo "  cd my_project && svenv           # Navigate to project and activate venv"
+      echo ""
+      echo "Virtual environment structure expected:"
+      echo "  ./venv/bin/activate              # Standard venv location"
+      echo "  ./env/bin/activate               # Alternative venv location"
+      echo "  ./.venv/bin/activate             # Hidden venv location"
+      echo ""
+      echo "Note: This command takes no arguments and searches automatically"
+      return 0
+    fi
+    
+    if [[ $# -gt 0 ]]; then
+      echo "Error: svenv takes no arguments"
+      echo "Usage: svenv"
+      echo "Use 'svenv --help' for more information"
+      return 1
+    fi
+    
     # Find activate script in current directory and subdirectories
     local activate_file=$(find . -name "activate" -path "*/bin/activate" -type f 2>/dev/null | head -1)
     
@@ -84,6 +145,13 @@ if ! should_exclude "svenv" 2>/dev/null; then
       return 0
     else
       echo "No virtual environment activate script found in current directory"
+      echo "Expected locations:"
+      echo "  ./venv/bin/activate"
+      echo "  ./env/bin/activate" 
+      echo "  ./.venv/bin/activate"
+      echo ""
+      echo "To create a virtual environment, run:"
+      echo "  python3 -m venv venv"
       return 1
     fi
   }
@@ -92,17 +160,42 @@ fi
 # Python module runner - converts file paths to module notation
 if ! should_exclude "pm" 2>/dev/null; then
   pm() {
-    if [[ -z "$1" ]]; then
-      echo "Usage: pm <python_file_path>"
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: pm <python_file_path> [arguments...]"
+      echo ""
+      echo "Run Python modules using file path notation."
+      echo "Converts file paths to Python module notation and executes with python -m."
+      echo ""
+      echo "Path conversion:"
+      echo "  src/main.py        →  python -m src.main"
+      echo "  utils/helper.py    →  python -m utils.helper"
+      echo "  package/sub/mod.py →  python -m package.sub.mod"
+      echo ""
+      echo "Examples:"
+      echo "  pm src/main.py                   # Run python -m src.main"
+      echo "  pm utils/helper.py arg1 arg2     # Run python -m utils.helper arg1 arg2"
+      echo "  pm tests/test_unit.py            # Run python -m tests.test_unit"
+      echo "  pm package/cli.py --verbose      # Run python -m package.cli --verbose"
+      echo ""
+      echo "Note: The .py extension is automatically removed"
       return 1
     fi
     
     local module_path="$1"
+    
+    # Check if file exists
+    if [[ ! -f "$module_path" && ! -f "${module_path}.py" ]]; then
+      echo "Error: File '$module_path' not found"
+      echo "Make sure the Python file exists before running"
+      return 1
+    fi
+    
     # Remove .py extension if present
     module_path="${module_path%.py}"
     # Replace / with .
     module_path="${module_path//\//.}"
     
+    echo "Running: python3 -m $module_path ${*:2}"
     python3 -m "$module_path" "${@:2}"
   }
 fi

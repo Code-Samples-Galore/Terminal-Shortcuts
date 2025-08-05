@@ -273,7 +273,10 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           ;;
         -*)
           echo "Error: Unknown option '$1'"
-          echo "Usage: wordlist [OPTIONS] <file|-> "
+          echo ""
+          echo "Usage: wordlist [OPTIONS] <file|->"
+          echo ""
+          echo "OPTIONS:"
           echo "  -s                Sort the wordlist"
           echo "  -u                Remove duplicate entries"
           echo "  -su               Sort and remove duplicates"
@@ -299,10 +302,27 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           echo "  -maxspecial N     Keep words with maximum N special characters"
           echo "  -regex PATTERN    Keep words matching regex pattern"
           echo "  -notregex PATTERN Exclude words matching regex pattern"
+          echo ""
+          echo "EXAMPLES:"
+          echo "  wordlist file.txt                         # Display wordlist as-is"
+          echo "  wordlist -s file.txt                      # Sort wordlist"
+          echo "  wordlist -u file.txt                      # Remove duplicates"
+          echo "  wordlist -su file.txt                     # Sort and remove duplicates"
+          echo "  wordlist -min 5 file.txt                  # Keep words ≥5 characters"
+          echo "  wordlist -max 10 file.txt                 # Keep words ≤10 characters"
+          echo "  wordlist -min 3 -max 8 -su file.txt       # Filter by length, sort unique"
+          echo "  wordlist -minentropy 2.5 file.txt         # Keep words with entropy ≥2.5"
+          echo "  wordlist -regex \"^[a-z]+\$\" file.txt       # Only lowercase words"
+          echo "  wordlist -notregex \"[0-9]\" file.txt       # Exclude words with numbers"
+          echo "  wordlist -min 5 -su -o filtered.txt file.txt  # Save to file"
+          echo "  wordlist -split 10MB -o parts.txt file.txt    # Split into 10MB files"
+          echo "  wordlist -splitpct \"30 30 40\" -o parts.txt file.txt  # Split by percentage"
+          echo "  wordlist -r -o random.txt file.txt        # Randomize word order"
+          echo "  cat passwords.txt | wordlist -su -        # Read from stdin"
+          echo ""
           echo "Note: Use '-' as filename to read from stdin"
           return 1
           ;;
-
         *)
           if [[ -z "$input_file" ]]; then
             input_file="$1"
@@ -318,6 +338,8 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     # Check if file is provided
     if [[ -z "$input_file" ]]; then
       echo "Usage: wordlist [OPTIONS] <file|->"
+      echo ""
+      echo "OPTIONS:"
       echo "  -s                Sort the wordlist"
       echo "  -u                Remove duplicate entries"
       echo "  -su               Sort and remove duplicates"
@@ -343,6 +365,24 @@ if ! should_exclude "wordlist" 2>/dev/null; then
       echo "  -maxspecial N     Keep words with maximum N special characters"
       echo "  -regex PATTERN    Keep words matching regex pattern"
       echo "  -notregex PATTERN Exclude words matching regex pattern"
+      echo ""
+      echo "EXAMPLES:"
+      echo "  wordlist file.txt                         # Display wordlist as-is"
+      echo "  wordlist -s file.txt                      # Sort wordlist"
+      echo "  wordlist -u file.txt                      # Remove duplicates"
+      echo "  wordlist -su file.txt                     # Sort and remove duplicates"
+      echo "  wordlist -min 5 file.txt                  # Keep words ≥5 characters"
+      echo "  wordlist -max 10 file.txt                 # Keep words ≤10 characters"
+      echo "  wordlist -min 3 -max 8 -su file.txt       # Filter by length, sort unique"
+      echo "  wordlist -minentropy 2.5 file.txt         # Keep words with entropy ≥2.5"
+      echo "  wordlist -regex \"^[a-z]+\$\" file.txt       # Only lowercase words"
+      echo "  wordlist -notregex \"[0-9]\" file.txt       # Exclude words with numbers"
+      echo "  wordlist -min 5 -su -o filtered.txt file.txt  # Save to file"
+      echo "  wordlist -split 10MB -o parts.txt file.txt    # Split into 10MB files"
+      echo "  wordlist -splitpct \"30 30 40\" -o parts.txt file.txt  # Split by percentage"
+      echo "  wordlist -r -o random.txt file.txt        # Randomize word order"
+      echo "  cat passwords.txt | wordlist -su -        # Read from stdin"
+      echo ""
       echo "Note: Use '-' as filename to read from stdin"
       return 1
     fi
