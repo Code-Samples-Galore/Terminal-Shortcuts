@@ -32,6 +32,15 @@ if [[ -d "$SCRIPT_DIR/shortcuts.d" ]]; then
   done
 fi
 
+# Source all files in cheatsheets.d directory
+if [[ -d "$SCRIPT_DIR/cheatsheets.d" ]]; then
+  for file in "$SCRIPT_DIR/cheatsheets.d"/*; do
+    if [[ -f "$file" ]]; then
+      source "$file"
+    fi
+  done
+fi
+
 # Clean up the functions after all files are sourced
 unset -f should_exclude
 unset -f cleanup_shortcut
