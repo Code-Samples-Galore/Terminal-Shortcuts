@@ -40,7 +40,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **File operations**: Find files (`ff`), find-and-replace (`replace`), timestamped backups (`backup`)
 - **Directory creation**: `mkcd` to create and enter directories
 - **Monitoring**: `watchfile` for real-time file monitoring and `watchdir` for directory content monitoring
-- **File viewing**: `less` (enhanced), `le` (less), `tless` (less +G)
+- **File viewing**: `less` (enhanced), `le` (less), `tle` (less +G)
 
 ### 🔀 Git Enhancements
 
@@ -391,7 +391,7 @@ $ csterminator
 - `chgrp` - chgrp with preserve-root safety
 - `less` - Enhanced less (less -Ni --mouse --use-color)
 - `le` - View file with less
-- `tless` - View file with less, start at end (+G)
+- `tle` - View file with less, start at end (+G)
 
 ### 📦 Node Version Manager
 - `nu` - Use Node version (nvm use)
@@ -455,75 +455,3 @@ $ csterminator
 ## 📄 License
 
 MIT License
-- `backup` - Create timestamped backup of files/folders with optional compression
-- `watchlog` - Monitor log file changes in real-time
-- `watchdir` - Monitor directory contents in real-time
-- `chown` - chown with preserve-root safety
-- `chmod` - chmod with preserve-root safety
-- `chgrp` - chgrp with preserve-root safety
-- `less` - Enhanced less (less -Ni --mouse --use-color)
-- `le` - View file with less
-- `tless` - View file with less, start at end (+G)
-
-### 📦 Node Version Manager
-- `nu` - Use Node version (nvm use)
-- `nl` - List Node versions (nvm list)
-- `ni` - Install Node version (nvm install)
-
-### 🔀 Git Operations
-- `gs` - Git status
-- `gc` - Git commit with message
-- `gp` - Git push
-- `gu` - Git pull
-- `ga` - Git add
-- `gaa` - Git add all files
-- `gac` - Git add all and commit with auto message
-- `gb` - Git branch
-- `gco` - Git checkout
-- `gcb` - Git checkout new branch
-- `gl` - Git log one line
-- `gd` - Git diff
-- `gdc` - Git diff cached
-- `gr` - Git remove from cache
-- `gitinfo` - Display Git repository information
-
-### ⚙️ System Utilities
-- `h` - Show command history
-- `path` - Display PATH variable (formatted)
-- `now` - Show current time and date
-- `nowtime` - Show current time
-- `nowdate` - Show current date
-- `sysinfo` - Display comprehensive system information
-- `killcmd` - Kill processes by command name
-- `topcpu` - Show top processes by CPU usage
-- `topmem` - Show top processes by memory usage
-
-### 🌐 Network
-- `ports` - Show network ports and connections
-- `wget` - Wget with continue option
-- `ping` - Ping 5 times
-- `fastping` - Fast ping test (100 packets)
-- `isup` - Check if website is accessible
-- `myip` - Display local and external IP addresses
-
-### ✏️ Quick Edits
-- `bashrc` - Edit ~/.bashrc
-- `zshrc` - Edit ~/.zshrc
-- `vimrc` - Edit ~/.vimrc
-
-### 🚀 Programs
-- `so` - Source a file (reload shell config)
-- `v` - Vim editor
-
-### 🐍 Python
-- `p` - Python3
-- `pm` - Run Python modules using file path
-- `pipi` - Install Python package(s) or from requirements file
-- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
-- `pipl` - List installed packages (pip list)
-- `svenv` - Auto-activate Python virtual environment
-
-## 📄 License
-
-MIT License
-
