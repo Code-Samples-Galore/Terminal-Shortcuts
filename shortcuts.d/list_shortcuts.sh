@@ -59,7 +59,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  rm          - Remove with interactive"
     echo "  search      - Search for text in files with basic/extended regex, case sensitivity, and optional .gz file support"
     echo "  tree        - Tree view with colors"
-    echo "  tless       - View file with less, start at end (+G)"
+    echo "  tle         - View file with less, start at end (+G)"
     echo "  watchdir    - Monitor directory contents in real-time"
     echo "  watchfile   - Monitor file changes in real-time"
     echo 
