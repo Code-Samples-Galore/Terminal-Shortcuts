@@ -40,6 +40,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **File operations**: Find files (`ff`), find-and-replace (`replace`), timestamped backups (`backup`)
 - **Directory creation**: `mkcd` to create and enter directories
 - **Monitoring**: `watchfile` for real-time file monitoring and `watchdir` for directory content monitoring
+- **File viewing**: `less` (enhanced), `le` (less), `tless` (less +G)
 
 ### 🔀 Git Enhancements
 
@@ -82,6 +83,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 ### 🚀 Program Shortcuts
 
 - **Editor access**: `v` for Vim
+- **Source config**: `so` for source (reload shell config)
 
 ### 🛠️ Development Tools
 
@@ -373,6 +375,9 @@ search -iEz "^(http|https)://" config/       # Case insensitive URL patterns in 
 - `chown` - chown with preserve-root safety
 - `chmod` - chmod with preserve-root safety
 - `chgrp` - chgrp with preserve-root safety
+- `less` - Enhanced less (less -Ni --mouse --use-color)
+- `le` - View file with less
+- `tless` - View file with less, start at end (+G)
 
 ### 📦 Node Version Manager
 - `nu` - Use Node version (nvm use)
@@ -421,31 +426,7 @@ search -iEz "^(http|https)://" config/       # Case insensitive URL patterns in 
 - `vimrc` - Edit ~/.vimrc
 
 ### 🚀 Programs
-- `v` - Vim editor
-
-### 🐍 Python
-- `p` - Python3
-- `pm` - Run Python modules using file path
-- `pipi` - Install Python package(s) or from requirements file
-- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
-- `pipl` - List installed packages (pip list)
-- `svenv` - Auto-activate Python virtual environment
-
-## 📄 License
-
-MIT License
-- `wget` - Wget with continue option
-- `ping` - Ping 5 times
-- `fastping` - Fast ping test (100 packets)
-- `isup` - Check if website is accessible
-- `myip` - Display local and external IP addresses
-
-### ✏️ Quick Edits
-- `bashrc` - Edit ~/.bashrc
-- `zshrc` - Edit ~/.zshrc
-- `vimrc` - Edit ~/.vimrc
-
-### 🚀 Programs
+- `so` - Source a file (reload shell config)
 - `v` - Vim editor
 
 ### 🐍 Python

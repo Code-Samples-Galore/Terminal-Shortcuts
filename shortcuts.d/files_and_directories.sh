@@ -3,7 +3,8 @@
 #
 # Description: Enhanced file and directory manipulation utilities including
 # universal archive extraction, directory creation with navigation, file search,
-# text search in files, directory monitoring, and automated file/folder backup with timestamps and optional compression.
+# text search in files, directory monitoring, file/folder backup with timestamps and optional compression,
+# and advanced file viewing with less.
 #
 # Functions:
 #   extract    - Extract any type of archive file
@@ -55,6 +56,9 @@ cleanup_shortcut "watchfile"
 cleanup_shortcut "watchlog"
 cleanup_shortcut "search"
 cleanup_shortcut "watchdir"
+cleanup_shortcut "less"
+cleanup_shortcut "le"
+cleanup_shortcut "tle"
 
 # File and Directory Operations
 if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lh'; fi
@@ -73,6 +77,9 @@ if ! should_exclude "tree" 2>/dev/null; then alias tree='tree -C'; fi
 if ! should_exclude "chown" 2>/dev/null; then alias chown='chown --preserve-root'; fi
 if ! should_exclude "chmod" 2>/dev/null; then alias chmod='chmod --preserve-root'; fi
 if ! should_exclude "chgrp" 2>/dev/null; then alias chgrp='chgrp --preserve-root'; fi
+if ! should_exclude "less" 2>/dev/null; then alias less='less -Ni --mouse --use-color'; fi
+if ! should_exclude "le" 2>/dev/null; then alias le='less'; fi
+if ! should_exclude "tle" 2>/dev/null; then alias tle='less +G'; fi
 
 # Extract any archive type
 if ! should_exclude "extract" 2>/dev/null; then
