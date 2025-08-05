@@ -66,7 +66,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 ### 🐍 Python Development
 
-- **Virtual environment**: `svenv` for automatic venv activation
+- **Virtual environment**: `svenv` for automatic venv activation, `cdsvenv` for navigate and activate
 - **Quick Python access**: `p` alias for python3
 - **Package management**: `pipi`, `pipu`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
@@ -102,6 +102,13 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Output options**: Split by size (MB/GB) or percentage distribution
 - **Memory efficiency**: Streaming processing for large files
 - **Pattern matching**: Case-sensitive/insensitive regex support
+
+### 📚 Cheatsheets
+
+- **Vim reference**: `csvim` for comprehensive Vim usage guide including custom configurations
+- **tmux reference**: `cstmux` for terminal multiplexer usage with sessions, windows, and panes
+- **less reference**: `csless` for file viewer navigation, search, and advanced features
+- **Terminator reference**: `csterminator` for advanced terminal emulator with splits and layouts
 
 ## 📖 Detailed Function Reference
 
@@ -199,13 +206,17 @@ $ binconv 255                    # Convert to binary: 11111111
 $ echo "text" | binconv -        # Convert stdin to binary
 ```
 
-### Python Development (`svenv`, `pm`)
+### Python Development (`svenv`, `cdsvenv`, `pm`)
 
-#### Virtual Environment (`svenv`)
+#### Virtual Environment (`svenv`, `cdsvenv`)
 Automatically finds and activates Python virtual environments:
 
 ```bash
 $ svenv
+Activating virtual environment: ./venv/bin/activate
+
+$ cdsvenv my_project
+Navigating to: my_project
 Activating virtual environment: ./venv/bin/activate
 ```
 
@@ -241,113 +252,116 @@ $ wordlist -su -o output.txt passwords.txt   # Sort, unique, save to file
 $ wordlist -split 100MB -o parts.txt large.txt  # Split into 100MB files
 ```
 
-### File Operations (`extract`, `compress`, `mkcd`, `ff`, `search`, `replace`, `backup`)
+### Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`)
 
-#### Universal Archive Operations
-```bash
-# Extract archives
-extract archive.tar.gz    # Extracts tar.gz files
-extract package.zip       # Extracts zip files
-extract data.7z          # Extracts 7z files
+#### Vim Cheatsheet (`csvim`)
+Comprehensive Vim cheatsheet covering:
 
-# Create archives
-compress backup.tar.gz file1.txt file2.txt dir1/  # Create gzip tar archive
-compress project.zip src/ docs/ README.md         # Create zip archive
-compress data.7z *.csv *.json                     # Create 7z archive
-compress single.gz important.txt                  # Compress single file
-
-# Create archives with volume splitting
-compress --split 100m large.tar.gz bigdir/        # Split into 100MB volumes
-compress -s 1g archive.zip files/                 # Split into 1GB volumes
-compress --split 500k data.tar.bz2 *.txt          # Split into 500KB volumes
-compress -s 2g backup.7z project/                 # Split into 2GB volumes
-```
-
-**Volume Splitting Support:**
-- **Supported formats**: .tar.gz, .tgz, .tar.bz2, .tbz2, .tar, .zip, .7z
-- **Size units**: b (bytes), k (KB), m (MB), g (GB)
-- **Examples**: 100m, 1g, 500k, 1024b
-- **Output**: Creates multiple volume files that can be extracted as a single archive
-
-#### File and Folder Backup (`backup`)
-Create timestamped backups of files or folders with optional compression:
+- Basic usage and modes (normal, insert, visual)
+- Navigation commands and movement
+- Editing operations (cut, copy, paste, undo/redo)
+- Search and replace functionality
+- File operations and buffer management
+- Window splits and tab management
+- Folding operations
+- Custom leader key mappings (Leader = \)
+- Plugin shortcuts (NERDTree, Tagbar, ALE)
+- Autoclose features for quotes and brackets
+- Advanced tips and configuration features
 
 ```bash
-# Simple copy backups
-backup important.txt                    # File backup: important.txt.backup.20240101_143022
-backup project/                        # Folder backup: project.backup.20240101_143022/
+$ csvim
+=== VIM CHEATSHEET ===
 
-# Compressed backups
-backup config.ini --compress zip       # Creates: config.ini.backup.20240101_143022.zip
-backup project/ --compress tar.gz      # Creates: project.backup.20240101_143022.tar.gz
-backup data/ --compress 7z             # Creates: data.backup.20240101_143022.7z
-backup logs/ --compress tar.bz2        # Creates: logs.backup.20240101_143022.tar.bz2
+🚀 BASIC USAGE:
+  vim [file]      - Open file in vim
+  vim +[line]     - Open file at specific line
+  ...
 ```
 
-**Compression formats supported**: tar.gz, tar.bz2, zip, 7z, tar
+#### tmux Cheatsheet (`cstmux`)
+Comprehensive tmux cheatsheet covering:
 
-#### Find and Replace (`replace`)
-```bash
-$ replace "hello world" "world" "universe"     # Returns: hello universe
-$ replace myfile.txt "old_text" "new_text"     # Replace in file
-$ replace config.ini "localhost" "127.0.0.1" --backup  # Replace with backup
-$ echo "hello world" | replace - "world" "universe"    # Replace from stdin
-```
-
-#### Text Search in Files (`search`)
-Search for text patterns in files with optional recursive directory searching, regex support, case sensitivity control, and optional gzip file handling:
+- Session management (create, attach, detach, list)
+- Window operations (create, switch, rename, close)
+- Pane management (split, navigate, resize, zoom)
+- Copy mode and text selection
+- Key bindings and prefix commands
+- Configuration tips and common settings
+- Workflow examples and best practices
 
 ```bash
-# Basic text searching
-search "TODO" file.txt                    # Search in single file
-search "function" *.py                    # Search in Python files using wildcards
-search "error" config.ini settings.conf  # Search in multiple specific files
+$ cstmux
+=== TMUX CHEATSHEET ===
 
-# Directory searching
-search "class" src/                       # Search in all files in src/ directory (non-recursive)
-search -r "import" .                      # Search recursively in current directory
-search --recursive "password" /etc/       # Search recursively in system config
-
-# Gzip file searching (with -z option)
-search -z "error" logfile.gz              # Search in gzip compressed file
-search -rz "exception" logs/              # Recursive search including .gz files
-search -z "pattern" *.gz                  # Search in multiple gzip files
-
-# Case insensitive searching
-search -i "ERROR" logs/                   # Case insensitive search
-search -ri "password" .                   # Recursive case insensitive search
-
-# Basic regular expression searching (default)
-search "[a-z][0-9]" *.txt                # Letter followed by digit
-search "^function" src/                   # Lines starting with "function"
-search "error$" logs/                     # Lines ending with "error"
-search "[Ee]rror" logs/                   # Match "Error" or "error"
-search "test[0-9]\\{3\\}" files/          # "test" followed by exactly 3 digits
-
-# Extended regular expression searching (with -E flag)
-search -E "[a-z]+@[a-z]+\.[a-z]{2,4}" .  # Email pattern
-search -E "^(GET|POST)" access.log       # Lines starting with GET or POST
-search -E "function.*\(.*\)" src/        # Function definitions
-search -E "import.*\{.*\}" *.js          # ES6 import statements
-
-# Combined options
-search -riEz "error|warning|critical" logs/  # Recursive, case insensitive, extended regex, including .gz
-search -iEz "^(http|https)://" config/       # Case insensitive URL patterns in .gz files
+🚀 BASIC USAGE:
+  tmux                - Start new session
+  tmux new -s name    - Start new session with name
+  tmux attach -t name - Attach to named session
+  ...
 ```
 
-**Options:**
-- `-r, --recursive`: Search recursively in subdirectories
-- `-i, --ignore-case`: Case insensitive search
-- `-E, --extended-regexp`: Use extended regular expressions (ERE)
-- `-z, --gzip`: Include gzip compressed files (.gz) in search
-- **Option combinations**: `-ri`, `-rE`, `-rz`, `-iE`, `-iz`, `-Ez`, `-riE`, `-riz`, `-rEz`, `-iEz`, `-riEz` for multiple options
+#### less Cheatsheet (`csless`)
+Comprehensive less cheatsheet covering:
 
-**Supported File Types:**
-- **Regular text files**: Always searched by default
-- **Gzip compressed files (.gz)**: Only searched when `-z` or `--gzip` option is specified
-- **Mixed directories**: Seamlessly searches both regular and compressed files when gzip option is enabled
+- Basic file viewing and navigation
+- Forward and backward movement (screens, lines, half-screens)
+- Search functionality (forward, backward, filtering)
+- Marks and position management
+- File operations and multiple file handling
+- Display options and customization
+- Color and highlighting features
+- Horizontal scrolling for long lines
+- Command-line options and environment variables
+- Advanced search with regular expressions
+- Common workflows and pro tips
+
+```bash
+$ csless
+=== LESS CHEATSHEET ===
+
+🚀 BASIC USAGE:
+  less file.txt       - Open file with less
+  cat file | less     - Pipe output to less
+  less +G file.txt    - Open file at end
+  ...
+```
+
+#### Terminator Cheatsheet (`csterminator`)
+Comprehensive Terminator cheatsheet covering:
+
+- Window and terminal management
+- Terminal splitting (horizontal and vertical)
+- Tab management and navigation
+- Terminal resizing and arrangement
+- Search and find functionality
+- Copy, paste, and text selection
+- Display options and zoom controls
+- Profiles and layout management
+- Broadcasting and terminal grouping
+- Configuration file examples
+- Command-line options and startup
+- Plugin system and customization
+- Common workflows and tips
+
+```bash
+$ csterminator
+=== TERMINATOR CHEATSHEET ===
+
+🚀 BASIC USAGE:
+  terminator              - Start Terminator
+  terminator -l layout    - Start with specific layout
+  terminator -x command   - Execute command in new window
+  ...
+```
 
 ## 🎯 Complete Aliases and Functions Reference
+
+### 📚 Cheatsheets
+- `csvim` - Display comprehensive Vim cheatsheet with custom configurations
+- `cstmux` - Display comprehensive tmux cheatsheet with sessions, windows, and panes
+- `csless` - Display comprehensive less cheatsheet with navigation and search
+- `csterminator` - Display comprehensive Terminator cheatsheet with splits and layouts
 
 ### 📁 File and Directory Operations
 - `ll` - List files with details (ls -lh)
@@ -369,6 +383,78 @@ search -iEz "^(http|https)://" config/       # Case insensitive URL patterns in 
 - `ff` - Find files by name pattern
 - `search` - Search for text in files with basic/extended regex, case sensitivity, and optional .gz file support
 - `replace` - Find and replace text in strings, files, or stdin
+- `backup` - Create timestamped backup of files/folders with optional compression
+- `watchlog` - Monitor log file changes in real-time
+- `watchdir` - Monitor directory contents in real-time
+- `chown` - chown with preserve-root safety
+- `chmod` - chmod with preserve-root safety
+- `chgrp` - chgrp with preserve-root safety
+- `less` - Enhanced less (less -Ni --mouse --use-color)
+- `le` - View file with less
+- `tless` - View file with less, start at end (+G)
+
+### 📦 Node Version Manager
+- `nu` - Use Node version (nvm use)
+- `nl` - List Node versions (nvm list)
+- `ni` - Install Node version (nvm install)
+
+### 🔀 Git Operations
+- `gs` - Git status
+- `gc` - Git commit with message
+- `gp` - Git push
+- `gu` - Git pull
+- `ga` - Git add
+- `gaa` - Git add all files
+- `gac` - Git add all and commit with auto message
+- `gb` - Git branch
+- `gco` - Git checkout
+- `gcb` - Git checkout new branch
+- `gl` - Git log one line
+- `gd` - Git diff
+- `gdc` - Git diff cached
+- `gr` - Git remove from cache
+- `gitinfo` - Display Git repository information
+
+### ⚙️ System Utilities
+- `h` - Show command history
+- `path` - Display PATH variable (formatted)
+- `now` - Show current time and date
+- `nowtime` - Show current time
+- `nowdate` - Show current date
+- `sysinfo` - Display comprehensive system information
+- `killcmd` - Kill processes by command name
+- `topcpu` - Show top processes by CPU usage
+- `topmem` - Show top processes by memory usage
+
+### 🌐 Network
+- `ports` - Show network ports and connections
+- `wget` - Wget with continue option
+- `ping` - Ping 5 times
+- `fastping` - Fast ping test (100 packets)
+- `isup` - Check if website is accessible
+- `myip` - Display local and external IP addresses
+
+### ✏️ Quick Edits
+- `bashrc` - Edit ~/.bashrc
+- `zshrc` - Edit ~/.zshrc
+- `vimrc` - Edit ~/.vimrc
+
+### 🚀 Programs
+- `so` - Source a file (reload shell config)
+- `v` - Vim editor
+
+### 🐍 Python
+- `p` - Python3
+- `pm` - Run Python modules using file path
+- `pipi` - Install Python package(s) or from requirements file
+- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
+- `pipl` - List installed packages (pip list)
+- `svenv` - Auto-activate Python virtual environment
+- `cdsvenv` - Navigate to project directory and activate virtual environment
+
+## 📄 License
+
+MIT License
 - `backup` - Create timestamped backup of files/folders with optional compression
 - `watchlog` - Monitor log file changes in real-time
 - `watchdir` - Monitor directory contents in real-time

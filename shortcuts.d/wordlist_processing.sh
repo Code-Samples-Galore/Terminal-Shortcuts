@@ -339,6 +339,8 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     if [[ -z "$input_file" ]]; then
       echo "Usage: wordlist [OPTIONS] <file|->"
       echo ""
+      echo "Process and filter wordlists with sorting, deduplication, and advanced filtering options."
+      echo ""
       echo "OPTIONS:"
       echo "  -s                Sort the wordlist"
       echo "  -u                Remove duplicate entries"

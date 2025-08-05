@@ -15,6 +15,13 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "=== AVAILABLE SHORTCUTS ==="
     echo
     
+    echo "📚 Cheatsheets:"
+    echo "  csvim       - Display comprehensive Vim cheatsheet with custom configs"
+    echo "  cstmux      - Display comprehensive tmux cheatsheet with sessions, windows, and panes"
+    echo "  csless      - Display comprehensive less cheatsheet with navigation and search"
+    echo "  csterminator - Display comprehensive Terminator cheatsheet with splits and layouts"
+    echo
+
     echo "🛠️ Development Tools:"
     echo "  base64conv  - Encode/decode base64 strings, files, or stdin"
     echo "  binconv     - Convert string, integer, or stdin to binary representation"
@@ -104,6 +111,7 @@ if ! should_exclude "sc" 2>/dev/null; then
 
     echo "🚀 Programs:"
     echo "  so          - Source a file (reload shell config)"
+    echo "  ta          - Tmux attach to session (tmux attach -t)"
     echo "  v           - Vim editor"
     echo
 
@@ -114,6 +122,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  pipu        - Upgrade Python package(s), all packages, or from requirements.txt"
     echo "  pm          - Run Python modules using file path notation"
     echo "  svenv       - Auto-activate Python virtual environment"
+    echo "  cdsvenv     - Navigate to project directory and activate virtual environment"
     echo    
 
     echo "✏️ Quick Edits:"

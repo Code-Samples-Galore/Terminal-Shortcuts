@@ -216,11 +216,6 @@ if ! should_exclude "fastping" 2>/dev/null; then
       echo "  fastping 8.8.8.8             # Ping Google DNS 100 times"
       echo "  fastping github.com 50       # Ping GitHub 50 times"
       echo "  fastping 192.168.1.1 200     # Ping router 200 times"
-      echo ""
-      echo "Use case:"
-      echo "  • Network stability testing"
-      echo "  • Latency analysis"
-      echo "  • Connection quality assessment"
       return 1
     fi
     

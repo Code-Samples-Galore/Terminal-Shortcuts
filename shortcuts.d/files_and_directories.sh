@@ -77,7 +77,7 @@ if ! should_exclude "tree" 2>/dev/null; then alias tree='tree -C'; fi
 if ! should_exclude "chown" 2>/dev/null; then alias chown='chown --preserve-root'; fi
 if ! should_exclude "chmod" 2>/dev/null; then alias chmod='chmod --preserve-root'; fi
 if ! should_exclude "chgrp" 2>/dev/null; then alias chgrp='chgrp --preserve-root'; fi
-if ! should_exclude "less" 2>/dev/null; then alias less='less -Ni --mouse --use-color'; fi
+if ! should_exclude "less" 2>/dev/null; then alias less='less -RMNi --mouse --use-color'; fi
 if ! should_exclude "le" 2>/dev/null; then alias le='less'; fi
 if ! should_exclude "tle" 2>/dev/null; then alias tle='less +G'; fi
 
@@ -751,6 +751,9 @@ if ! should_exclude "backup" 2>/dev/null; then
   backup() {
     if [[ $# -eq 0 ]]; then
       echo "Usage: backup <file_or_folder> [--compress <format>]"
+      echo ""
+      echo "Create timestamped backup copies of files or directories with optional compression."
+      echo ""
       echo "Compression formats: tar.gz, tar.bz2, zip, 7z, tar"
       echo "Examples:"
       echo "  backup important.txt                   # Simple copy backup"

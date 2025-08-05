@@ -151,12 +151,6 @@ if ! should_exclude "killcmd" 2>/dev/null; then
       echo "  killcmd vim                  # Kill all Vim instances"
       echo "  killcmd ssh                  # Kill all SSH connections"
       echo ""
-      echo "Safety features:"
-      echo "  • Excludes the killcmd process itself"
-      echo "  • Excludes grep search processes"
-      echo "  • Requires explicit confirmation (y/Y)"
-      echo "  • Shows detailed process information before killing"
-      echo ""
       echo "Note: This command requires superuser privileges for system processes"
       return 1
     fi
@@ -287,11 +281,6 @@ if ! should_exclude "topmem" 2>/dev/null; then
       echo "  %CPU     CPU usage percentage"
       echo "  %MEM     Memory usage percentage"
       echo "  COMMAND  Process command and arguments"
-      echo ""
-      echo "Use cases:"
-      echo "  • Identify memory leaks"
-      echo "  • Find resource-heavy applications"
-      echo "  • System performance troubleshooting"
       return 0
     fi
     

@@ -26,6 +26,7 @@
 #   $ svenv                      # Activate virtual environment
 #   $ pm src/main.py             # Run python -m src.main
 #   $ pm utils/helper.py arg1    # Run python -m utils.helper arg1
+#   $ cdsvenv my_project         # Navigate to my_project and activate venv
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "p"
@@ -34,6 +35,7 @@ cleanup_shortcut "pipi"
 cleanup_shortcut "pipu"
 cleanup_shortcut "svenv"
 cleanup_shortcut "pm"
+cleanup_shortcut "cdsvenv"
 
 # Python
 if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi
@@ -118,7 +120,7 @@ if ! should_exclude "svenv" 2>/dev/null; then
       echo ""
       echo "Examples:"
       echo "  svenv                            # Activate virtual environment"
-      echo "  cd my_project && svenv           # Navigate to project and activate venv"
+      echo "  cdsvenv my_project               # Navigate to project and activate venv"
       echo ""
       echo "Virtual environment structure expected:"
       echo "  ./venv/bin/activate              # Standard venv location"
@@ -154,6 +156,42 @@ if ! should_exclude "svenv" 2>/dev/null; then
       echo "  python3 -m venv venv"
       return 1
     fi
+  }
+fi
+
+# Navigate to project directory and activate virtual environment
+if ! should_exclude "cdsvenv" 2>/dev/null; then
+  cdsvenv() {
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: cdsvenv <directory>"
+      echo ""
+      echo "Navigate to a project directory and auto-activate Python virtual environment."
+      echo "Combines 'cd' and 'svenv' functionality in one command."
+      echo ""
+      echo "Examples:"
+      echo "  cdsvenv my_project               # cd my_project && svenv"
+      echo "  cdsvenv ../other_project         # cd ../other_project && svenv"
+      echo "  cdsvenv /path/to/project         # cd /path/to/project && svenv"
+      echo ""
+      echo "Virtual environment structure expected in target directory:"
+      echo "  ./venv/bin/activate              # Standard venv location"
+      echo "  ./env/bin/activate               # Alternative venv location"
+      echo "  ./.venv/bin/activate             # Hidden venv location"
+      return 1
+    fi
+    
+    # Check if directory exists
+    if [[ ! -d "$1" ]]; then
+      echo "Error: Directory '$1' does not exist"
+      return 1
+    fi
+    
+    # Navigate to directory
+    echo "Navigating to: $1"
+    cd "$1" || return 1
+    
+    # Activate virtual environment
+    svenv
   }
 fi
 

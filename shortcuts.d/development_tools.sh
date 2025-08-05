@@ -277,10 +277,6 @@ if ! should_exclude "hashit" 2>/dev/null; then
       echo "  echo \"password\" | hashit sha256 -  # Hash stdin input"
       echo "  cat largefile.zip | hashit sha1 -  # Hash large file via pipe"
       echo ""
-      echo "Security recommendations:"
-      echo "  • Use SHA256 or SHA512 for new applications"
-      echo "  • Avoid MD5 and SHA1 for security-critical uses"
-      echo ""
       echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
@@ -341,11 +337,6 @@ if ! should_exclude "binconv" 2>/dev/null; then
       echo "  echo \"World\" | binconv -       # Stdin: binary for each character"
       echo "  binconv 0                      # Integer: 0"
       echo ""
-      echo "Use cases:"
-      echo "  • Learning binary representation"
-      echo "  • Debugging character encoding"
-      echo "  • Understanding data storage"
-      echo ""
       echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
@@ -396,12 +387,6 @@ if ! should_exclude "entropy" 2>/dev/null; then
       echo "  entropy /dev/random            # Very high entropy"
       echo "  echo \"password123\" | entropy -  # Analyze via stdin"
       echo "  entropy encrypted.bin          # Check encryption quality"
-      echo ""
-      echo "Use cases:"
-      echo "  • Password strength analysis"
-      echo "  • Data compression potential"
-      echo "  • Encryption quality verification"
-      echo "  • Random number generator testing"
       echo ""
       echo "Note: Use '-' as input to read from stdin"
       return 1
