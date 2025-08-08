@@ -56,6 +56,8 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Resource monitoring**: `topcpu`, `topmem` for CPU and memory usage
 - **Time utilities**: `now`, `nowtime`, `nowdate` for current time/date
 - **History access**: `h` for command history, `path` for formatted PATH display
+- **Service management**: `sctlstart`, `sctlstop`, `sctlrestart`, `sctlstatus` for systemctl operations
+- **Log monitoring**: `sctllog` for service logs, `sctlwatch` for real-time log monitoring
 
 ### 🌐 Network Utilities
 
@@ -68,7 +70,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 - **Virtual environment**: `svenv` for automatic venv activation, `cdsvenv` for navigate and activate
 - **Quick Python access**: `p` alias for python3
-- **Package management**: `pipi`, `pipu`, `pipl` for pip operations
+- **Package management**: `pipi`, `pupu`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
 
 ### 📦 Node.js Development
@@ -421,6 +423,12 @@ $ csterminator
 - `now` - Show current time and date
 - `nowtime` - Show current time
 - `nowdate` - Show current date
+- `sctlstart` - Start systemd service (systemctl start)
+- `sctlstop` - Stop systemd service (systemctl stop)  
+- `sctlrestart` - Restart systemd service (systemctl restart)
+- `sctlstatus` - Check systemd service status (systemctl status)
+- `sctllog` - View systemd service logs (journalctl -ru)
+- `sctlwatch` - Watch systemd service logs in real-time (journalctl -fu)
 - `sysinfo` - Display comprehensive system information
 - `killcmd` - Kill processes by command name
 - `topcpu` - Show top processes by CPU usage
@@ -447,7 +455,7 @@ $ csterminator
 - `p` - Python3
 - `pm` - Run Python modules using file path
 - `pipi` - Install Python package(s) or from requirements file
-- `pipu` - Upgrade Python package(s), all packages, or from requirements.txt
+- `pupu` - Upgrade Python package(s), all packages, or from requirements.txt
 - `pipl` - List installed packages (pip list)
 - `svenv` - Auto-activate Python virtual environment
 - `cdsvenv` - Navigate to project directory and activate virtual environment

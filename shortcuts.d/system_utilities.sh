@@ -45,6 +45,13 @@ if ! should_exclude "path" 2>/dev/null; then alias path='echo -e ${PATH//:/\\n}'
 if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T %Y-%m-%d"'; fi
 if ! should_exclude "nowtime" 2>/dev/null; then alias nowtime='date +"%T"'; fi
 if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%Y-%m-%d"'; fi
+if ! should_exclude "sctlstart" 2>/dev/null; then alias sctlstart='systemctl start'; fi
+if ! should_exclude "sctlstop" 2>/dev/null; then alias sctlstop='systemctl stop'; fi
+if ! should_exclude "sctlrestart" 2>/dev/null; then alias sctlrestart='systemctl restart'; fi
+if ! should_exclude "sctlstatus" 2>/dev/null; then alias sctlstatus='systemctl status'; fi
+if ! should_exclude "sctllog" 2>/dev/null; then alias sctllog='journalctl -ru'; fi
+if ! should_exclude "sctlwatch" 2>/dev/null; then alias sctlwatch='journalctl -fu'; fi
+
 
 if ! should_exclude "sysinfo" 2>/dev/null; then
   sysinfo() {
