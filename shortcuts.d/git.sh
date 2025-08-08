@@ -83,6 +83,6 @@ if ! should_exclude "gitinfo" 2>/dev/null; then
     echo "Repository: $(basename $(git rev-parse --show-toplevel 2>/dev/null) || echo 'Not a git repo')"
     echo "Last commit: $(git log -1 --format='%h - %s (%cr)' 2>/dev/null || echo 'No commits')"
     echo "Status:"
-    git status -s || echo "Not a git repository"
+    echo "$(git status -s 2>/dev/null || echo 'Not a git repository')"
   }
 fi
