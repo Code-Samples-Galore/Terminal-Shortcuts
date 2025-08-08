@@ -58,6 +58,8 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **History access**: `h` for command history, `path` for formatted PATH display
 - **Service management**: `sctlstart`, `sctlstop`, `sctlrestart`, `sctlstatus` for systemctl operations
 - **Log monitoring**: `sctllog` for service logs, `sctlwatch` for real-time log monitoring
+- **Nginx management**: `nginxstart`, `nginxstop`, `nginxrestart`, `nginxstatus` for nginx service control
+- **Nginx configuration**: `nginxconf` for config editing, `nginxtest` for syntax validation, `nginxreload` for config reload
 
 ### 🌐 Network Utilities
 
@@ -423,6 +425,12 @@ $ csterminator
 - `now` - Show current time and date
 - `nowtime` - Show current time
 - `nowdate` - Show current date
+- `nginxreload` - Reload nginx configuration (nginx -s reload)
+- `nginxrestart` - Restart nginx service (systemctl restart nginx)
+- `nginxstart` - Start nginx service (systemctl start nginx)
+- `nginxstatus` - Check nginx service status (systemctl status nginx)
+- `nginxstop` - Stop nginx service (systemctl stop nginx)
+- `nginxtest` - Test nginx configuration syntax (nginx -t)
 - `sctlstart` - Start systemd service (systemctl start)
 - `sctlstop` - Stop systemd service (systemctl stop)  
 - `sctlrestart` - Restart systemd service (systemctl restart)
@@ -446,6 +454,7 @@ $ csterminator
 - `bashrc` - Edit ~/.bashrc
 - `zshrc` - Edit ~/.zshrc
 - `vimrc` - Edit ~/.vimrc
+- `nginxconf` - Edit nginx main configuration file (/etc/nginx/nginx.conf)
 
 ### 🚀 Programs
 - `so` - Source a file (reload shell config)

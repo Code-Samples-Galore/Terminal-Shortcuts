@@ -37,6 +37,12 @@ cleanup_shortcut "sysinfo"
 cleanup_shortcut "killcmd"
 cleanup_shortcut "topcpu"
 cleanup_shortcut "topmem"
+cleanup_shortcut "nginxreload"
+cleanup_shortcut "nginxrestart"
+cleanup_shortcut "nginxstart"
+cleanup_shortcut "nginxstatus"
+cleanup_shortcut "nginxstop"
+cleanup_shortcut "nginxtest"
 
 # System Utilities
 if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
@@ -45,12 +51,18 @@ if ! should_exclude "path" 2>/dev/null; then alias path='echo -e ${PATH//:/\\n}'
 if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T %Y-%m-%d"'; fi
 if ! should_exclude "nowtime" 2>/dev/null; then alias nowtime='date +"%T"'; fi
 if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%Y-%m-%d"'; fi
-if ! should_exclude "sctlstart" 2>/dev/null; then alias sctlstart='systemctl start'; fi
-if ! should_exclude "sctlstop" 2>/dev/null; then alias sctlstop='systemctl stop'; fi
-if ! should_exclude "sctlrestart" 2>/dev/null; then alias sctlrestart='systemctl restart'; fi
-if ! should_exclude "sctlstatus" 2>/dev/null; then alias sctlstatus='systemctl status'; fi
+if ! should_exclude "sctlstart" 2>/dev/null; then alias sctlstart='sudo systemctl start'; fi
+if ! should_exclude "sctlstop" 2>/dev/null; then alias sctlstop='sudo systemctl stop'; fi
+if ! should_exclude "sctlrestart" 2>/dev/null; then alias sctlrestart='sudo systemctl restart'; fi
+if ! should_exclude "sctlstatus" 2>/dev/null; then alias sctlstatus='sudo systemctl status'; fi
 if ! should_exclude "sctllog" 2>/dev/null; then alias sctllog='journalctl -ru'; fi
 if ! should_exclude "sctlwatch" 2>/dev/null; then alias sctlwatch='journalctl -fu'; fi
+if ! should_exclude "nginxreload" 2>/dev/null; then alias nginxreload='sudo nginx -s reload'; fi
+if ! should_exclude "nginxrestart" 2>/dev/null; then alias nginxrestart='sudo systemctl restart nginx'; fi
+if ! should_exclude "nginxstart" 2>/dev/null; then alias nginxstart='sudo systemctl start nginx'; fi
+if ! should_exclude "nginxstatus" 2>/dev/null; then alias nginxstatus='systemctl status nginx'; fi
+if ! should_exclude "nginxstop" 2>/dev/null; then alias nginxstop='sudo systemctl stop nginx'; fi
+if ! should_exclude "nginxtest" 2>/dev/null; then alias nginxtest='sudo nginx -t'; fi
 
 
 if ! should_exclude "sysinfo" 2>/dev/null; then

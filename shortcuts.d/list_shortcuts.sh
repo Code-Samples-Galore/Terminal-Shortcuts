@@ -127,6 +127,7 @@ if ! should_exclude "sc" 2>/dev/null; then
 
     echo "✏️ Quick Edits:"
     echo "  bashrc      - Edit ~/.bashrc"
+    echo "  nginxconf   - Edit nginx main configuration file (/etc/nginx/nginx.conf)"
     echo "  vimrc       - Edit ~/.vimrc"
     echo "  zshrc       - Edit ~/.zshrc"
     echo
@@ -134,6 +135,12 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "⚙️ System Utilities:"
     echo "  h           - Show command history"
     echo "  killcmd     - Kill processes by command name"
+    echo "  nginxreload - Reload nginx configuration (nginx -s reload)"
+    echo "  nginxrestart - Restart nginx service (systemctl restart nginx)"
+    echo "  nginxstart  - Start nginx service (systemctl start nginx)"
+    echo "  nginxstatus - Check nginx service status (systemctl status nginx)"
+    echo "  nginxstop   - Stop nginx service (systemctl stop nginx)"
+    echo "  nginxtest   - Test nginx configuration syntax (nginx -t)"
     echo "  now         - Show current time and date"
     echo "  nowdate     - Show current date"
     echo "  nowtime     - Show current time"
