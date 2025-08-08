@@ -78,11 +78,22 @@ fi
 # Show git branch info in a nice format
 if ! should_exclude "gitinfo" 2>/dev/null; then
   gitinfo() {
+    # Check if we're in a git repository first
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+      echo "Not a git repository"
+      return 1
+    fi
+    
     echo "=== GIT REPOSITORY INFO ==="
-    echo "Current branch: $(git branch --show-current 2>/dev/null || echo 'Not a git repo')"
-    echo "Repository: $(basename $(git rev-parse --show-toplevel 2>/dev/null) || echo 'Not a git repo')"
-    echo "Last commit: $(git log -1 --format='%h - %s (%cr)' 2>/dev/null || echo 'No commits')"
+    echo "Current branch: $(git branch --show-current)"
+    echo "Repository: $(basename $(git rev-parse --show-toplevel))"
+    echo "Last commit: $(git log -1 --format='%h - %s (%cr)' 2>/dev/null || echo 'No commits yet')"
     echo "Status:"
-    echo "$(git status -s 2>/dev/null || echo 'Not a git repository')"
+    local status_output=$(git status -s)
+    if [ -z "$status_output" ]; then
+      echo "  Working tree clean - no changes to commit"
+    else
+      echo "$status_output"
+    fi
   }
 fi
