@@ -24,4 +24,4 @@ cleanup_shortcut "nginxconf"
 if ! should_exclude "bashrc" 2>/dev/null; then alias bashrc='${EDITOR:-vim} ~/.bashrc'; fi
 if ! should_exclude "zshrc" 2>/dev/null; then alias zshrc='${EDITOR:-vim} ~/.zshrc'; fi
 if ! should_exclude "vimrc" 2>/dev/null; then alias vimrc='${EDITOR:-vim} ~/.vimrc'; fi
-if ! should_exclude "nginxconf" 2>/dev/null; then alias nginxconf='${EDITOR:-vim} /etc/nginx/nginx.conf'; fi
+if ! should_exclude "nginxconf" 2>/dev/null; then alias nginxconf='sudo ${EDITOR:-vim} /etc/nginx/nginx.conf'; fi
