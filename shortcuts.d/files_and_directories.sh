@@ -191,6 +191,7 @@ if ! should_exclude "compress" 2>/dev/null; then
   compress() {
     if [[ $# -lt 2 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: compress [--split <size>] <archive_name> <files_or_directories...>"
+      echo ""
       echo "Supported formats:"
       echo "  .tar.gz, .tgz    - Gzip compressed tar archive"
       echo "  .tar.bz2, .tbz2  - Bzip2 compressed tar archive"
@@ -428,6 +429,7 @@ if ! should_exclude "search" 2>/dev/null; then
   search() {
     if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: search [-r|--recursive] [-i|--ignore-case] [-E|--extended-regexp] [-z|--gzip] <pattern> [file_or_directory]"
+      echo ""
       echo "Options:"
       echo "  -r, --recursive       Search recursively in directories"
       echo "  -i, --ignore-case     Case insensitive search"
