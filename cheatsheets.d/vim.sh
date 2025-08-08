@@ -58,6 +58,14 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  >>              - Indent line"
     echo "  <<              - Unindent line"
     echo
+
+    echo "🧾 CUT & PASTE MULTIPLE LINES:"
+    echo "  Press v for visual mode"
+    echo "  Select everything you want to cut"
+    echo "  Press d"
+    echo "  Go to where you want to paste"
+    echo "  Press p"
+    echo
     
     echo "🔍 SEARCH & REPLACE:"
     echo "  /pattern        - Search forward"
