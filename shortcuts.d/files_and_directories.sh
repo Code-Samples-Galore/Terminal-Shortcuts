@@ -69,8 +69,8 @@ if ! should_exclude "..." 2>/dev/null; then alias ...='cd ../..'; fi
 if ! should_exclude "...." 2>/dev/null; then alias ....='cd ../../..'; fi
 if ! should_exclude "~" 2>/dev/null; then alias ~='cd ~'; fi
 if ! should_exclude "mkdir" 2>/dev/null; then alias mkdir='mkdir -pv'; fi
-if ! should_exclude "cp" 2>/dev/null; then alias cp='cp -i'; fi
-if ! should_exclude "mv" 2>/dev/null; then alias mv='mv -i'; fi
+if ! should_exclude "cp" 2>/dev/null; then alias cp='cp -iv'; fi
+if ! should_exclude "mv" 2>/dev/null; then alias mv='mv -iv'; fi
 if ! should_exclude "rm" 2>/dev/null; then alias rm='rm -i'; fi
 if ! should_exclude "grep" 2>/dev/null; then alias grep='grep --color=auto'; fi
 if ! should_exclude "tree" 2>/dev/null; then alias tree='tree -C'; fi
