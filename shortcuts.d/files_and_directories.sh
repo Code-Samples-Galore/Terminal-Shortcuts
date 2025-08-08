@@ -189,7 +189,7 @@ fi
 # Compress files/directories into any archive type
 if ! should_exclude "compress" 2>/dev/null; then
   compress() {
-    if [[ $# -lt 2 ]]; then
+    if [[ $# -lt 2 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: compress [--split <size>] <archive_name> <files_or_directories...>"
       echo "Supported formats:"
       echo "  .tar.gz, .tgz    - Gzip compressed tar archive"
@@ -388,7 +388,7 @@ fi
 # Create directory and cd into it
 if ! should_exclude "mkcd" 2>/dev/null; then
   mkcd() {
-    if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: mkcd <directory_name>"
       echo ""
       echo "Create a directory and navigate into it in one command."
@@ -406,7 +406,7 @@ fi
 # Find files by name
 if ! should_exclude "ff" 2>/dev/null; then
   ff() {
-    if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: ff <pattern>"
       echo ""
       echo "Find files by name pattern in current directory and subdirectories."
@@ -426,7 +426,7 @@ fi
 # Search for text in files with optional recursive directory search
 if ! should_exclude "search" 2>/dev/null; then
   search() {
-    if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: search [-r|--recursive] [-i|--ignore-case] [-E|--extended-regexp] [-z|--gzip] <pattern> [file_or_directory]"
       echo "Options:"
       echo "  -r, --recursive       Search recursively in directories"
@@ -749,7 +749,7 @@ fi
 # Backup file or folder with timestamp and optional compression
 if ! should_exclude "backup" 2>/dev/null; then
   backup() {
-    if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: backup <file_or_folder> [--compress <format>]"
       echo ""
       echo "Create timestamped backup copies of files or directories with optional compression."
@@ -833,7 +833,7 @@ fi
 # Monitor file
 if ! should_exclude "watchfile" 2>/dev/null; then
   watchfile() {
-    if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: watchfile <file_path>"
       echo ""
       echo "Monitor a file for changes in real-time (like tail -f)."
@@ -858,7 +858,7 @@ fi
 # Monitor directory contents
 if ! should_exclude "watchdir" 2>/dev/null; then
   watchdir() {
-    if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: watchdir [directory_path]"
       echo ""
       echo "Monitor directory contents for changes in real-time."

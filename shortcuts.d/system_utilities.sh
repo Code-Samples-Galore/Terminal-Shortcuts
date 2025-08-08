@@ -48,7 +48,7 @@ if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%Y-%m-%d"'
 
 if ! should_exclude "sysinfo" 2>/dev/null; then
   sysinfo() {
-    if [[ $# -gt 0 ]]; then
+    if [[ $# -gt 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: sysinfo"
       echo ""
       echo "Display comprehensive system information including:"

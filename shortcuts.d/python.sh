@@ -44,7 +44,7 @@ if ! should_exclude "pipl" 2>/dev/null; then alias pipl='python3 -m pip list'; f
 # Python package install function - install specific package(s) or from requirements file
 if ! should_exclude "pipi" 2>/dev/null; then
   pipi() {
-    if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: pipi <package_name> [package_name2 ...] | pipi <requirements_file>"
       echo ""
       echo "Install Python packages using pip."
