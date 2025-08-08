@@ -437,8 +437,10 @@ $ csterminator
 - `sctlstatus` - Check systemd service status (systemctl status)
 - `sctllog` - View systemd service logs (journalctl -ru)
 - `sctlwatch` - Watch systemd service logs in real-time (journalctl -fu)
+- `so` - Source a file (reload shell config)
 - `sysinfo` - Display comprehensive system information
 - `killcmd` - Kill processes by command name
+- `ta` - Tmux attach to session (tmux attach -t)
 - `topcpu` - Show top processes by CPU usage
 - `topmem` - Show top processes by memory usage
 
@@ -457,7 +459,6 @@ $ csterminator
 - `nginxconf` - Edit nginx main configuration file (/etc/nginx/nginx.conf)
 
 ### 🚀 Programs
-- `so` - Source a file (reload shell config)
 - `v` - Vim editor
 
 ### 🐍 Python

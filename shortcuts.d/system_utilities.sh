@@ -17,6 +17,8 @@
 #   now        - Current time and date
 #   nowtime    - Current time only
 #   nowdate    - Current date only
+#   so         - Source a file (reload shell config)
+#   ta         - Tmux attach
 #
 # Usage Examples:
 #   $ sysinfo                    # Show comprehensive system information
@@ -25,6 +27,8 @@
 #   $ topmem                     # Show top memory-consuming processes
 #   $ h                          # Show command history
 #   $ path                       # Display PATH variable formatted
+#   $ so ~/.bashrc               # Source bashrc
+#   $ ta session_name             # Attach to a tmux session
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "so"
@@ -43,6 +47,7 @@ cleanup_shortcut "nginxstart"
 cleanup_shortcut "nginxstatus"
 cleanup_shortcut "nginxstop"
 cleanup_shortcut "nginxtest"
+cleanup_shortcut "ta"
 
 # System Utilities
 if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
@@ -63,7 +68,7 @@ if ! should_exclude "nginxstart" 2>/dev/null; then alias nginxstart='sudo system
 if ! should_exclude "nginxstatus" 2>/dev/null; then alias nginxstatus='systemctl status nginx'; fi
 if ! should_exclude "nginxstop" 2>/dev/null; then alias nginxstop='sudo systemctl stop nginx'; fi
 if ! should_exclude "nginxtest" 2>/dev/null; then alias nginxtest='sudo nginx -t'; fi
-
+if ! should_exclude "ta" 2>/dev/null; then alias ta='tmux attach -t'; fi
 
 if ! should_exclude "sysinfo" 2>/dev/null; then
   sysinfo() {

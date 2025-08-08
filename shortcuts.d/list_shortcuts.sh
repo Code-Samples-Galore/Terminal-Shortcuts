@@ -110,8 +110,6 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo
 
     echo "🚀 Programs:"
-    echo "  so          - Source a file (reload shell config)"
-    echo "  ta          - Tmux attach to session (tmux attach -t)"
     echo "  v           - Vim editor"
     echo
 
@@ -151,7 +149,9 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  sctlstatus  - Check systemd service status (systemctl status)"
     echo "  sctlstop    - Stop systemd service (systemctl stop)"
     echo "  sctlwatch   - Watch systemd service logs in real-time (journalctl -fu)"
+    echo "  so          - Source a file (reload shell config)"
     echo "  sysinfo     - Display comprehensive system information (OS, CPU, memory, disk)"
+    echo "  ta          - Tmux attach to session (tmux attach -t)"
     echo "  topcpu      - Show top processes by CPU usage"
     echo "  topmem      - Show top processes by memory usage"
     echo
