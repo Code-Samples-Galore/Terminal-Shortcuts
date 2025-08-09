@@ -5,14 +5,14 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "=== VIM CHEATSHEET ==="
     echo
     
-    echo "🚀 BASIC USAGE:"
+    echo "🚀 BASIC USAGE (Terminal):"
     echo "  vim [file]      - Open file in vim"
     echo "  vim +[line]     - Open file at specific line"
     echo "  vim -o file1 file2  - Open files in horizontal splits"
     echo "  vim -O file1 file2  - Open files in vertical splits"
     echo
     
-    echo "📝 MODES:"
+    echo "📝 MODES (press in Normal mode to change mode):"
     echo "  i               - Enter insert mode"
     echo "  a               - Append after cursor"
     echo "  A               - Append at end of line"
@@ -25,7 +25,7 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  Esc / jj        - Return to normal mode"
     echo
     
-    echo "🏃 NAVIGATION:"
+    echo "🏃 NAVIGATION (Normal mode):"
     echo "  h,j,k,l         - Left, down, up, right"
     echo "  w               - Next word"
     echo "  b               - Previous word"
@@ -41,7 +41,7 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  %               - Jump to matching bracket"
     echo
     
-    echo "✂️ EDITING:"
+    echo "✂️ EDITING (Normal mode):"
     echo "  x               - Delete character"
     echo "  dd              - Delete line"
     echo "  D               - Delete to end of line"
@@ -59,15 +59,14 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  <<              - Unindent line"
     echo
 
-    echo "🧾 CUT & PASTE MULTIPLE LINES:"
-    echo "  • Press v for visual mode"
+    echo "🧾 CUT & PASTE MULTIPLE LINES (Visual mode):"
     echo "  • Select everything you want to cut"
     echo "  • Press d"
     echo "  • Go to where you want to paste"
     echo "  • Press p"
     echo
     
-    echo "🔍 SEARCH & REPLACE:"
+    echo "🔍 SEARCH & REPLACE (Normal mode; ':' enters command-line):"
     echo "  /pattern        - Search forward"
     echo "  ?pattern        - Search backward"
     echo "  n               - Next search result"
@@ -78,7 +77,7 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  :%s/old/new/gc  - Replace with confirmation"
     echo
     
-    echo "💾 FILE OPERATIONS:"
+    echo "💾 FILE OPERATIONS (Command-line via ':'):"
     echo "  :w              - Save file"
     echo "  :w filename     - Save as filename"
     echo "  :q              - Quit"
@@ -88,7 +87,7 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  :r filename     - Read file into current buffer"
     echo
     
-    echo "🔄 BUFFERS & TABS:"
+    echo "🔄 BUFFERS & TABS (Command-line via ':'):"
     echo "  :tabnew         - New tab"
     echo "  :tabn           - Next tab"
     echo "  :tabp           - Previous tab"
@@ -97,7 +96,7 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  :bdelete        - Delete buffer"
     echo
     
-    echo "📱 WINDOWS & SPLITS:"
+    echo "📱 WINDOWS & SPLITS (Normal: Ctrl+w; Command-line: :split/:vsplit):"
     echo "  :split / :sp    - Horizontal split"
     echo "  :vsplit / :vsp  - Vertical split"
     echo "  Ctrl+w h/j/k/l  - Navigate between splits"
@@ -107,7 +106,7 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  Ctrl+w q        - Close current split"
     echo
     
-    echo "📁 FOLDING:"
+    echo "📁 FOLDING (Normal mode):"
     echo "  za              - Toggle fold (custom: \\f)"
     echo "  zA              - Toggle all folds (custom: \\F)"
     echo "  zo              - Open fold"
@@ -116,36 +115,36 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo "  zM              - Close all folds"
     echo
     
-    echo "🎯 CUSTOM LEADER MAPPINGS (Leader = \\):"
-    echo "  \\\\              - Jump to last cursor position"
-    echo "  \\p              - Print file"
-    echo "  \\w              - Quick save"
-    echo "  \\q              - Quick quit"
-    echo "  \\x              - Save and quit"
-    echo "  \\n              - Toggle line numbers"
-    echo "  \\r              - Toggle relative line numbers"
-    echo "  \\pp             - Toggle paste mode"
-    echo "  \\e              - Open file explorer"
-    echo "  \\v              - Vertical split"
-    echo "  \\s              - Horizontal split"
-    echo "  \\bn             - Next buffer"
-    echo "  \\bp             - Previous buffer"
-    echo "  \\bd             - Delete buffer"
-    echo "  \\bg             - Toggle background (dark/light)"
+    echo "🎯 CUSTOM LEADER MAPPINGS (Normal mode, Leader = ,):"
+    echo "  ,,              - Jump to last cursor position"
+    echo "  ,p              - Print file"
+    echo "  ,w              - Quick save"
+    echo "  ,q              - Quick quit"
+    echo "  ,x              - Save and quit"
+    echo "  ,n              - Toggle line numbers"
+    echo "  ,r              - Toggle relative line numbers"
+    echo "  ,pp             - Toggle paste mode"
+    echo "  ,e              - Open file explorer"
+    echo "  ,v              - Vertical split"
+    echo "  ,s              - Horizontal split"
+    echo "  ,bn             - Next buffer"
+    echo "  ,bp             - Previous buffer"
+    echo "  ,bd             - Delete buffer"
+    echo "  ,bg             - Toggle background (dark/light)"
     echo
     
-    echo "🔌 PLUGIN SHORTCUTS:"
+    echo "🔌 PLUGIN SHORTCUTS (Normal mode):"
     echo "  Ctrl+t          - Toggle NERDTree file explorer"
     echo "  F8              - Toggle Tagbar (code structure)"
     echo "  F5              - Run Python script"
     echo "  F6              - Run current file (based on filetype)"
     echo    
     echo "⚡ QUICK SHORTCUTS:"
-    echo "  Space           - Enter command mode (:)"
-    echo "  jj              - Exit insert mode (alternative to Esc)"
-    echo "  j/k             - Move down/up on wrapped lines"
+    echo "  Space           - Enter command mode (:) [Normal]"
+    echo "  jj              - Exit insert mode (alternative to Esc) [Insert]"
+    echo "  j/k             - Move down/up on wrapped lines [Normal]"
     echo    
-    echo "🎨 AUTOCLOSE FEATURES:"
+    echo "🎨 AUTOCLOSE FEATURES (Insert mode):"
     echo "  Typing quotes/brackets automatically creates pairs:"
     echo "  '               - Creates '' with cursor inside"
     echo "  \"               - Creates \"\" with cursor inside"
@@ -163,18 +162,18 @@ if ! should_exclude "csvim" 2>/dev/null; then
     echo
     echo "  With Enter:"
     echo "  'Enter          - Creates multi-line structure"
-    echo "  {Enter          - Creates {\n\n} with cursor in middle"
+    printf "  {Enter          - Creates {%s%s} with cursor in middle\n" '\n' '\n'
     echo
     
-    echo "💡 TIPS:"
-    echo "  • Use . to repeat last command"
-    echo "  • Use :help [topic] for detailed help"
-    echo "  • Numbers before commands repeat them (e.g., 3dd deletes 3 lines)"
-    echo "  • Use Ctrl+o in insert mode for one normal command"
-    echo "  • Visual mode + commands work on selected text"
-    echo "  • :set number! toggles line numbers"
-    echo "  • :noh clears search highlighting"
-    echo "  • Use marks: ma (set mark a), 'a (jump to mark a)"
+    echo "💡 TIPS (mode indicated per tip):"
+    echo "  • [Normal] Use . to repeat last command"
+    echo "  • [Command-line] Use :help [topic] for detailed help"
+    echo "  • [Normal] Numbers before commands repeat them (e.g., 3dd deletes 3 lines)"
+    echo "  • [Insert] Use Ctrl+o in insert mode for one normal command"
+    echo "  • [Visual] Visual mode + commands work on selected text"
+    echo "  • [Command-line] :set number! toggles line numbers"
+    echo "  • [Command-line] :noh clears search highlighting"
+    echo "  • [Normal] Use marks: ma (set mark a), 'a (jump to mark a)"
     echo
   }
 fi
