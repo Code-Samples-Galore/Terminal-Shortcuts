@@ -36,6 +36,7 @@ cleanup_shortcut "pipu"
 cleanup_shortcut "svenv"
 cleanup_shortcut "pm"
 cleanup_shortcut "cdsvenv"
+cleanup_shortcut "cvenv"
 
 # Python
 if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi
@@ -192,6 +193,74 @@ if ! should_exclude "cdsvenv" 2>/dev/null; then
     
     # Activate virtual environment
     svenv
+  }
+fi
+
+# Create venv with conda's Python in target dir, activate, then upgrade pip
+if ! should_exclude "cvenv" 2>/dev/null; then
+  cvenv() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: cvenv [directory]"
+      echo ""
+      echo "Create a Python virtual environment at [directory]/.venv using the Python from conda,"
+      echo "activate it (via svenv), and upgrade pip inside the environment."
+      echo ""
+      echo "Examples:"
+      echo "  cvenv                 # Use current directory"
+      echo "  cvenv my_project      # Create venv in my_project/.venv"
+      echo "  cvenv ..              # Create venv in parent directory"
+      return 0
+    fi
+
+    local target_dir="."
+    if [[ -n "$1" ]]; then
+      target_dir="$1"
+    fi
+
+    if [[ ! -d "$target_dir" ]]; then
+      echo "Error: Directory '$target_dir' does not exist"
+      return 1
+    fi
+
+    echo "Navigating to: $target_dir"
+    cd "$target_dir" || return 1
+
+    # Determine conda Python
+    local py=""
+    if command -v conda >/dev/null 2>&1; then
+      if [[ -n "$CONDA_PREFIX" && -x "$CONDA_PREFIX/bin/python" ]]; then
+        py="$CONDA_PREFIX/bin/python"
+      else
+        local conda_base
+        conda_base="$(conda info --base 2>/dev/null)"
+        if [[ -n "$conda_base" && -x "$conda_base/bin/python" ]]; then
+          py="$conda_base/bin/python"
+        fi
+      fi
+    fi
+    if [[ -z "$py" ]]; then
+      if command -v python3 >/dev/null 2>&1; then
+        py="$(command -v python3)"
+      elif command -v python >/dev/null 2>&1; then
+        py="$(command -v python)"
+      fi
+      echo "Warning: conda Python not found. Falling back to: ${py:-<none>}"
+    fi
+    if [[ -z "$py" ]]; then
+      echo "Error: No suitable Python interpreter found"
+      return 1
+    fi
+
+    if [[ -d ".venv" ]]; then
+      echo "Virtual environment '.venv' already exists. Skipping creation."
+    else
+      echo "Creating virtual environment with: $py -m venv .venv"
+      "$py" -m venv .venv || return 1
+    fi
+
+    # Activate venv and upgrade pip inside it
+    svenv || return 1
+    pipu pip
   }
 fi
 

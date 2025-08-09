@@ -71,6 +71,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 ### 🐍 Python Development
 
 - **Virtual environment**: `svenv` for automatic venv activation, `cdsvenv` for navigate and activate
+- **Create and bootstrap venv**: `cvenv` to create .venv with conda’s Python, activate it, and upgrade pip
 - **Quick Python access**: `p` alias for python3
 - **Package management**: `pipi`, `pupu`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
@@ -222,6 +223,15 @@ Activating virtual environment: ./venv/bin/activate
 $ cdsvenv my_project
 Navigating to: my_project
 Activating virtual environment: ./venv/bin/activate
+```
+
+#### Create and bootstrap venv (`cvenv`)
+Create a .venv using the Python from conda, activate it, then upgrade pip:
+
+```bash
+$ cvenv                 # Use current directory
+$ cvenv my_project      # Create venv in my_project/.venv
+$ cvenv ..              # Create venv in parent directory
 ```
 
 #### Module Runner (`pm`)
@@ -469,6 +479,7 @@ $ csterminator
 - `pipl` - List installed packages (pip list)
 - `svenv` - Auto-activate Python virtual environment
 - `cdsvenv` - Navigate to project directory and activate virtual environment
+- `cvenv` - Create .venv with conda's Python, activate, and upgrade pip
 
 ## 📄 License
 

@@ -121,6 +121,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  pm          - Run Python modules using file path notation"
     echo "  svenv       - Auto-activate Python virtual environment"
     echo "  cdsvenv     - Navigate to project directory and activate virtual environment"
+    echo "  cvenv       - Create .venv with conda's Python, activate, and upgrade pip"
     echo    
 
     echo "✏️ Quick Edits:"
