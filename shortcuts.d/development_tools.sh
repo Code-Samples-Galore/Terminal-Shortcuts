@@ -10,12 +10,14 @@
 #   randstr    - Generate secure random passwords
 #   calc       - Perform mathematical calculations
 #   log2       - Calculate base-2 logarithm of integers
+#   pow2       - Calculate powers of 2 (2^X)
 #   hexconv    - Encode/decode hex strings or files
 #   base64conv - Encode/decode base64 strings or files
 #   binconv    - Convert string or integer to binary representation
 #   entropy    - Calculate Shannon entropy of strings or files
 #   jsonpp     - Pretty-print JSON files or stdin
 #   replace    - Find and replace text in strings, files, or stdin
+#   baseconv   - Convert numbers between different bases (binary, octal, decimal, hex, custom)
 #
 # Usage Examples:
 #   $ hashit sha256 "text"        # Hash string with SHA256
@@ -24,6 +26,7 @@
 #   $ randstr 20                  # Generate 20-character password
 #   $ calc "2 + 2 * 3"           # Calculate mathematical expression
 #   $ log2 256                   # Calculate log2(256) = 8
+#   $ pow2 8                     # Calculate 2^8 = 256
 #   $ hexconv encode "hello"     # Hex encode string
 #   $ hexconv decode "68656c6c6f" # Hex decode string
 #   $ echo "hello" | hexconv encode - # Hex encode from stdin
@@ -38,17 +41,29 @@
 #   $ replace "hello world" "world" "universe" # Replace in string
 #   $ replace myfile.txt "old" "new" --backup # Replace in file with backup
 #   $ echo "text" | replace - "old" "new" # Replace from stdin
+#   $ baseconv hex 255            # Convert 255 to hex: FF
+#   $ baseconv bin 255            # Convert 255 to binary: 11111111
+#   $ baseconv dec 0xFF           # Convert hex FF to decimal: 255
+#   $ baseconv oct 255            # Convert 255 to octal: 377
+#   $ baseconv 16 255             # Convert 255 to base 16: FF
+#   $ baseconv 2 255              # Convert 255 to base 2: 11111111
+#   $ baseconv dec 0b11111111     # Convert binary to decimal: 255
+#   $ baseconv hex 377 8          # Convert octal 377 to hex: FF
+#   $ baseconv 36 1000            # Convert 1000 to base 36: RS
+#   $ baseconv 255                # Convert 255 to decimal (default): 255
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "jsonpp"
 cleanup_shortcut "randstr"
 cleanup_shortcut "calc"
 cleanup_shortcut "log2"
+cleanup_shortcut "pow2"
 cleanup_shortcut "hexconv"
 cleanup_shortcut "base64conv"
 cleanup_shortcut "hashit"
 cleanup_shortcut "binconv"
 cleanup_shortcut "entropy"
+cleanup_shortcut "baseconv"
 cleanup_shortcut "replace"
 
 # JSON prettify
@@ -151,6 +166,33 @@ if ! should_exclude "log2" 2>/dev/null; then
     fi
     
     echo "scale=6; l($1)/l(2)" | bc -l
+  }
+fi
+
+# Power of 2 function
+if ! should_exclude "pow2" 2>/dev/null; then
+  pow2() {
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: pow2 <integer>"
+      echo ""
+      echo "Calculate powers of 2 (2^X) for a given integer exponent."
+      echo "Useful for computing bit values, memory sizes, etc."
+      echo ""
+      echo "Examples:"
+      echo "  pow2 8                       # Result: 256 (2^8 = 256)"
+      echo "  pow2 10                      # Result: 1024 (2^10 = 1024)"
+      echo "  pow2 0                       # Result: 1 (2^0 = 1)"
+      echo "  pow2 16                      # Result: 65536 (2^16 = 65536)"
+      echo "  pow2 20                      # Result: 1048576 (2^20 = 1MB)"
+      return 1
+    fi
+    
+    if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+      echo "Error: Input must be a non-negative integer"
+      return 1
+    fi
+    
+    echo "scale=0; 2^$1" | bc
   }
 fi
 
@@ -448,6 +490,120 @@ if ! should_exclude "entropy" 2>/dev/null; then
     }')
     
     echo "Interpretation: $interpretation"
+  }
+fi
+
+# Base converter function
+if ! should_exclude "baseconv" 2>/dev/null; then
+  baseconv() {
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: baseconv <number> [target_base] [source_base]"
+      echo ""
+      echo "Convert numbers between different number bases."
+      echo "Supports binary, octal, decimal, hexadecimal, and custom bases (2-36)."
+      echo ""
+      echo "Target bases (default: dec):"
+      echo "  bin, binary, 2     Binary (base 2)"
+      echo "  oct, octal, 8      Octal (base 8)"
+      echo "  dec, decimal, 10   Decimal (base 10) - default"
+      echo "  hex, hexadecimal, 16  Hexadecimal (base 16)"
+      echo "  3-36               Custom base (3-36)"
+      echo ""
+      echo "Source base (optional):"
+      echo "  If not specified, auto-detects from number format:"
+      echo "  • 0x prefix = hexadecimal"
+      echo "  • 0b prefix = binary"
+      echo "  • 0 prefix = octal"
+      echo "  • default = decimal"
+      echo ""
+      echo "Examples:"
+      echo "  baseconv 255 hex               # Convert 255 to hex: FF"
+      echo "  baseconv 255 bin               # Convert 255 to binary: 11111111"
+      echo "  baseconv 0xFF dec              # Convert hex FF to decimal: 255"
+      echo "  baseconv 255 oct               # Convert 255 to octal: 377"
+      echo "  baseconv 255 16                # Convert 255 to base 16: FF"
+      echo "  baseconv 255 2                 # Convert 255 to base 2: 11111111"
+      echo "  baseconv 0b11111111 dec        # Convert binary to decimal: 255"
+      echo "  baseconv 377 hex 8             # Convert octal 377 to hex: FF"
+      echo "  baseconv 1000 36               # Convert 1000 to base 36: RS"
+      echo "  baseconv 0xFF                  # Convert hex FF to decimal (default): 255"
+      return 1
+    fi
+    
+    local number="$1"
+    local target_base="${2:-dec}"
+    local source_base="${3:-auto}"
+    local decimal_value
+    local target_base_num
+    
+    # Normalize target base
+    case "$target_base" in
+      bin|binary|2)     target_base_num=2 ;;
+      oct|octal|8)      target_base_num=8 ;;
+      dec|decimal|10)   target_base_num=10 ;;
+      hex|hexadecimal|16) target_base_num=16 ;;
+      [3-9]|[12][0-9]|3[0-6]) target_base_num="$target_base" ;;
+      *)
+        echo "Error: Invalid target base '$target_base'. Use 2-36 or bin/oct/dec/hex"
+        return 1
+        ;;
+    esac
+    
+    # Auto-detect source base if not specified
+    if [[ "$source_base" == "auto" ]]; then
+      if [[ "$number" =~ ^0[xX][0-9a-fA-F]+$ ]]; then
+        source_base=16
+        number="${number#0x}"  # Remove 0x prefix
+        number=$(echo "$number" | tr '[:lower:]' '[:upper:]')  # Convert to uppercase for bc
+      elif [[ "$number" =~ ^0b[01]+$ ]]; then
+        source_base=2
+        number="${number#0b}"  # Remove 0b prefix
+      elif [[ "$number" =~ ^0[0-7]+$ ]]; then
+        source_base=8
+        number="${number#0}"   # Remove leading 0
+      elif [[ "$number" =~ ^[0-9]+$ ]]; then
+        source_base=10
+      else
+        echo "Error: Cannot auto-detect base for '$1'. Please specify source base."
+        return 1
+      fi
+    fi
+    
+    # Validate source base
+    if ! [[ "$source_base" =~ ^([2-9]|[12][0-9]|3[0-6])$ ]]; then
+      echo "Error: Invalid source base '$source_base'. Use 2-36"
+      return 1
+    fi
+    
+    # Convert to decimal first (if not already decimal)
+    if [[ "$source_base" == "10" ]]; then
+      decimal_value="$number"
+    else
+      # Use bc for base conversion to decimal
+      decimal_value=$(echo "ibase=$source_base; $number" | bc 2>/dev/null)
+      if [[ -z "$decimal_value" ]]; then
+        echo "Error: Invalid number '$number' for base $source_base"
+        return 1
+      fi
+    fi
+    
+    # Validate decimal value is non-negative integer
+    if ! [[ "$decimal_value" =~ ^[0-9]+$ ]]; then
+      echo "Error: Result must be a non-negative integer"
+      return 1
+    fi
+    
+    # Convert from decimal to target base
+    if [[ "$target_base_num" == "10" ]]; then
+      echo "$decimal_value"
+    else
+      local result=$(echo "obase=$target_base_num; $decimal_value" | bc)
+      if [[ "$target_base_num" == "16" ]]; then
+        echo "$result" | tr 'a-f' 'A-F'  # Uppercase hex
+      else
+        echo "$result"
+      fi
+    fi
   }
 fi
 

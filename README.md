@@ -84,6 +84,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 ### ✏️ Quick Configuration Access
 
 - **Config editing**: `bashrc`, `zshrc`, `vimrc` for instant config file access
+- **Config reloading**: `sobashrc`, `sozshrc` for quick shell configuration reload
 
 ### 🚀 Program Shortcuts
 
@@ -96,8 +97,9 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Password generation**: `randstr` for secure random passwords
 - **Encoding/decoding**: `hexconv` and `base64conv` for data conversion from strings, files, or stdin
 - **Binary conversion**: `binconv` for converting strings, integers, or stdin to binary
+- **Base conversion**: `baseconv` for converting numbers between different bases (2-36) with auto-detection
 - **Entropy analysis**: `entropy` for calculating Shannon entropy of strings, files, or stdin
-- **Mathematical calculations**: `calc` and `log2` functions
+- **Mathematical calculations**: `calc`, `log2`, and `pow2` functions
 - **JSON formatting**: `jsonpp` for pretty-printing JSON
 
 ### 📝 Wordlist Processing
@@ -210,6 +212,28 @@ $ echo "data" | base64conv encode - # Base64 encode from stdin
 $ binconv 255                    # Convert to binary: 11111111
 $ echo "text" | binconv -        # Convert stdin to binary
 ```
+
+#### Base Converter (`baseconv`)
+Convert numbers between different bases with intelligent auto-detection:
+
+```bash
+$ baseconv 255 hex               # Convert 255 to hex: FF
+$ baseconv 255 bin               # Convert 255 to binary: 11111111
+$ baseconv 0xFF dec              # Convert hex FF to decimal: 255
+$ baseconv 255 oct               # Convert 255 to octal: 377
+$ baseconv 255 16                # Convert 255 to base 16: FF
+$ baseconv 255 2                 # Convert 255 to base 2: 11111111
+$ baseconv 0b11111111 dec        # Convert binary to decimal: 255
+$ baseconv 377 hex 8             # Convert octal 377 to hex: FF
+$ baseconv 1000 36               # Convert 1000 to base 36: RS
+$ baseconv 0xFF                  # Convert hex FF to decimal (default): 255
+```
+
+Supports:
+- Named bases: bin/binary, oct/octal, dec/decimal, hex/hexadecimal
+- Numeric bases: 2-36
+- Auto-detection: 0x (hex), 0b (binary), 0 (octal), default (decimal)
+- Default target base: decimal (when target_base is omitted)
 
 ### Python Development (`svenv`, `cdsvenv`, `pm`)
 
@@ -464,9 +488,11 @@ $ csterminator
 
 ### ✏️ Quick Edits
 - `bashrc` - Edit ~/.bashrc
-- `zshrc` - Edit ~/.zshrc
-- `vimrc` - Edit ~/.vimrc
 - `nginxconf` - Edit nginx main configuration file (/etc/nginx/nginx.conf)
+- `sobashrc` - Source ~/.bashrc (reload Bash configuration)
+- `sozshrc` - Source ~/.zshrc (reload Zsh configuration)
+- `vimrc` - Edit ~/.vimrc
+- `zshrc` - Edit ~/.zshrc
 
 ### 🚀 Programs
 - `v` - Vim editor
@@ -480,6 +506,21 @@ $ csterminator
 - `svenv` - Auto-activate Python virtual environment
 - `cdsvenv` - Navigate to project directory and activate virtual environment
 - `cvenv` - Create .venv with conda's Python, activate, and upgrade pip
+
+### 🛠️ Development Tools
+- `base64conv` - Encode/decode base64 strings, files, or stdin
+- `baseconv` - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)
+- `binconv` - Convert string, integer, or stdin to binary representation
+- `calc` - Perform mathematical calculations with expressions
+- `entropy` - Calculate Shannon entropy of strings, files, or stdin
+- `hashit` - Compute hash of strings, files, or stdin (md5/sha1/sha256/sha512)
+- `hexconv` - Encode/decode hex strings, files, or stdin
+- `jsonpp` - Pretty-print JSON files or stdin
+- `log2` - Calculate base-2 logarithm of positive integers
+- `pow2` - Calculate powers of 2 (2^X) for given integer exponents
+- `randstr` - Generate secure random passwords with custom length
+- `replace` - Find and replace text in strings, files, or stdin
+- `wordlist` - Advanced wordlist filtering, processing and manipulation
 
 ## 📄 License
 

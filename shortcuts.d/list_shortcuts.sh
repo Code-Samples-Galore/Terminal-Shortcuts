@@ -24,6 +24,7 @@ if ! should_exclude "sc" 2>/dev/null; then
 
     echo "🛠️ Development Tools:"
     echo "  base64conv  - Encode/decode base64 strings, files, or stdin"
+    echo "  baseconv    - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)"
     echo "  binconv     - Convert string, integer, or stdin to binary representation"
     echo "  calc        - Perform mathematical calculations with expressions"
     echo "  entropy     - Calculate Shannon entropy of strings, files, or stdin"
@@ -31,6 +32,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  hexconv     - Encode/decode hex strings, files, or stdin"
     echo "  jsonpp      - Pretty-print JSON files or stdin"
     echo "  log2        - Calculate base-2 logarithm of positive integers"
+    echo "  pow2        - Calculate powers of 2 (2^X) for given integer exponents"
     echo "  randstr     - Generate secure random passwords with custom length"
     echo "  replace     - Find and replace text in strings, files, or stdin"
     echo "  wordlist    - Advanced wordlist filtering, processing and manipulation"
@@ -127,6 +129,8 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "✏️ Quick Edits:"
     echo "  bashrc      - Edit ~/.bashrc"
     echo "  nginxconf   - Edit nginx main configuration file (/etc/nginx/nginx.conf)"
+    echo "  sobashrc    - Source ~/.bashrc (reload Bash configuration)"
+    echo "  sozshrc     - Source ~/.zshrc (reload Zsh configuration)"
     echo "  vimrc       - Edit ~/.vimrc"
     echo "  zshrc       - Edit ~/.zshrc"
     echo
