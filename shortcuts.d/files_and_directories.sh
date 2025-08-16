@@ -112,6 +112,7 @@ if ! should_exclude "extract" 2>/dev/null; then
       echo "Notes:"
       echo "  • Files are extracted to the current directory"
       echo "  • Original archive file is preserved"
+      echo "  • SHA256 checksum is calculated for integrity verification"
       echo "  • For 7z files: requires 7z, 7zz, or 7za command"
       echo "  • For RAR files: requires unrar command"
       return 1
@@ -122,6 +123,18 @@ if ! should_exclude "extract" 2>/dev/null; then
       return 1
     fi
     
+    echo "=== EXTRACTION INFORMATION ==="
+    echo "Archive file: $1"
+    
+    # Calculate and display checksum of input archive
+    if command -v hashit >/dev/null 2>&1; then
+      echo -n "SHA256 checksum: "
+      hashit sha256 "$1"
+    else
+      echo "SHA256 checksum: hashit function not available"
+    fi
+    
+    echo ""
     echo "Extracting: $1"
     
     case "$1" in
@@ -269,9 +282,19 @@ if ! should_exclude "compress" 2>/dev/null; then
           # Create tar.gz with volume splitting using split command
           tar czf - "${files[@]}" | split -b "$split_size" - "${archive_name%.*}."
           echo "Created gzip compressed tar archive with volumes: ${archive_name%.*}.* (${split_size} each)"
+          # Calculate checksum for first volume
+          if command -v hashit >/dev/null 2>&1 && [[ -f "${archive_name%.*}.aa" ]]; then
+            echo -n "SHA256 checksum (first volume): "
+            hashit sha256 "${archive_name%.*}.aa"
+          fi
         else
           tar czf "$archive_name" "${files[@]}"
           echo "Created gzip compressed tar archive: $archive_name"
+          # Calculate and display checksum
+          if command -v hashit >/dev/null 2>&1; then
+            echo -n "SHA256 checksum: "
+            hashit sha256 "$archive_name"
+          fi
         fi
         ;;
       *.tar.bz2|*.tbz2)
@@ -279,9 +302,19 @@ if ! should_exclude "compress" 2>/dev/null; then
           # Create tar.bz2 with volume splitting using split command
           tar cjf - "${files[@]}" | split -b "$split_size" - "${archive_name%.*}."
           echo "Created bzip2 compressed tar archive with volumes: ${archive_name%.*}.* (${split_size} each)"
+          # Calculate checksum for first volume
+          if command -v hashit >/dev/null 2>&1 && [[ -f "${archive_name%.*}.aa" ]]; then
+            echo -n "SHA256 checksum (first volume): "
+            hashit sha256 "${archive_name%.*}.aa"
+          fi
         else
           tar cjf "$archive_name" "${files[@]}"
           echo "Created bzip2 compressed tar archive: $archive_name"
+          # Calculate and display checksum
+          if command -v hashit >/dev/null 2>&1; then
+            echo -n "SHA256 checksum: "
+            hashit sha256 "$archive_name"
+          fi
         fi
         ;;
       *.tar)
@@ -289,9 +322,19 @@ if ! should_exclude "compress" 2>/dev/null; then
           # Create tar with volume splitting using split command
           tar cf - "${files[@]}" | split -b "$split_size" - "${archive_name%.*}."
           echo "Created tar archive with volumes: ${archive_name%.*}.* (${split_size} each)"
+          # Calculate checksum for first volume
+          if command -v hashit >/dev/null 2>&1 && [[ -f "${archive_name%.*}.aa" ]]; then
+            echo -n "SHA256 checksum (first volume): "
+            hashit sha256 "${archive_name%.*}.aa"
+          fi
         else
           tar cf "$archive_name" "${files[@]}"
           echo "Created tar archive: $archive_name"
+          # Calculate and display checksum
+          if command -v hashit >/dev/null 2>&1; then
+            echo -n "SHA256 checksum: "
+            hashit sha256 "$archive_name"
+          fi
         fi
         ;;
       *.zip)
@@ -308,9 +351,19 @@ if ! should_exclude "compress" 2>/dev/null; then
             esac
             zip -r -s "$zip_size" "$archive_name" "${files[@]}"
             echo "Created ZIP archive with volumes: $archive_name and split files (${split_size} each)"
+            # Calculate checksum for main zip file
+            if command -v hashit >/dev/null 2>&1 && [[ -f "$archive_name" ]]; then
+              echo -n "SHA256 checksum (main file): "
+              hashit sha256 "$archive_name"
+            fi
           else
             zip -r "$archive_name" "${files[@]}"
             echo "Created ZIP archive: $archive_name"
+            # Calculate and display checksum
+            if command -v hashit >/dev/null 2>&1; then
+              echo -n "SHA256 checksum: "
+              hashit sha256 "$archive_name"
+            fi
           fi
         else
           echo "Error: 'zip' command not found. Please install zip utility."
@@ -342,9 +395,19 @@ if ! should_exclude "compress" 2>/dev/null; then
           esac
           "$sevenzip_cmd" a -v"$szip_size" "$archive_name" "${files[@]}"
           echo "Created 7-Zip archive with volumes: ${archive_name%.7z}.7z.* (${split_size} each)"
+          # Calculate checksum for first volume
+          if command -v hashit >/dev/null 2>&1 && [[ -f "${archive_name%.7z}.7z.001" ]]; then
+            echo -n "SHA256 checksum (first volume): "
+            hashit sha256 "${archive_name%.7z}.7z.001"
+          fi
         else
           "$sevenzip_cmd" a "$archive_name" "${files[@]}"
           echo "Created 7-Zip archive: $archive_name"
+          # Calculate and display checksum
+          if command -v hashit >/dev/null 2>&1; then
+            echo -n "SHA256 checksum: "
+            hashit sha256 "$archive_name"
+          fi
         fi
         ;;
       *.gz)
@@ -357,6 +420,11 @@ if ! should_exclude "compress" 2>/dev/null; then
         if [[ -f "${files[0]}" ]]; then
           gzip -c "${files[0]}" > "$archive_name"
           echo "Created gzip compressed file: $archive_name"
+          # Calculate and display checksum
+          if command -v hashit >/dev/null 2>&1; then
+            echo -n "SHA256 checksum: "
+            hashit sha256 "$archive_name"
+          fi
         else
           echo "Error: '${files[0]}' is not a regular file"
           return 1
@@ -372,6 +440,11 @@ if ! should_exclude "compress" 2>/dev/null; then
         if [[ -f "${files[0]}" ]]; then
           bzip2 -c "${files[0]}" > "$archive_name"
           echo "Created bzip2 compressed file: $archive_name"
+          # Calculate and display checksum
+          if command -v hashit >/dev/null 2>&1; then
+            echo -n "SHA256 checksum: "
+            hashit sha256 "$archive_name"
+          fi
         else
           echo "Error: '${files[0]}' is not a regular file"
           return 1

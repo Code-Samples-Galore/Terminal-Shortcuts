@@ -151,6 +151,202 @@ PID: 1234 - /Applications/Firefox.app/Contents/MacOS/firefox
 Kill all these processes? (y/N):
 ```
 
+### Service Management
+
+#### Systemctl Operations (`sctlstart`, `sctlstop`, `sctlrestart`, `sctlstatus`)
+Simplified systemd service management:
+
+```bash
+$ sctlstart nginx           # Start nginx service
+$ sctlstop apache2          # Stop apache2 service
+$ sctlrestart ssh           # Restart SSH service
+$ sctlstatus postgresql     # Check PostgreSQL status
+```
+
+#### Service Logging (`sctllog`, `sctlwatch`)
+Monitor systemd service logs:
+
+```bash
+$ sctllog nginx             # View nginx service logs
+$ sctlwatch apache2         # Watch apache2 logs in real-time
+```
+
+#### Nginx Management (`nginxstart`, `nginxstop`, `nginxrestart`, `nginxstatus`, `nginxconf`, `nginxtest`, `nginxreload`)
+Complete nginx service control:
+
+```bash
+$ nginxstart                # Start nginx service
+$ nginxstop                 # Stop nginx service
+$ nginxrestart              # Restart nginx service
+$ nginxstatus               # Check nginx status
+$ nginxconf                 # Edit nginx configuration
+$ nginxtest                 # Test nginx configuration syntax
+$ nginxreload               # Reload nginx configuration
+```
+
+### Archive Operations (`extract`, `compress`)
+
+#### Universal Archive Extractor (`extract`)
+Automatically detects and extracts any archive format:
+
+```bash
+$ extract archive.zip        # Extract ZIP file
+$ extract data.tar.gz       # Extract gzipped tar
+$ extract backup.rar        # Extract RAR file
+$ extract package.7z        # Extract 7-Zip file
+```
+
+Supports: `.zip`, `.tar`, `.tar.gz`, `.tar.bz2`, `.tar.xz`, `.rar`, `.7z`, `.gz`, `.bz2`, `.xz`, and more.
+
+#### Archive Creator (`compress`)
+Create archives with optional volume splitting:
+
+```bash
+$ compress myfile.zip file1.txt file2.txt     # Create ZIP archive
+$ compress backup.tar.gz folder/             # Create gzipped tar
+$ compress data.7z -v100M file1 file2        # Create 7z with 100MB volumes
+$ compress split.zip -v1G large_folder/      # Create ZIP with 1GB volumes
+```
+
+### File Operations
+
+#### Find Files (`ff`)
+Search for files by name pattern:
+
+```bash
+$ ff "*.py"           # Find all Python files
+$ ff "config"         # Find files containing "config"
+$ ff "test*.js"       # Find JavaScript test files
+```
+
+#### Search in Files (`search`)
+Advanced text search with regex support:
+
+```bash
+$ search "pattern" file.txt                    # Basic search
+$ search -i "case insensitive" *.txt          # Case insensitive
+$ search -r "regex.*pattern" directory/       # Extended regex
+$ search -g "compressed" archive.gz           # Search in gzipped files
+```
+
+#### Find and Replace (`replace`)
+Replace text in strings, files, or stdin:
+
+```bash
+$ replace "old" "new" "old text here"         # Replace in string
+$ replace "old" "new" file.txt               # Replace in file
+$ echo "old text" | replace "old" "new" -   # Replace from stdin
+```
+
+#### File Backup (`backup`)
+Create timestamped backups with optional compression:
+
+```bash
+$ backup file.txt                    # Create backup: file.txt.backup.20231201-143022
+$ backup -c folder/                  # Create compressed backup: folder.backup.20231201-143022.tar.gz
+$ backup -c -z file.txt             # Create gzipped backup
+```
+
+### File Monitoring
+
+#### Watch Log Files (`watchlog`)
+Monitor log file changes in real-time:
+
+```bash
+$ watchlog /var/log/nginx/access.log    # Monitor nginx access log
+$ watchlog app.log                      # Monitor application log
+```
+
+#### Watch Directory (`watchdir`)
+Monitor directory contents for changes:
+
+```bash
+$ watchdir /home/user/downloads/        # Watch downloads folder
+$ watchdir .                           # Watch current directory
+```
+
+### Python Development Tools
+
+#### Package Management (`pipi`, `pupu`, `pipl`)
+Simplified pip operations:
+
+```bash
+$ pipi requests flask       # Install packages
+$ pipi requirements.txt     # Install from requirements file
+$ pupu requests            # Upgrade specific package
+$ pupu                     # Upgrade all packages
+$ pupu requirements.txt    # Upgrade packages from requirements
+$ pipl                     # List installed packages
+```
+
+#### Virtual Environment Auto-Activation (`svenv`)
+Automatically detect and activate Python virtual environments:
+
+```bash
+$ svenv
+Activated virtual environment: /home/user/project/.venv
+```
+
+Searches for virtual environments in: `.venv/`, `venv/`, `.virtualenv/`
+
+#### Navigate and Activate (`cdsvenv`)
+Navigate to project directory and activate virtual environment:
+
+```bash
+$ cdsvenv ~/myproject        # Navigate and activate venv
+$ cdsvenv                   # Use current directory
+```
+
+#### Create Virtual Environment (`cvenv`)
+Create `.venv` using conda's Python, activate it, and upgrade pip:
+
+```bash
+$ cvenv                     # Create venv in current directory
+$ cvenv myproject           # Create venv in myproject/ directory
+```
+
+#### Python Module Runner (`pm`)
+Run Python modules using file paths:
+
+```bash
+$ pm script.py              # Run script.py as module
+$ pm path/to/module.py      # Run module with full path
+```
+
+### Node.js Development Tools
+
+#### Node Version Management (`nu`, `nl`, `ni`)
+Simplified nvm operations for Node.js version management:
+
+```bash
+$ nu 18.17.0               # Use Node.js version 18.17.0
+$ nu lts                   # Use latest LTS version
+$ nl                       # List installed Node.js versions
+$ ni 20.5.0                # Install Node.js version 20.5.0
+$ ni --lts                 # Install latest LTS version
+```
+
+### Time and Date Utilities (`now`, `nowtime`, `nowdate`)
+
+Get current time and date information:
+
+```bash
+$ now                      # Current date and time: 2023-12-01 14:30:22
+$ nowtime                  # Current time only: 14:30:22
+$ nowdate                  # Current date only: 2023-12-01
+```
+
+### Resource Monitoring (`topcpu`, `topmem`)
+
+Monitor system resource usage:
+
+```bash
+$ topcpu                   # Show top processes by CPU usage
+$ topmem                   # Show top processes by memory usage
+```
+
+Output shows processes sorted by resource consumption with PID, user, and command details.
+
 ### Network Monitoring (`isup`, `myip`)
 
 Check website availability:
@@ -174,6 +370,126 @@ Local IP Address:
 
 External IP Address:
   203.0.113.45
+```
+
+### Network Utilities (`ports`)
+
+Show active network connections and listening ports:
+
+```bash
+$ ports                    # Display all network connections and listening ports
+```
+
+Shows local/remote addresses, connection states, and associated processes.
+
+### Git Repository Information (`gitinfo`)
+
+Display comprehensive Git repository status:
+
+```bash
+$ gitinfo
+=== GIT REPOSITORY INFORMATION ===
+
+Repository Path: /home/user/myproject
+Branch: main
+Status: Clean working directory
+
+Remote Origin:
+  https://github.com/user/myproject.git
+
+Recent Commits:
+  a1b2c3d - Fix bug in authentication (2 hours ago)
+  d4e5f6g - Add new feature (1 day ago)
+```
+
+### Configuration Management
+
+#### Quick Configuration Access (`bashrc`, `zshrc`, `vimrc`, `nginxconf`)
+Instantly open configuration files for editing:
+
+```bash
+$ bashrc                   # Edit ~/.bashrc
+$ zshrc                    # Edit ~/.zshrc  
+$ vimrc                    # Edit ~/.vimrc
+$ nginxconf                # Edit /etc/nginx/nginx.conf
+```
+
+#### Configuration Reloading (`sobashrc`, `sozshrc`)
+Quickly reload shell configurations:
+
+```bash
+$ sobashrc                 # Reload ~/.bashrc
+$ sozshrc                  # Reload ~/.zshrc
+```
+
+### Directory Navigation Enhancements
+
+#### Smart Navigation (`..`, `...`, `....`, `~`)
+Quick directory traversal shortcuts:
+
+```bash
+$ ..                       # Go up one directory (cd ..)
+$ ...                      # Go up two directories (cd ../..)
+$ ....                     # Go up three directories (cd ../../..)
+$ ~                        # Go to home directory (cd ~)
+```
+
+#### Create and Navigate (`mkcd`)
+Create directory and navigate into it in one command:
+
+```bash
+$ mkcd new_project         # Create and enter new_project directory
+$ mkcd path/to/deep/dir    # Create nested directories and navigate
+```
+
+### Enhanced File Listing
+
+#### File Listing Variants (`ll`, `la`, `l`)
+Enhanced directory listing with different detail levels:
+
+```bash
+$ ll                       # Detailed list with human-readable sizes (ls -lh)
+$ la                       # List all files including hidden (ls -la)
+$ l                        # Compact column format (ls -CF)
+```
+
+### File Viewing Enhancements
+
+#### Enhanced Less (`less`, `le`, `tle`)
+Improved file viewing with enhanced less functionality:
+
+```bash
+$ less file.txt            # Enhanced less with colors and mouse support
+$ le file.txt              # Alias for less
+$ tle file.txt             # Open file with less, start at end (+G)
+```
+
+Features include syntax highlighting, mouse support, and improved navigation.
+
+### System Path and History
+
+#### Path Display (`path`)
+Format and display the system PATH variable:
+
+```bash
+$ path                     # Display PATH with each directory on separate line
+```
+
+#### Command History (`h`)
+Quick access to command history:
+
+```bash
+$ h                        # Display command history
+$ h pattern                # Search history for pattern
+```
+
+### tmux Session Management (`ta`)
+
+Quick tmux session attachment:
+
+```bash
+$ ta session_name          # Attach to named tmux session
+$ ta                       # Attach to most recent session
 ```
 
 ### Development Tools
@@ -234,6 +550,93 @@ Supports:
 - **Hexadecimal**: `hex` (encode), `hex-decode`/`hex-d` (decode)
 - **Base64**: `base64`/`b64` (encode), `base64-decode`/`b64-d` (decode)
 - **Binary**: `bin`/`binary` (integers to binary numbers, strings to ASCII binary)
+
+#### Number Base Converter (`numconv`)
+Convert numbers between different bases (2-36) with auto-detection:
+
+```bash
+$ numconv 255                    # Auto-detect: 255 (decimal) = 0xff (hex) = 0o377 (octal) = 0b11111111 (binary)
+$ numconv 0xff                   # Hex to all: 0xff = 255 (decimal) = 0o377 (octal) = 0b11111111 (binary)
+$ numconv 0b1010                 # Binary to all: 0b1010 = 10 (decimal) = 0xa (hex) = 0o12 (octal)
+$ numconv 777 8                  # Convert 777 from base 8: 777₈ = 511 (decimal)
+$ numconv 255 16                 # Convert 255 to base 16: 255 = ff₁₆
+$ numconv abc 16 2               # Convert abc from base 16 to base 2: abc₁₆ = 101010111100₂
+```
+
+#### Random Password Generator (`randstr`)
+Generate secure random passwords:
+
+```bash
+$ randstr              # Generate 12-character password: aB3$xY9!mN2@
+$ randstr 16           # Generate 16-character password
+$ randstr 8            # Generate 8-character password
+```
+
+#### Mathematical Calculators (`calc`, `log2`, `pow2`)
+
+**Calculator (`calc`):**
+```bash
+$ calc "2 + 3 * 4"          # Result: 14
+$ calc "sqrt(16)"           # Result: 4
+$ calc "sin(pi/2)"          # Result: 1
+$ calc "log(100)"           # Result: 2 (base 10)
+```
+
+**Base-2 Logarithm (`log2`):**
+```bash
+$ log2 8                    # Result: 3 (since 2³ = 8)
+$ log2 1024                 # Result: 10 (since 2¹⁰ = 1024)
+```
+
+**Powers of 2 (`pow2`):**
+```bash
+$ pow2 3                    # Result: 8 (2³)
+$ pow2 10                   # Result: 1024 (2¹⁰)
+```
+
+#### JSON Pretty Printer (`jsonpp`)
+Format and pretty-print JSON data:
+
+```bash
+$ jsonpp data.json          # Pretty-print JSON file
+$ echo '{"a":1,"b":2}' | jsonpp -    # Pretty-print JSON from stdin
+```
+
+#### Wordlist Processor (`wordlist`)
+Advanced wordlist filtering and processing:
+
+```bash
+$ wordlist -l 8-12 passwords.txt          # Filter by length 8-12 characters
+$ wordlist -a words.txt                   # Filter alphabetic only
+$ wordlist -n data.txt                    # Filter numeric only
+$ wordlist -e 4.0- entropy.txt           # Filter by minimum entropy 4.0
+$ wordlist -r "^[a-z]+$" words.txt        # Filter by regex pattern
+$ wordlist -s size output.txt input.txt   # Sort and remove duplicates
+$ wordlist -x 10 random.txt              # Randomize and take 10 entries
+$ wordlist --split-mb 100 large.txt      # Split into 100MB files
+```
+
+### Legacy Conversion Functions
+
+Note: The following functions are deprecated in favor of the unified `strconv` function:
+
+#### Base64 Converter (`base64conv`)
+```bash
+$ base64conv "hello"        # Encode: aGVsbG8=
+$ base64conv -d "aGVsbG8="  # Decode: hello
+```
+
+#### Hex Converter (`hexconv`)
+```bash
+$ hexconv "hello"           # Encode: 68656c6c6f
+$ hexconv -d "68656c6c6f"   # Decode: hello
+```
+
+#### Binary Converter (`binconv`)
+```bash
+$ binconv "A"               # String to binary: 01000001
+$ binconv 255               # Integer to binary: 11111111
+```
 
 ### Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`)
 
@@ -337,191 +740,3 @@ $ csterminator
   terminator -x command   - Execute command in new window
   ...
 ```
-
-## 🎯 Complete Aliases and Functions Reference
-
-### 📚 Cheatsheets
-- `csvim` - Display comprehensive Vim cheatsheet with custom configurations
-- `cstmux` - Display comprehensive tmux cheatsheet with sessions, windows, and panes
-- `csless` - Display comprehensive less cheatsheet with navigation and search
-- `csterminator` - Display comprehensive Terminator cheatsheet with splits and layouts
-
-### 📁 File and Directory Operations
-- `ll` - List files with details (ls -lh)
-- `la` - List all files including hidden (ls -la)
-- `l` - List files in columns (ls -CF)
-- `..` - Go up one directory
-- `...` - Go up two directories
-- `....` - Go up three directories
-- `~` - Go to home directory
-- `mkdir` - Create directories with verbose output
-- `mkcd` - Create directory and navigate into it
-- `cp` - Copy with interactive and verbose flags
-- `mv` - Move with interactive and verbose flags
-- `rm` - Remove with interactive and verbose flags
-- `grep` - Grep with color highlighting
-- `tree` - Tree view with colors
-- `extract` - Extract any type of archive file
-- `compress` - Create any type of archive file with volume splitting support
-- `ff` - Find files by name pattern
-- `search` - Search for text in files with basic/extended regex, case sensitivity, and optional .gz file support
-- `replace` - Find and replace text in strings, files, or stdin
-- `backup` - Create timestamped backup of files/folders with optional compression
-- `watchlog` - Monitor log file changes in real-time
-- `watchdir` - Monitor directory contents in real-time
-- `chown` - chown with preserve-root safety
-- `chmod` - chmod with preserve-root safety
-- `chgrp` - chgrp with preserve-root safety
-- `less` - Enhanced less (less -Ni --mouse --use-color)
-- `le` - View file with less
-- `tle` - View file with less, start at end (+G)
-
-### 📦 Node Version Manager
-- `nu` - Use Node version (nvm use)
-- `nl` - List Node versions (nvm list)
-- `ni` - Install Node version (nvm install)
-
-### 🔀 Git Operations
-- `gs` - Git status
-- `gc` - Git commit with message
-- `gp` - Git push
-- `gu` - Git pull
-- `ga` - Git add
-- `gaa` - Git add all files
-- `gac` - Git add all and commit with auto message
-- `gb` - Git branch
-- `gco` - Git checkout
-- `gcb` - Git checkout new branch
-- `gl` - Git log one line
-- `gd` - Git diff
-- `gdc` - Git diff cached
-- `gr` - Git remove from cache
-- `gitinfo` - Display Git repository information
-
-### ⚙️ System Utilities
-- `h` - Show command history
-- `path` - Display PATH variable (formatted)
-- `now` - Show current time and date
-- `nowtime` - Show current time
-- `nowdate` - Show current date
-- `nginxreload` - Reload nginx configuration (nginx -s reload)
-- `nginxrestart` - Restart nginx service (systemctl restart nginx)
-- `nginxstart` - Start nginx service (systemctl start nginx)
-- `nginxstatus` - Check nginx service status (systemctl status nginx)
-- `nginxstop` - Stop nginx service (systemctl stop nginx)
-- `nginxtest` - Test nginx configuration syntax (nginx -t)
-- `sctlstart` - Start systemd service (systemctl start)
-- `sctlstop` - Stop systemd service (systemctl stop)  
-- `sctlrestart` - Restart systemd service (systemctl restart)
-- `sctlstatus` - Check systemd service status (systemctl status)
-- `sctllog` - View systemd service logs (journalctl -ru)
-- `sctlwatch` - Watch systemd service logs in real-time (journalctl -fu)
-- `so` - Source a file (reload shell config)
-- `sysinfo` - Display comprehensive system information
-- `killcmd` - Kill processes by command name
-- `ta` - Tmux attach to session (tmux attach -t)
-- `topcpu` - Show top processes by CPU usage
-- `topmem` - Show top processes by memory usage
-
-### 🌐 Network
-- `ports` - Show network ports and connections
-- `wget` - Wget with continue option
-- `ping` - Ping 5 times
-- `fastping` - Fast ping test (100 packets)
-- `isup` - Check if website is accessible
-- `myip` - Display local and external IP addresses
-
-### ✏️ Quick Edits
-- `bashrc` - Edit ~/.bashrc
-- `nginxconf` - Edit nginx main configuration file (/etc/nginx/nginx.conf)
-- `sobashrc` - Source ~/.bashrc (reload Bash configuration)
-- `sozshrc` - Source ~/.zshrc (reload Zsh configuration)
-- `vimrc` - Edit ~/.vimrc
-- `zshrc` - Edit ~/.zshrc
-
-### 🚀 Programs
-- `v` - Vim editor
-
-### 🐍 Python
-- `p` - Python3
-- `pm` - Run Python modules using file path
-- `pipi` - Install Python package(s) or from requirements file
-- `pupu` - Upgrade Python package(s), all packages, or from requirements.txt
-- `pipl` - List installed packages (pip list)
-- `svenv` - Auto-activate Python virtual environment
-- `cdsvenv` - Navigate to project directory and activate virtual environment
-- `cvenv` - Create .venv with conda's Python, activate, and upgrade pip
-
-### 🛠️ Development Tools
-- `base64conv` - Encode/decode base64 strings, files, or stdin
-- `binconv` - Convert string, integer, or stdin to binary representation
-- `calc` - Perform mathematical calculations with expressions
-- `entropy` - Calculate Shannon entropy of strings, files, or stdin
-- `hashit` - Compute hash of strings, files, or stdin (simple: md5/sha1/sha256/sha512/blake2/crc32, password: bcrypt/argon2/sha256crypt/sha512crypt)
-- `hexconv` - Encode/decode hex strings, files, or stdin
-- `jsonpp` - Pretty-print JSON files or stdin
-- `log2` - Calculate base-2 logarithm of positive integers
-- `numconv` - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)
-- `pow2` - Calculate powers of 2 (2^X) for given integer exponents
-- `randstr` - Generate secure random passwords with custom length
-- `replace` - Find and replace text in strings, files, or stdin
-- `wordlist` - Advanced wordlist filtering, processing and manipulation
-
-## 📄 License
-
-MIT License
-- `sctlwatch` - Watch systemd service logs in real-time (journalctl -fu)
-- `so` - Source a file (reload shell config)
-- `sysinfo` - Display comprehensive system information
-- `killcmd` - Kill processes by command name
-- `ta` - Tmux attach to session (tmux attach -t)
-- `topcpu` - Show top processes by CPU usage
-- `topmem` - Show top processes by memory usage
-
-### 🌐 Network
-- `ports` - Show network ports and connections
-- `wget` - Wget with continue option
-- `ping` - Ping 5 times
-- `fastping` - Fast ping test (100 packets)
-- `isup` - Check if website is accessible
-- `myip` - Display local and external IP addresses
-
-### ✏️ Quick Edits
-- `bashrc` - Edit ~/.bashrc
-- `nginxconf` - Edit nginx main configuration file (/etc/nginx/nginx.conf)
-- `sobashrc` - Source ~/.bashrc (reload Bash configuration)
-- `sozshrc` - Source ~/.zshrc (reload Zsh configuration)
-- `vimrc` - Edit ~/.vimrc
-- `zshrc` - Edit ~/.zshrc
-
-### 🚀 Programs
-- `v` - Vim editor
-
-### 🐍 Python
-- `p` - Python3
-- `pm` - Run Python modules using file path
-- `pipi` - Install Python package(s) or from requirements file
-- `pupu` - Upgrade Python package(s), all packages, or from requirements.txt
-- `pipl` - List installed packages (pip list)
-- `svenv` - Auto-activate Python virtual environment
-- `cdsvenv` - Navigate to project directory and activate virtual environment
-- `cvenv` - Create .venv with conda's Python, activate, and upgrade pip
-
-### 🛠️ Development Tools
-- `base64conv` - Encode/decode base64 strings, files, or stdin
-- `binconv` - Convert string, integer, or stdin to binary representation
-- `calc` - Perform mathematical calculations with expressions
-- `entropy` - Calculate Shannon entropy of strings, files, or stdin
-- `hashit` - Compute hash of strings, files, or stdin (md5/sha1/sha256/sha512)
-- `hexconv` - Encode/decode hex strings, files, or stdin
-- `jsonpp` - Pretty-print JSON files or stdin
-- `log2` - Calculate base-2 logarithm of positive integers
-- `numconv` - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)
-- `pow2` - Calculate powers of 2 (2^X) for given integer exponents
-- `randstr` - Generate secure random passwords with custom length
-- `replace` - Find and replace text in strings, files, or stdin
-- `wordlist` - Advanced wordlist filtering, processing and manipulation
-
-## 📄 License
-
-MIT License
