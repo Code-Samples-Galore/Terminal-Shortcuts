@@ -11,13 +11,11 @@
 #   calc       - Perform mathematical calculations
 #   log2       - Calculate base-2 logarithm of integers
 #   pow2       - Calculate powers of 2 (2^X)
-#   hexconv    - Encode/decode hex strings or files
-#   base64conv - Encode/decode base64 strings or files
-#   binconv    - Convert string or integer to binary representation
+#   strconv    - Convert strings/data between different encodings (hex, base64, binary)
 #   entropy    - Calculate Shannon entropy of strings or files
 #   jsonpp     - Pretty-print JSON files or stdin
 #   replace    - Find and replace text in strings, files, or stdin
-#   baseconv   - Convert numbers between different bases (binary, octal, decimal, hex, custom)
+#   numconv    - Convert numbers between different bases (binary, octal, decimal, hex, custom)
 #
 # Usage Examples:
 #   $ hashit sha256 "text"        # Hash string with SHA256
@@ -27,30 +25,30 @@
 #   $ calc "2 + 2 * 3"           # Calculate mathematical expression
 #   $ log2 256                   # Calculate log2(256) = 8
 #   $ pow2 8                     # Calculate 2^8 = 256
-#   $ hexconv encode "hello"     # Hex encode string
-#   $ hexconv decode "68656c6c6f" # Hex decode string
-#   $ echo "hello" | hexconv encode - # Hex encode from stdin
-#   $ base64conv encode "data"   # Base64 encode string
-#   $ echo "data" | base64conv encode - # Base64 encode from stdin
-#   $ binconv 255                # Convert integer to binary
-#   $ binconv "A"                # Convert string to binary
-#   $ echo "text" | binconv -    # Convert stdin to binary
+#   $ strconv hex "hello"        # Encode string to hex
+#   $ strconv hex-decode "68656c6c6f" # Decode hex to string
+#   $ strconv base64 "data"      # Encode string to base64
+#   $ strconv base64-decode "ZGF0YQ==" # Decode base64 to string
+#   $ strconv bin 255            # Convert integer to binary
+#   $ strconv bin "A"            # Convert string to binary (ASCII)
+#   $ echo "hello" | strconv hex - # Encode stdin to hex
+#   $ echo "data" | strconv base64 - # Base64 encode from stdin
 #   $ entropy "hello world"      # Calculate entropy of string
 #   $ entropy myfile.txt         # Calculate entropy of file
 #   $ echo "data" | entropy -    # Calculate entropy of stdin
 #   $ replace "hello world" "world" "universe" # Replace in string
 #   $ replace myfile.txt "old" "new" --backup # Replace in file with backup
 #   $ echo "text" | replace - "old" "new" # Replace from stdin
-#   $ baseconv hex 255            # Convert 255 to hex: FF
-#   $ baseconv bin 255            # Convert 255 to binary: 11111111
-#   $ baseconv dec 0xFF           # Convert hex FF to decimal: 255
-#   $ baseconv oct 255            # Convert 255 to octal: 377
-#   $ baseconv 16 255             # Convert 255 to base 16: FF
-#   $ baseconv 2 255              # Convert 255 to base 2: 11111111
-#   $ baseconv dec 0b11111111     # Convert binary to decimal: 255
-#   $ baseconv hex 377 8          # Convert octal 377 to hex: FF
-#   $ baseconv 36 1000            # Convert 1000 to base 36: RS
-#   $ baseconv 255                # Convert 255 to decimal (default): 255
+#   $ numconv hex 255            # Convert 255 to hex: FF
+#   $ numconv bin 255            # Convert 255 to binary: 11111111
+#   $ numconv dec 0xFF           # Convert hex FF to decimal: 255
+#   $ numconv oct 255            # Convert 255 to octal: 377
+#   $ numconv 16 255             # Convert 255 to base 16: FF
+#   $ numconv 2 255              # Convert 255 to base 2: 11111111
+#   $ numconv dec 0b11111111     # Convert binary to decimal: 255
+#   $ numconv hex 377 8          # Convert octal 377 to hex: FF
+#   $ numconv 36 1000            # Convert 1000 to base 36: RS
+#   $ numconv 255                # Convert 255 to decimal (default): 255
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "jsonpp"
@@ -58,12 +56,10 @@ cleanup_shortcut "randstr"
 cleanup_shortcut "calc"
 cleanup_shortcut "log2"
 cleanup_shortcut "pow2"
-cleanup_shortcut "hexconv"
-cleanup_shortcut "base64conv"
+cleanup_shortcut "strconv"
 cleanup_shortcut "hashit"
-cleanup_shortcut "binconv"
 cleanup_shortcut "entropy"
-cleanup_shortcut "baseconv"
+cleanup_shortcut "numconv"
 cleanup_shortcut "replace"
 
 # JSON prettify
@@ -196,32 +192,42 @@ if ! should_exclude "pow2" 2>/dev/null; then
   }
 fi
 
-# Hex encode/decode function
-if ! should_exclude "hexconv" 2>/dev/null; then
-  hexconv() {
+# String/data converter function
+if ! should_exclude "strconv" 2>/dev/null; then
+  strconv() {
     if [[ -z "$1" || -z "$2" || "$1" == "--help" || "$1" == "-h" ]]; then
-      echo "Usage: hexconv <encode|decode> <string_or_file|->"
+      echo "Usage: strconv <format> <string_or_file|->"
       echo ""
-      echo "Encode or decode data to/from hexadecimal representation."
+      echo "Convert strings and data between different encodings and representations."
       echo "Can process strings, files, or stdin input."
       echo ""
-      echo "Commands:"
-      echo "  encode, e    Convert data to hexadecimal"
-      echo "  decode, d    Convert hexadecimal back to original data"
+      echo "Formats:"
+      echo "  hex, hex-encode      Convert data to hexadecimal"
+      echo "  hex-decode, hex-d    Convert hexadecimal back to original data"
+      echo "  base64, b64          Convert data to Base64"
+      echo "  base64-decode, b64-d Convert Base64 back to original data"
+      echo "  bin, binary          Convert to binary representation"
+      echo "                       • Integers: binary number representation"
+      echo "                       • Strings: ASCII/UTF-8 binary for each character"
       echo ""
       echo "Examples:"
-      echo "  hexconv encode \"hello\"           # Encode string to hex"
-      echo "  hexconv decode \"68656c6c6f\"      # Decode hex to string"
-      echo "  hexconv e myfile.txt             # Encode file contents"
-      echo "  hexconv d hexfile.txt            # Decode hex file"
-      echo "  echo \"hello\" | hexconv encode -  # Encode from stdin"
-      echo "  echo \"68656c6c6f\" | hexconv decode -  # Decode from stdin"
+      echo "  strconv hex \"hello\"              # Encode string to hex: 68656c6c6f"
+      echo "  strconv hex-decode \"68656c6c6f\"   # Decode hex to string: hello"
+      echo "  strconv base64 \"hello world\"     # Encode to Base64: aGVsbG8gd29ybGQ="
+      echo "  strconv b64-d \"aGVsbG8gd29ybGQ=\"  # Decode Base64: hello world"
+      echo "  strconv bin 255                  # Integer to binary: 11111111"
+      echo "  strconv bin \"A\"                 # String to binary: 01000001"
+      echo "  strconv hex myfile.txt           # Encode file contents to hex"
+      echo "  echo \"data\" | strconv base64 -   # Encode stdin to Base64"
+      echo "  cat encoded.txt | strconv hex-d - # Decode hex from stdin"
       echo ""
       echo "Note: Use '-' as input to read from stdin"
       return 1
     fi
     
+    local format="$1"
     local input_source
+    
     if [[ "$2" == "-" ]]; then
       input_source="cat"
     elif [[ -f "$2" ]]; then
@@ -230,67 +236,49 @@ if ! should_exclude "hexconv" 2>/dev/null; then
       input_source="echo -n \"$2\""
     fi
     
-    case "$1" in
-      encode|e)
+    case "$format" in
+      hex|hex-encode)
         eval "$input_source" | xxd -p | tr -d '\n'
         echo
         ;;
-      decode|d)
+      hex-decode|hex-d)
         eval "$input_source" | xxd -r -p
         echo
         ;;
-      *)
-        echo "Error: Use 'encode' or 'decode'"
-        return 1
-        ;;
-    esac
-  }
-fi
-
-# Base64 encode/decode function
-if ! should_exclude "base64conv" 2>/dev/null; then
-  base64conv() {
-    if [[ -z "$1" || -z "$2" || "$1" == "--help" || "$1" == "-h" ]]; then
-      echo "Usage: base64conv <encode|decode> <string_or_file|->"
-      echo ""
-      echo "Encode or decode data to/from Base64 representation."
-      echo "Can process strings, files, or stdin input."
-      echo ""
-      echo "Commands:"
-      echo "  encode, e    Convert data to Base64"
-      echo "  decode, d    Convert Base64 back to original data"
-      echo ""
-      echo "Examples:"
-      echo "  base64conv encode \"hello world\"   # Encode string to Base64"
-      echo "  base64conv decode \"aGVsbG8gd29ybGQ=\"  # Decode Base64 to string"
-      echo "  base64conv e document.pdf          # Encode file contents"
-      echo "  base64conv d encoded.txt           # Decode Base64 file"
-      echo "  echo \"data\" | base64conv encode -  # Encode from stdin"
-      echo "  cat encoded.txt | base64conv decode -  # Decode from stdin"
-      echo ""
-      echo "Note: Use '-' as input to read from stdin"
-      return 1
-    fi
-    
-    local input_source
-    if [[ "$2" == "-" ]]; then
-      input_source="cat"
-    elif [[ -f "$2" ]]; then
-      input_source="cat \"$2\""
-    else
-      input_source="echo -n \"$2\""
-    fi
-    
-    case "$1" in
-      encode|e)
+      base64|b64)
         eval "$input_source" | base64
         ;;
-      decode|d)
+      base64-decode|b64-d)
         eval "$input_source" | base64 -d
         echo
         ;;
+      bin|binary)
+        local input_data
+        if [[ "$2" == "-" ]]; then
+          input_data=$(cat)
+        elif [[ -f "$2" ]]; then
+          input_data=$(cat "$2")
+        else
+          input_data="$2"
+        fi
+        
+        # Check if input is a number
+        if [[ "$input_data" =~ ^[0-9]+$ ]]; then
+          # Convert integer to binary
+          echo "obase=2; $input_data" | bc
+        else
+          # Convert string to binary (each character) using od for reliable character processing
+          echo -n "$input_data" | od -An -tu1 | tr -s ' ' '\n' | while read -r byte; do
+            if [[ -n "$byte" && "$byte" != "0" ]]; then
+              echo "obase=2; $byte" | bc
+            fi
+          done | tr '\n' ' '
+          echo
+        fi
+        ;;
       *)
-        echo "Error: Use 'encode' or 'decode'"
+        echo "Error: Unsupported format '$format'"
+        echo "Supported formats: hex, hex-decode, base64, base64-decode, bin"
         return 1
         ;;
     esac
@@ -357,51 +345,76 @@ if ! should_exclude "hashit" 2>/dev/null; then
   }
 fi
 
-# Binary converter function
-if ! should_exclude "binconv" 2>/dev/null; then
-  binconv() {
-    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
-      echo "Usage: binconv <string_or_integer|->"
+# Replace text in strings or files
+if ! should_exclude "replace" 2>/dev/null; then
+  replace() {
+    if [[ $# -lt 3 || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: replace <string_or_file|-> <search_pattern> <replacement> [--backup]"
       echo ""
-      echo "Convert strings or integers to binary representation."
-      echo "Handles both numeric and text input automatically."
+      echo "Find and replace text in strings, files, or stdin input."
+      echo "Supports literal text replacement with optional backup creation."
+      echo ""
+      echo "Options:"
+      echo "  --backup     Create timestamped backup before modifying files"
       echo ""
       echo "Input types:"
-      echo "  Integer    Converts to binary number representation"
-      echo "  String     Converts each character to binary (ASCII/UTF-8)"
-      echo "  Stdin      Processes piped input"
+      echo "  String       Direct text manipulation"
+      echo "  File         In-place file modification"
+      echo "  Stdin (-)    Process piped input"
       echo ""
       echo "Examples:"
-      echo "  binconv 255                    # Integer: 11111111"
-      echo "  binconv 1024                   # Integer: 10000000000"
-      echo "  binconv \"A\"                   # String: 01000001"
-      echo "  binconv \"Hello\"               # String: multiple binary values"
-      echo "  echo \"World\" | binconv -       # Stdin: binary for each character"
-      echo "  binconv 0                      # Integer: 0"
+      echo "  replace \"hello world\" \"world\" \"universe\"    # String replacement"
+      echo "  replace config.txt \"old_value\" \"new_value\"   # File replacement"
+      echo "  replace data.txt \"pattern\" \"replacement\" --backup  # With backup"
+      echo "  echo \"test data\" | replace - \"test\" \"demo\"   # Stdin replacement"
+      echo "  replace script.sh \"#!/bin/bash\" \"#!/bin/zsh\"  # Shebang replacement"
       echo ""
-      echo "Note: Use '-' as input to read from stdin"
+      echo "Backup format:"
+      echo "  original_file.bak.YYYYMMDD_HHMMSS"
+      echo ""
+      echo "Note:"
+      echo "  • Use '-' as first argument to read from stdin"
+      echo "  • File modifications are permanent unless --backup is used"
+      echo "  • Pattern matching is literal (not regex)"
       return 1
     fi
     
     local input="$1"
+    local search="$2"
+    local replacement="$3"
+    local create_backup=false
+    
+    # Check for backup flag
+    if [[ "$4" == "--backup" ]]; then
+      create_backup=true
+    fi
     
     # Check if input is stdin
     if [[ "$input" == "-" ]]; then
-      input=$(cat)
-    fi
-    
-    # Check if input is a number
-    if [[ "$input" =~ ^[0-9]+$ ]]; then
-      # Convert integer to binary
-      echo "obase=2; $input" | bc
+      # Replace in stdin and output result
+      sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
+    # Check if input is a file
+    elif [[ -f "$input" ]]; then
+      # Create backup if requested
+      if [[ "$create_backup" == true ]]; then
+        local backup_name="${input}.bak.$(date +%Y%m%d_%H%M%S)"
+        cp "$input" "$backup_name"
+        echo "Backup created: $backup_name"
+      fi
+      
+      # Replace in file using sed (cross-platform compatible)
+      if command -v gsed >/dev/null 2>&1; then
+        # Use GNU sed if available (macOS with homebrew)
+        gsed -i "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input"
+      else
+        # Use system sed
+        sed -i.tmp "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input" && rm "${input}.tmp"
+      fi
+      
+      echo "Replaced '${search}' with '${replacement}' in file: $input"
     else
-      # Convert string to binary (each character) using od for reliable character processing
-      echo -n "$input" | od -An -tu1 | tr -s ' ' '\n' | while read -r byte; do
-        if [[ -n "$byte" && "$byte" != "0" ]]; then
-          echo "obase=2; $byte" | bc
-        fi
-      done | tr '\n' ' '
-      echo
+      # Treat as string and output result
+      echo "$input" | sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
     fi
   }
 fi
@@ -493,11 +506,11 @@ if ! should_exclude "entropy" 2>/dev/null; then
   }
 fi
 
-# Base converter function
-if ! should_exclude "baseconv" 2>/dev/null; then
-  baseconv() {
+# Number base converter function
+if ! should_exclude "numconv" 2>/dev/null; then
+  numconv() {
     if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
-      echo "Usage: baseconv <number> [target_base] [source_base]"
+      echo "Usage: numconv <number> [target_base] [source_base]"
       echo ""
       echo "Convert numbers between different number bases."
       echo "Supports binary, octal, decimal, hexadecimal, and custom bases (2-36)."
@@ -517,16 +530,16 @@ if ! should_exclude "baseconv" 2>/dev/null; then
       echo "  • default = decimal"
       echo ""
       echo "Examples:"
-      echo "  baseconv 255 hex               # Convert 255 to hex: FF"
-      echo "  baseconv 255 bin               # Convert 255 to binary: 11111111"
-      echo "  baseconv 0xFF dec              # Convert hex FF to decimal: 255"
-      echo "  baseconv 255 oct               # Convert 255 to octal: 377"
-      echo "  baseconv 255 16                # Convert 255 to base 16: FF"
-      echo "  baseconv 255 2                 # Convert 255 to base 2: 11111111"
-      echo "  baseconv 0b11111111 dec        # Convert binary to decimal: 255"
-      echo "  baseconv 377 hex 8             # Convert octal 377 to hex: FF"
-      echo "  baseconv 1000 36               # Convert 1000 to base 36: RS"
-      echo "  baseconv 0xFF                  # Convert hex FF to decimal (default): 255"
+      echo "  numconv 255 hex               # Convert 255 to hex: FF"
+      echo "  numconv 255 bin               # Convert 255 to binary: 11111111"
+      echo "  numconv 0xFF dec              # Convert hex FF to decimal: 255"
+      echo "  numconv 255 oct               # Convert 255 to octal: 377"
+      echo "  numconv 255 16                # Convert 255 to base 16: FF"
+      echo "  numconv 255 2                 # Convert 255 to base 2: 11111111"
+      echo "  numconv 0b11111111 dec        # Convert binary to decimal: 255"
+      echo "  numconv 377 hex 8             # Convert octal 377 to hex: FF"
+      echo "  numconv 1000 36               # Convert 1000 to base 36: RS"
+      echo "  numconv 0xFF                  # Convert hex FF to decimal (default): 255"
       return 1
     fi
     

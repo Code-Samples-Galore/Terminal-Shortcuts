@@ -95,9 +95,8 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 - **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing of strings, files, or stdin
 - **Password generation**: `randstr` for secure random passwords
-- **Encoding/decoding**: `hexconv` and `base64conv` for data conversion from strings, files, or stdin
-- **Binary conversion**: `binconv` for converting strings, integers, or stdin to binary
-- **Base conversion**: `baseconv` for converting numbers between different bases (2-36) with auto-detection
+- **String/data conversion**: `strconv` for converting between hex, base64, and binary formats
+- **Number base conversion**: `numconv` for converting numbers between different bases (2-36) with auto-detection
 - **Entropy analysis**: `entropy` for calculating Shannon entropy of strings, files, or stdin
 - **Mathematical calculations**: `calc`, `log2`, and `pow2` functions
 - **JSON formatting**: `jsonpp` for pretty-printing JSON
@@ -200,95 +199,24 @@ $ echo "random data" | entropy - # Calculate entropy of stdin
 
 Entropy values range from 0 (completely predictable) to ~8 (maximum randomness for byte data).
 
-#### Encoding/Decoding Tools
-Convert between different data formats from strings, files, or stdin:
+#### String/Data Converter (`strconv`)
+Convert between different data encodings and representations:
 
 ```bash
-$ hexconv encode "hello"         # Returns: 68656c6c6f
-$ hexconv decode "68656c6c6f"    # Returns: hello
-$ echo "hello" | hexconv encode - # Hex encode from stdin
-$ base64conv encode "data"       # Base64 encode
-$ echo "data" | base64conv encode - # Base64 encode from stdin
-$ binconv 255                    # Convert to binary: 11111111
-$ echo "text" | binconv -        # Convert stdin to binary
-```
-
-#### Base Converter (`baseconv`)
-Convert numbers between different bases with intelligent auto-detection:
-
-```bash
-$ baseconv 255 hex               # Convert 255 to hex: FF
-$ baseconv 255 bin               # Convert 255 to binary: 11111111
-$ baseconv 0xFF dec              # Convert hex FF to decimal: 255
-$ baseconv 255 oct               # Convert 255 to octal: 377
-$ baseconv 255 16                # Convert 255 to base 16: FF
-$ baseconv 255 2                 # Convert 255 to base 2: 11111111
-$ baseconv 0b11111111 dec        # Convert binary to decimal: 255
-$ baseconv 377 hex 8             # Convert octal 377 to hex: FF
-$ baseconv 1000 36               # Convert 1000 to base 36: RS
-$ baseconv 0xFF                  # Convert hex FF to decimal (default): 255
+$ strconv hex "hello"              # Encode to hex: 68656c6c6f
+$ strconv hex-decode "68656c6c6f"  # Decode hex: hello
+$ strconv base64 "hello world"     # Encode to Base64: aGVsbG8gd29ybGQ=
+$ strconv b64-d "aGVsbG8gd29ybGQ="  # Decode Base64: hello world
+$ strconv bin 255                  # Integer to binary: 11111111
+$ strconv bin "A"                  # String to binary: 01000001
+$ echo "data" | strconv hex -      # Encode stdin to hex
+$ cat file.txt | strconv base64 -  # Encode file to Base64
 ```
 
 Supports:
-- Named bases: bin/binary, oct/octal, dec/decimal, hex/hexadecimal
-- Numeric bases: 2-36
-- Auto-detection: 0x (hex), 0b (binary), 0 (octal), default (decimal)
-- Default target base: decimal (when target_base is omitted)
-
-### Python Development (`svenv`, `cdsvenv`, `pm`)
-
-#### Virtual Environment (`svenv`, `cdsvenv`)
-Automatically finds and activates Python virtual environments:
-
-```bash
-$ svenv
-Activating virtual environment: ./venv/bin/activate
-
-$ cdsvenv my_project
-Navigating to: my_project
-Activating virtual environment: ./venv/bin/activate
-```
-
-#### Create and bootstrap venv (`cvenv`)
-Create a .venv using the Python from conda, activate it, then upgrade pip:
-
-```bash
-$ cvenv                 # Use current directory
-$ cvenv my_project      # Create venv in my_project/.venv
-$ cvenv ..              # Create venv in parent directory
-```
-
-#### Module Runner (`pm`)
-Run Python modules using file path notation:
-
-```bash
-$ pm src/main.py          # Runs: python3 -m src.main
-$ pm utils/helper.py arg1 # Runs: python3 -m utils.helper arg1
-```
-
-#### Package Management
-Enhanced pip operations:
-
-```bash
-$ pipi requests           # Install requests package
-$ pipi requirements.txt   # Install from requirements file
-$ pipu numpy             # Upgrade numpy package
-$ pipu                   # Upgrade all outdated packages
-$ pipu requirements.txt  # Upgrade packages from requirements file
-$ pipl                   # List all installed packages
-```
-
-### Wordlist Processing (`wordlist`)
-
-Comprehensive wordlist filtering and manipulation:
-
-```bash
-$ wordlist -min 8 -max 16 passwords.txt     # Filter by length
-$ wordlist -minentropy 3.0 passwords.txt    # Filter by entropy
-$ wordlist -regex "^admin" passwords.txt     # Regex filtering
-$ wordlist -su -o output.txt passwords.txt   # Sort, unique, save to file
-$ wordlist -split 100MB -o parts.txt large.txt  # Split into 100MB files
-```
+- **Hexadecimal**: `hex` (encode), `hex-decode`/`hex-d` (decode)
+- **Base64**: `base64`/`b64` (encode), `base64-decode`/`b64-d` (decode)
+- **Binary**: `bin`/`binary` (integers to binary numbers, strings to ASCII binary)
 
 ### Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`)
 
@@ -508,8 +436,79 @@ $ csterminator
 - `cvenv` - Create .venv with conda's Python, activate, and upgrade pip
 
 ### 🛠️ Development Tools
+- `calc` - Perform mathematical calculations with expressions
+- `entropy` - Calculate Shannon entropy of strings, files, or stdin
+- `hashit` - Compute hash of strings, files, or stdin (md5/sha1/sha256/sha512)
+- `jsonpp` - Pretty-print JSON files or stdin
+- `log2` - Calculate base-2 logarithm of positive integers
+- `numconv` - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)
+- `pow2` - Calculate powers of 2 (2^X) for given integer exponents
+- `randstr` - Generate secure random passwords with custom length
+- `replace` - Find and replace text in strings, files, or stdin
+- `strconv` - Convert strings/data between encodings (hex, base64, binary)
+- `wordlist` - Advanced wordlist filtering, processing and manipulation
+
+## 📄 License
+
+MIT License
+- `gitinfo` - Display Git repository information
+
+### ⚙️ System Utilities
+- `h` - Show command history
+- `path` - Display PATH variable (formatted)
+- `now` - Show current time and date
+- `nowtime` - Show current time
+- `nowdate` - Show current date
+- `nginxreload` - Reload nginx configuration (nginx -s reload)
+- `nginxrestart` - Restart nginx service (systemctl restart nginx)
+- `nginxstart` - Start nginx service (systemctl start nginx)
+- `nginxstatus` - Check nginx service status (systemctl status nginx)
+- `nginxstop` - Stop nginx service (systemctl stop nginx)
+- `nginxtest` - Test nginx configuration syntax (nginx -t)
+- `sctlstart` - Start systemd service (systemctl start)
+- `sctlstop` - Stop systemd service (systemctl stop)  
+- `sctlrestart` - Restart systemd service (systemctl restart)
+- `sctlstatus` - Check systemd service status (systemctl status)
+- `sctllog` - View systemd service logs (journalctl -ru)
+- `sctlwatch` - Watch systemd service logs in real-time (journalctl -fu)
+- `so` - Source a file (reload shell config)
+- `sysinfo` - Display comprehensive system information
+- `killcmd` - Kill processes by command name
+- `ta` - Tmux attach to session (tmux attach -t)
+- `topcpu` - Show top processes by CPU usage
+- `topmem` - Show top processes by memory usage
+
+### 🌐 Network
+- `ports` - Show network ports and connections
+- `wget` - Wget with continue option
+- `ping` - Ping 5 times
+- `fastping` - Fast ping test (100 packets)
+- `isup` - Check if website is accessible
+- `myip` - Display local and external IP addresses
+
+### ✏️ Quick Edits
+- `bashrc` - Edit ~/.bashrc
+- `nginxconf` - Edit nginx main configuration file (/etc/nginx/nginx.conf)
+- `sobashrc` - Source ~/.bashrc (reload Bash configuration)
+- `sozshrc` - Source ~/.zshrc (reload Zsh configuration)
+- `vimrc` - Edit ~/.vimrc
+- `zshrc` - Edit ~/.zshrc
+
+### 🚀 Programs
+- `v` - Vim editor
+
+### 🐍 Python
+- `p` - Python3
+- `pm` - Run Python modules using file path
+- `pipi` - Install Python package(s) or from requirements file
+- `pupu` - Upgrade Python package(s), all packages, or from requirements.txt
+- `pipl` - List installed packages (pip list)
+- `svenv` - Auto-activate Python virtual environment
+- `cdsvenv` - Navigate to project directory and activate virtual environment
+- `cvenv` - Create .venv with conda's Python, activate, and upgrade pip
+
+### 🛠️ Development Tools
 - `base64conv` - Encode/decode base64 strings, files, or stdin
-- `baseconv` - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)
 - `binconv` - Convert string, integer, or stdin to binary representation
 - `calc` - Perform mathematical calculations with expressions
 - `entropy` - Calculate Shannon entropy of strings, files, or stdin
@@ -517,6 +516,7 @@ $ csterminator
 - `hexconv` - Encode/decode hex strings, files, or stdin
 - `jsonpp` - Pretty-print JSON files or stdin
 - `log2` - Calculate base-2 logarithm of positive integers
+- `numconv` - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)
 - `pow2` - Calculate powers of 2 (2^X) for given integer exponents
 - `randstr` - Generate secure random passwords with custom length
 - `replace` - Find and replace text in strings, files, or stdin
