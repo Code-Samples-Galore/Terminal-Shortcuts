@@ -616,28 +616,6 @@ $ wordlist -x 10 random.txt              # Randomize and take 10 entries
 $ wordlist --split-mb 100 large.txt      # Split into 100MB files
 ```
 
-### Legacy Conversion Functions
-
-Note: The following functions are deprecated in favor of the unified `strconv` function:
-
-#### Base64 Converter (`base64conv`)
-```bash
-$ base64conv "hello"        # Encode: aGVsbG8=
-$ base64conv -d "aGVsbG8="  # Decode: hello
-```
-
-#### Hex Converter (`hexconv`)
-```bash
-$ hexconv "hello"           # Encode: 68656c6c6f
-$ hexconv -d "68656c6c6f"   # Decode: hello
-```
-
-#### Binary Converter (`binconv`)
-```bash
-$ binconv "A"               # String to binary: 01000001
-$ binconv 255               # Integer to binary: 11111111
-```
-
 ### Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`)
 
 #### Vim Cheatsheet (`csvim`)

@@ -65,22 +65,135 @@ cleanup_shortcut "replace"
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
   jsonpp() {
-    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-      echo "Usage: jsonpp [file]"
+    if [[  $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: jsonpp [options] [file|-]"
       echo ""
       echo "Pretty-print JSON data with proper indentation and formatting."
       echo "If no file specified, reads from stdin."
       echo ""
+      echo "Options:"
+      echo "  -c, --color      Enable colored output (default if terminal supports it)"
+      echo "  --no-color       Disable colored output"
+      echo "  -r, --raw        Raw output without colors (same as --no-color)"
+      echo ""
       echo "Examples:"
-      echo "  jsonpp data.json             # Format JSON file"
+      echo "  jsonpp data.json             # Format JSON file with auto-color"
+      echo "  jsonpp --color data.json     # Force colored output"
+      echo "  jsonpp --no-color data.json  # Force plain output"
+      echo "  jsonpp -                     # Read from stdin explicitly"
       echo "  echo '{\"key\":\"value\"}' | jsonpp    # Format JSON from stdin"
       echo "  curl -s api.example.com | jsonpp     # Format API response"
       echo "  cat response.json | jsonpp   # Format via pipe"
+      echo ""
+      echo "Color support:"
+      echo "  • Uses jq if available (best colors)"
+      echo "  • Falls back to Python with pygments"
+      echo "  • Falls back to plain Python json.tool"
+      echo ""
+      echo "Note: Use '-' as input to read from stdin explicitly"
       return 0
     fi
     
-    if [[ -n "$1" ]]; then
-      cat "$1" | python3 -m json.tool
+    local use_color="auto"
+    local input_file=""
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        -c|--color)
+          use_color="yes"
+          shift
+          ;;
+        --no-color|-r|--raw)
+          use_color="no"
+          shift
+          ;;
+        -)
+          # Explicit stdin
+          input_file="-"
+          shift
+          ;;
+        -*)
+          echo "Error: Unknown option $1"
+          return 1
+          ;;
+        *)
+          if [[ -z "$input_file" ]]; then
+            input_file="$1"
+          else
+            echo "Error: Multiple input files specified"
+            return 1
+          fi
+          shift
+          ;;
+      esac
+    done
+    
+    # Auto-detect color support
+    if [[ "$use_color" == "auto" ]]; then
+      if [[ -t 1 ]] && command -v tput >/dev/null 2>&1 && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]]; then
+        use_color="yes"
+      else
+        use_color="no"
+      fi
+    fi
+    
+    # Function to get input data
+    local get_input_cmd
+    if [[ -n "$input_file" && "$input_file" != "-" ]]; then
+      get_input_cmd="cat \"$input_file\""
+    else
+      get_input_cmd="cat"
+    fi
+    
+    # Try different tools for JSON formatting with color support
+    if [[ "$use_color" == "yes" ]]; then
+      # First try: jq (best option for colored JSON)
+      if command -v jq >/dev/null 2>&1; then
+        eval "$get_input_cmd" | jq '.'
+        return $?
+      fi
+      
+      # Second try: Python with pygments (good colors)
+      if command -v python3 >/dev/null 2>&1; then
+        local python_color_result
+        python_color_result=$(eval "$get_input_cmd" | python3 -c "
+import json
+import sys
+try:
+    from pygments import highlight
+    from pygments.lexers import JsonLexer
+    from pygments.formatters import TerminalFormatter
+    
+    data = json.loads(sys.stdin.read())
+    formatted = json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True)
+    colored = highlight(formatted, JsonLexer(), TerminalFormatter())
+    print(colored, end='')
+except ImportError:
+    # Fallback to basic formatting if pygments not available
+    data = json.loads(sys.stdin.read())
+    print(json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True))
+except json.JSONDecodeError as e:
+    print(f'Error: Invalid JSON - {e}', file=sys.stderr)
+    sys.exit(1)
+except Exception as e:
+    print(f'Error: {e}', file=sys.stderr)
+    sys.exit(1)
+" 2>/dev/null)
+        
+        if [[ $? -eq 0 && -n "$python_color_result" ]]; then
+          echo "$python_color_result"
+          return 0
+        fi
+      fi
+      
+      # If colored options failed, fall through to plain formatting
+      echo "Note: Colored output not available, using plain formatting" >&2
+    fi
+    
+    # Fallback: Plain Python json.tool
+    if [[ -n "$input_file" && "$input_file" != "-" ]]; then
+      python3 -m json.tool "$input_file"
     else
       python3 -m json.tool
     fi
