@@ -179,14 +179,31 @@ External IP Address:
 ### Development Tools
 
 #### Hash Calculator (`hashit`)
-Compute various hash functions for strings, files, or stdin:
+Compute various hash functions for strings, files, or stdin. Supports both simple cryptographic hashes and secure password hashes:
 
+**Simple Hash Functions:**
 ```bash
-$ hashit sha256 "hello world"     # Hash a string
-$ hashit md5 myfile.txt          # Hash a file
-$ echo "data" | hashit sha1 -    # Hash stdin
-$ hashit sha512 "secret data"    # SHA512 hash
+$ hashit sha256 "hello world"     # Hash a string: a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e
+$ hashit md5 myfile.txt          # Hash a file: 5d41402abc4b2a76b9719d911017c592
+$ echo "data" | hashit sha1 -    # Hash stdin: a17c9aaa61e80a1bf71d0d850af4e5baa9800bbd
+$ hashit blake2 "secret data"    # BLAKE2 hash (modern, fast algorithm)
+$ hashit crc32 "integrity check" # CRC32 checksum: 3632233996
 ```
+
+**Password Hash Functions (with salt):**
+```bash
+$ hashit bcrypt "password123"       # Bcrypt hash: $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBXFhAsC/HjBKS
+$ hashit argon2 "password123"       # Argon2id hash: $argon2id$v=19$m=4096,t=3,p=1$salt$hash
+$ hashit sha256crypt "password"     # SHA-256 crypt: $5$saltvalue$hashvalue
+$ hashit sha512crypt "password"     # SHA-512 crypt: $6$saltvalue$hashvalue
+$ echo "mypassword" | hashit bcrypt - # Hash password from stdin
+```
+
+**Supported Hash Types:**
+- **Simple hashes**: `md5`, `sha1`, `sha224`, `sha256`, `sha384`, `sha512`, `blake2`, `sha3`, `crc32`
+- **Password hashes**: `bcrypt`, `argon2`, `sha256crypt`, `sha512crypt`
+
+Password hashes automatically include random salt and produce different outputs each time for security.
 
 #### Entropy Calculator (`entropy`)
 Calculate Shannon entropy for strings, files, or stdin to measure randomness/complexity:
@@ -436,40 +453,23 @@ $ csterminator
 - `cvenv` - Create .venv with conda's Python, activate, and upgrade pip
 
 ### 🛠️ Development Tools
+- `base64conv` - Encode/decode base64 strings, files, or stdin
+- `binconv` - Convert string, integer, or stdin to binary representation
 - `calc` - Perform mathematical calculations with expressions
 - `entropy` - Calculate Shannon entropy of strings, files, or stdin
-- `hashit` - Compute hash of strings, files, or stdin (md5/sha1/sha256/sha512)
+- `hashit` - Compute hash of strings, files, or stdin (simple: md5/sha1/sha256/sha512/blake2/crc32, password: bcrypt/argon2/sha256crypt/sha512crypt)
+- `hexconv` - Encode/decode hex strings, files, or stdin
 - `jsonpp` - Pretty-print JSON files or stdin
 - `log2` - Calculate base-2 logarithm of positive integers
 - `numconv` - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)
 - `pow2` - Calculate powers of 2 (2^X) for given integer exponents
 - `randstr` - Generate secure random passwords with custom length
 - `replace` - Find and replace text in strings, files, or stdin
-- `strconv` - Convert strings/data between encodings (hex, base64, binary)
 - `wordlist` - Advanced wordlist filtering, processing and manipulation
 
 ## 📄 License
 
 MIT License
-- `gitinfo` - Display Git repository information
-
-### ⚙️ System Utilities
-- `h` - Show command history
-- `path` - Display PATH variable (formatted)
-- `now` - Show current time and date
-- `nowtime` - Show current time
-- `nowdate` - Show current date
-- `nginxreload` - Reload nginx configuration (nginx -s reload)
-- `nginxrestart` - Restart nginx service (systemctl restart nginx)
-- `nginxstart` - Start nginx service (systemctl start nginx)
-- `nginxstatus` - Check nginx service status (systemctl status nginx)
-- `nginxstop` - Stop nginx service (systemctl stop nginx)
-- `nginxtest` - Test nginx configuration syntax (nginx -t)
-- `sctlstart` - Start systemd service (systemctl start)
-- `sctlstop` - Stop systemd service (systemctl stop)  
-- `sctlrestart` - Restart systemd service (systemctl restart)
-- `sctlstatus` - Check systemd service status (systemctl status)
-- `sctllog` - View systemd service logs (journalctl -ru)
 - `sctlwatch` - Watch systemd service logs in real-time (journalctl -fu)
 - `so` - Source a file (reload shell config)
 - `sysinfo` - Display comprehensive system information

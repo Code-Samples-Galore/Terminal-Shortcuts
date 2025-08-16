@@ -294,54 +294,257 @@ if ! should_exclude "hashit" 2>/dev/null; then
       echo "Compute cryptographic hash of strings, files, or stdin input."
       echo "Supports multiple hash algorithms for different security needs."
       echo ""
-      echo "Hash types:"
+      echo "Simple Hash types:"
       echo "  md5      128-bit hash (legacy, not secure)"
       echo "  sha1     160-bit hash (legacy, not secure)"
+      echo "  sha224   224-bit hash (SHA-2 family)"
       echo "  sha256   256-bit hash (secure, recommended)"
+      echo "  sha384   384-bit hash (SHA-2 family)"
       echo "  sha512   512-bit hash (secure, high security)"
+      echo "  blake2   BLAKE2 hash (modern, fast)"
+      echo "  crc32    CRC32 checksum (integrity, not security)"
+      echo ""
+      echo "Password Hash types (with salt):"
+      echo "  bcrypt   Bcrypt password hash (adaptive, secure)"
+      echo "  argon2   Argon2id password hash (modern, recommended)"
+      echo "  sha256crypt  SHA-256 crypt (Unix-style password hash)"
+      echo "  sha512crypt  SHA-512 crypt (Unix-style password hash)"
+      echo ""
+      echo "Platform-specific:"
+      echo "  sha3     SHA-3 (if available)"
       echo ""
       echo "Examples:"
       echo "  hashit sha256 \"hello world\"       # Hash string with SHA256"
-      echo "  hashit md5 document.pdf           # Hash file with MD5"
-      echo "  hashit sha512 /etc/passwd         # Hash system file"
-      echo "  echo \"password\" | hashit sha256 -  # Hash stdin input"
-      echo "  cat largefile.zip | hashit sha1 -  # Hash large file via pipe"
+      echo "  hashit blake2 document.pdf         # Hash file with BLAKE2"
+      echo "  hashit bcrypt \"password123\"       # Generate bcrypt password hash"
+      echo "  hashit argon2 \"password123\"       # Generate Argon2 password hash"
+      echo "  hashit sha256crypt \"password\"     # Generate SHA-256 crypt hash"
+      echo "  echo \"password\" | hashit bcrypt -  # Hash stdin with bcrypt"
       echo ""
       echo "Note: Use '-' as input to read from stdin"
+      echo "      Password hashes include random salt and are different each time"
       return 1
     fi
     
     local hash_type="$1"
     local input="$2"
     
-    # Check if input is stdin
-    if [[ "$input" == "-" ]]; then
-      case "$hash_type" in
-        md5)     md5sum | cut -d' ' -f1 ;;
-        sha1)    sha1sum | cut -d' ' -f1 ;;
-        sha256)  sha256sum | cut -d' ' -f1 ;;
-        sha512)  sha512sum | cut -d' ' -f1 ;;
-        *)       echo "Error: Unsupported hash type. Use: md5, sha1, sha256, sha512" && return 1 ;;
-      esac
-    # Check if input is a file
-    elif [[ -f "$input" ]]; then
-      case "$hash_type" in
-        md5)     md5sum "$input" | cut -d' ' -f1 ;;
-        sha1)    sha1sum "$input" | cut -d' ' -f1 ;;
-        sha256)  sha256sum "$input" | cut -d' ' -f1 ;;
-        sha512)  sha512sum "$input" | cut -d' ' -f1 ;;
-        *)       echo "Error: Unsupported hash type. Use: md5, sha1, sha256, sha512" && return 1 ;;
-      esac
-    else
-      # Treat as string
-      case "$hash_type" in
-        md5)     echo -n "$input" | md5sum | cut -d' ' -f1 ;;
-        sha1)    echo -n "$input" | sha1sum | cut -d' ' -f1 ;;
-        sha256)  echo -n "$input" | sha256sum | cut -d' ' -f1 ;;
-        sha512)  echo -n "$input" | sha512sum | cut -d' ' -f1 ;;
-        *)       echo "Error: Unsupported hash type. Use: md5, sha1, sha256, sha512" && return 1 ;;
-      esac
-    fi
+    # Function to get input data
+    _get_input_data() {
+      if [[ "$input" == "-" ]]; then
+        cat
+      elif [[ -f "$input" ]]; then
+        cat "$input"
+      else
+        echo -n "$input"
+      fi
+    }
+    
+    # Function to handle simple hash algorithms
+    _hash_input() {
+      local hash_cmd="$1"
+      if [[ "$input" == "-" ]]; then
+        eval "$hash_cmd" | cut -d' ' -f1
+      elif [[ -f "$input" ]]; then
+        eval "$hash_cmd \"$input\"" | cut -d' ' -f1
+      else
+        echo -n "$input" | eval "$hash_cmd" | cut -d' ' -f1
+      fi
+    }
+    
+    case "$hash_type" in
+      md5)
+        _hash_input "md5sum"
+        ;;
+      sha1)
+        _hash_input "sha1sum"
+        ;;
+      sha224)
+        if command -v sha224sum >/dev/null 2>&1; then
+          _hash_input "sha224sum"
+        elif command -v shasum >/dev/null 2>&1; then
+          # macOS fallback
+          if [[ "$input" == "-" ]]; then
+            shasum -a 224 | cut -d' ' -f1
+          elif [[ -f "$input" ]]; then
+            shasum -a 224 "$input" | cut -d' ' -f1
+          else
+            echo -n "$input" | shasum -a 224 | cut -d' ' -f1
+          fi
+        else
+          echo "Error: SHA224 not available on this system"
+          return 1
+        fi
+        ;;
+      sha256)
+        _hash_input "sha256sum"
+        ;;
+      sha384)
+        if command -v sha384sum >/dev/null 2>&1; then
+          _hash_input "sha384sum"
+        elif command -v shasum >/dev/null 2>&1; then
+          # macOS fallback
+          if [[ "$input" == "-" ]]; then
+            shasum -a 384 | cut -d' ' -f1
+          elif [[ -f "$input" ]]; then
+            shasum -a 384 "$input" | cut -d' ' -f1
+          else
+            echo -n "$input" | shasum -a 384 | cut -d' ' -f1
+          fi
+        else
+          echo "Error: SHA384 not available on this system"
+          return 1
+        fi
+        ;;
+      sha512)
+        _hash_input "sha512sum"
+        ;;
+      blake2)
+        if command -v b2sum >/dev/null 2>&1; then
+          _hash_input "b2sum"
+        else
+          echo "Error: BLAKE2 (b2sum) not available. Install coreutils or blake2 package."
+          return 1
+        fi
+        ;;
+      sha3)
+        if command -v sha3sum >/dev/null 2>&1; then
+          _hash_input "sha3sum"
+        else
+          echo "Error: SHA-3 not available. Install sha3sum package if available."
+          return 1
+        fi
+        ;;
+      crc32)
+        if command -v cksum >/dev/null 2>&1; then
+          if [[ "$input" == "-" ]]; then
+            cksum | cut -d' ' -f1
+          elif [[ -f "$input" ]]; then
+            cksum "$input" | cut -d' ' -f1
+          else
+            echo -n "$input" | cksum | cut -d' ' -f1
+          fi
+        else
+          echo "Error: CRC32 (cksum) not available on this system"
+          return 1
+        fi
+        ;;
+      bcrypt)
+        local password_data
+        password_data=$(_get_input_data)
+        
+        if command -v htpasswd >/dev/null 2>&1; then
+          # Use Apache htpasswd (most common)
+          echo "$password_data" | htpasswd -niB dummy | cut -d: -f2
+        elif command -v python3 >/dev/null 2>&1; then
+          # Python fallback with bcrypt library
+          python3 -c "
+import sys
+try:
+    import bcrypt
+    password = sys.stdin.read().strip()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    print(hashed.decode('utf-8'))
+except ImportError:
+    print('Error: bcrypt library not available. Install with: pip3 install bcrypt', file=sys.stderr)
+    sys.exit(1)
+" <<< "$password_data"
+        else
+          echo "Error: bcrypt not available. Install htpasswd (apache2-utils) or Python bcrypt library."
+          return 1
+        fi
+        ;;
+      argon2)
+        local password_data
+        password_data=$(_get_input_data)
+        
+        if command -v argon2 >/dev/null 2>&1; then
+          # Use standalone argon2 tool
+          echo -n "$password_data" | argon2 "$(openssl rand -base64 16)" -id -t 3 -m 12 -p 1
+        elif command -v python3 >/dev/null 2>&1; then
+          # Python fallback with argon2-cffi library
+          python3 -c "
+import sys
+try:
+    from argon2 import PasswordHasher
+    password = sys.stdin.read().strip()
+    ph = PasswordHasher()
+    hashed = ph.hash(password)
+    print(hashed)
+except ImportError:
+    print('Error: argon2-cffi library not available. Install with: pip3 install argon2-cffi', file=sys.stderr)
+    sys.exit(1)
+" <<< "$password_data"
+        else
+          echo "Error: Argon2 not available. Install argon2 tool or Python argon2-cffi library."
+          return 1
+        fi
+        ;;
+      sha256crypt)
+        local password_data
+        password_data=$(_get_input_data)
+        
+        if command -v openssl >/dev/null 2>&1; then
+          # Generate random salt
+          local salt=$(openssl rand -base64 12 | tr -d '+/=' | cut -c1-16)
+          # Use OpenSSL for SHA-256 crypt
+          openssl passwd -5 -salt "$salt" "$password_data"
+        elif command -v python3 >/dev/null 2>&1; then
+          # Python fallback using crypt module
+          python3 -c "
+import crypt
+import sys
+import secrets
+import string
+
+password = sys.stdin.read().strip()
+# Generate random salt for SHA-256 crypt (\$5\$)
+salt_chars = string.ascii_letters + string.digits + './'
+salt = ''.join(secrets.choice(salt_chars) for _ in range(16))
+hashed = crypt.crypt(password, '\$5\$' + salt + '\$')
+print(hashed)
+" <<< "$password_data"
+        else
+          echo "Error: SHA-256 crypt not available. OpenSSL or Python required."
+          return 1
+        fi
+        ;;
+      sha512crypt)
+        local password_data
+        password_data=$(_get_input_data)
+        
+        if command -v openssl >/dev/null 2>&1; then
+          # Generate random salt
+          local salt=$(openssl rand -base64 12 | tr -d '+/=' | cut -c1-16)
+          # Use OpenSSL for SHA-512 crypt
+          openssl passwd -6 -salt "$salt" "$password_data"
+        elif command -v python3 >/dev/null 2>&1; then
+          # Python fallback using crypt module
+          python3 -c "
+import crypt
+import sys
+import secrets
+import string
+
+password = sys.stdin.read().strip()
+# Generate random salt for SHA-512 crypt (\$6\$)
+salt_chars = string.ascii_letters + string.digits + './'
+salt = ''.join(secrets.choice(salt_chars) for _ in range(16))
+hashed = crypt.crypt(password, '\$6\$' + salt + '\$')
+print(hashed)
+" <<< "$password_data"
+        else
+          echo "Error: SHA-512 crypt not available. OpenSSL or Python required."
+          return 1
+        fi
+        ;;
+      *)
+        echo "Error: Unsupported hash type '$hash_type'"
+        echo "Simple hashes: md5, sha1, sha224, sha256, sha384, sha512, blake2, sha3, crc32"
+        echo "Password hashes: bcrypt, argon2, sha256crypt, sha512crypt"
+        return 1
+        ;;
+    esac
   }
 fi
 
