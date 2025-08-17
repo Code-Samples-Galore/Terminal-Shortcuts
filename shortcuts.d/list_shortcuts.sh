@@ -25,7 +25,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "🛠️ Development Tools:"
     echo "  calc        - Perform mathematical calculations with expressions"
     echo "  entropy     - Calculate Shannon entropy of strings, files, or stdin"
-    echo "  hashit      - Compute hash of strings, files, or stdin (simple: md5/sha1/sha256/sha512/blake2/crc32, password: bcrypt/argon2/sha256crypt/sha512crypt)"
+    echo "  hashit      - Compute hash of strings, files, or stdin"
     echo "  jsonpp      - Pretty-print JSON files or stdin"
     echo "  log2        - Calculate base-2 logarithm of positive integers"
     echo "  numconv     - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)"
