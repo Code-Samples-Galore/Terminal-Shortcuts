@@ -41,6 +41,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Directory creation**: `mkcd` to create and enter directories
 - **Monitoring**: `watchfile` for real-time file monitoring and `watchdir` for directory content monitoring
 - **File viewing**: `less` (enhanced), `le` (less), `tle` (less +G)
+- **File analysis**: `meta` for comprehensive file type detection and metadata extraction
 
 ### 🔀 Git Enhancements
 
@@ -246,6 +247,35 @@ $ backup file.txt                    # Create backup: file.txt.backup.20231201-1
 $ backup -c folder/                  # Create compressed backup: folder.backup.20231201-143022.tar.gz
 $ backup -c -z file.txt             # Create gzipped backup
 ```
+
+#### File Metadata Analysis (`meta`)
+Display comprehensive file type information and extract metadata automatically based on file type:
+
+```bash
+$ meta photo.jpg                     # Show image EXIF data, dimensions, camera info
+$ meta document.pdf                  # Show PDF properties, page count, author
+$ meta video.mp4                     # Show video codec, resolution, duration
+$ meta song.mp3                      # Show audio metadata, bitrate, artist, album
+$ meta archive.zip                   # Show archive contents and compression info
+$ meta script.py                     # Show text file encoding, line count, word count
+$ meta program                       # Show executable architecture, libraries
+```
+
+**Supported File Types:**
+- **Images**: JPEG, PNG, GIF, TIFF, BMP, WebP - Shows EXIF data, dimensions, camera settings, GPS coordinates
+- **Documents**: PDF, DOC, DOCX - Shows document properties, page count, author, creation date
+- **Videos**: MP4, AVI, MOV, MKV, WebM - Shows duration, resolution, codec info, frame rate, GPS data
+- **Audio**: MP3, WAV, FLAC, OGG, M4A - Shows duration, bitrate, artist, album, genre metadata
+- **Archives**: ZIP, TAR, RAR, 7z - Shows contents list and compression information
+- **Text files**: Shows encoding, line count, word count, character count
+- **Executables**: Shows architecture, linked libraries, file format details
+
+**Required Tools** (auto-detected):
+- `exiftool` - Most comprehensive metadata extraction for images, videos, audio
+- `pdfinfo` - PDF document information (from poppler-utils)
+- `mediainfo` - Video and audio file analysis
+- `identify` - ImageMagick image information
+- Standard tools: `file`, `stat`, `wc`, `readelf`, `ldd`
 
 ### File Monitoring
 

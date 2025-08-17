@@ -59,6 +59,7 @@ cleanup_shortcut "watchdir"
 cleanup_shortcut "less"
 cleanup_shortcut "le"
 cleanup_shortcut "tle"
+cleanup_shortcut "meta"
 
 # File and Directory Operations
 if ! should_exclude "ll" 2>/dev/null; then alias ll='ls -lh'; fi
@@ -968,3 +969,253 @@ if ! should_exclude "watchdir" 2>/dev/null; then
     watch -n 2 "ls -lh '$target_dir'"
   }
 fi
+
+# Display file metadata and type information
+if ! should_exclude "meta" 2>/dev/null; then
+  meta() {
+    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: meta <file_path>"
+      echo ""
+      echo "Display comprehensive file type information and metadata."
+      echo "Automatically detects file type and extracts relevant metadata."
+      echo ""
+      echo "Supported file types:"
+      echo "  • Images (JPEG, PNG, GIF, TIFF, etc.) - EXIF data, dimensions, color info"
+      echo "  • Documents (PDF, DOC, DOCX, etc.) - document properties, page count"
+      echo "  • Videos (MP4, AVI, MOV, etc.) - duration, resolution, codec info"
+      echo "  • Audio (MP3, WAV, FLAC, etc.) - duration, bitrate, artist, album"
+      echo "  • Archives (ZIP, TAR, etc.) - contents, compression info"
+      echo "  • Text files - encoding, line count, word count"
+      echo "  • Executables - architecture, symbols, libraries"
+      echo ""
+      echo "Required tools (installed automatically where possible):"
+      echo "  • exiftool - Image/video/audio metadata (images, videos, audio)"
+      echo "  • pdfinfo - PDF document information"
+      echo "  • mediainfo - Video/audio file information"
+      echo "  • identify - ImageMagick image information"
+      echo "  • file - File type detection (built-in)"
+      echo ""
+      echo "Examples:"
+      echo "  meta photo.jpg                  # Show image metadata and EXIF data"
+      echo "  meta document.pdf               # Show PDF properties and page count"
+      echo "  meta video.mp4                  # Show video codec, resolution, duration"
+      echo "  meta song.mp3                   # Show audio metadata, bitrate, artist"
+      echo "  meta archive.zip                # Show archive contents and compression"
+      echo "  meta script.py                  # Show text file encoding and stats"
+      echo "  meta program                    # Show executable information"
+      return 1
+    fi
+    
+    local file_path="$1"
+    
+    # Check if file exists
+    if [[ ! -e "$file_path" ]]; then
+      echo "Error: '$file_path' does not exist"
+      return 1
+    fi
+    
+    # Get basic file information
+    local file_type=$(file -b "$file_path" 2>/dev/null)
+    local file_size=$(ls -lh "$file_path" 2>/dev/null | awk '{print $5}')
+    local file_perms=$(ls -l "$file_path" 2>/dev/null | awk '{print $1}')
+    local file_owner=$(ls -l "$file_path" 2>/dev/null | awk '{print $3":"$4}')
+    local file_modified=$(stat -c "%y" "$file_path" 2>/dev/null || stat -f "%Sm" "$file_path" 2>/dev/null)
+    
+    echo "=== FILE METADATA ANALYSIS ==="
+    echo "File: $(basename "$file_path")"
+    echo "Path: $file_path"
+    echo "Type: $file_type"
+    echo "Size: $file_size"
+    echo "Permissions: $file_perms"
+    echo "Owner: $file_owner"
+    echo "Modified: $file_modified"
+    
+    # Calculate and display file hash if hashit is available
+    if command -v hashit >/dev/null 2>&1; then
+      echo -n "SHA256: "
+      hashit sha256 "$file_path"
+    fi
+    
+    echo ""
+    echo "=== DETAILED METADATA ==="
+    
+    # Determine file category and extract specific metadata
+    local file_lower=$(echo "$file_type" | tr '[:upper:]' '[:lower:]')
+    
+    case "$file_lower" in
+      *image*|*jpeg*|*jpg*|*png*|*gif*|*tiff*|*bmp*|*webp*)
+        echo "📷 IMAGE FILE DETECTED"
+        echo ""
+        
+        # Try exiftool first (most comprehensive)
+        if command -v exiftool >/dev/null 2>&1; then
+          echo "--- EXIF Data (exiftool) ---"
+          exiftool -S -f "$file_path" 2>/dev/null | grep --color=never -E "^(GPSAltitude|GPSDateTime|GPSLatitude|GPSLongitude|ImageWidth|ImageHeight|Make|Model|LensModel|DateTimeOriginal|Megapixels):"
+        # Fallback to identify (ImageMagick)
+        elif command -v identify >/dev/null 2>&1; then
+          echo "--- Image Information (ImageMagick) ---"
+          identify -verbose "$file_path" 2>/dev/null | grep --color=never -E "^(Format|Geometry|Resolution|Compression):"
+        else
+          echo "Install 'exiftool' or 'imagemagick' for detailed image metadata"
+        fi
+        ;;
+        
+      *pdf*)
+        echo "📄 PDF DOCUMENT DETECTED"
+        echo ""
+        
+        if command -v pdfinfo >/dev/null 2>&1; then
+          echo "--- PDF Information ---"
+          pdfinfo "$file_path" 2>/dev/null | grep --color=never -E "^(Title|Author|Subject|Pages|Creator|Producer|CreationDate|ModDate|Encrypted|PDF version):"
+        elif command -v exiftool >/dev/null 2>&1; then
+          echo "--- PDF Metadata (exiftool) ---"
+          exiftool -S -f "$file_path" 2>/dev/null | grep --color=never -E "^(Title|Author|Subject|PageCount|Creator|Producer|CreateDate|ModifyDate|PDFVersion):"
+        else
+          echo "Install 'poppler-utils' (for pdfinfo) for detailed PDF metadata"
+        fi
+        ;;
+        
+      *video*|*mp4*|*avi*|*mov*|*mkv*|*webm*|*flv*)
+        echo "🎬 VIDEO FILE DETECTED"
+        echo ""
+        
+        if command -v exiftool >/dev/null 2>&1; then
+          echo "--- Video Metadata (exiftool) ---"
+          exiftool -S -f "$file_path" 2>/dev/null | grep --color=never -E "^(GPSAltitude|GPSLatitude|GPSLongitude|Duration|ImageWidth|ImageHeight|FrameRate|VideoCodec|AudioCodec|Bitrate|CreateDate|FileType|MajorBrand):"
+        elif command -v mediainfo >/dev/null 2>&1; then
+          echo "--- Video Information (mediainfo) ---"
+          mediainfo "$file_path" 2>/dev/null | grep --color=never -E "^(Duration|Width|Height|Frame rate|Bit rate|Format|File size)[ ]*:"
+        elif command -v ffprobe >/dev/null 2>&1; then
+          echo "--- Video Information (ffprobe) ---"
+          ffprobe -v quiet -print_format json -show_format -show_streams "$file_path" 2>/dev/null | grep --color=never -E "(duration|width|height|codec_name|bit_rate)"
+        else
+          echo "Install 'mediainfo', 'exiftool', or 'ffmpeg' for detailed video metadata"
+        fi
+        ;;
+        
+      *audio*|*mp3*|*wav*|*flac*|*ogg*|*m4a*|*aac*)
+        echo "🎵 AUDIO FILE DETECTED"
+        echo ""
+        
+        if command -v mediainfo >/dev/null 2>&1; then
+          echo "--- Audio Information (mediainfo) ---"
+          mediainfo "$file_path" 2>/dev/null | grep --color=never -E "^(Performer|Composer|Duration|Bit rate|Format|Format profile|Album|Artist|Title|Genre|Track|Date)[ ]*:"
+        elif command -v exiftool >/dev/null 2>&1; then
+          echo "--- Audio Metadata (exiftool) ---"
+          exiftool -S -f "$file_path" 2>/dev/null | grep --color=never -E "^(MajorBrand|FileType|Duration|Bitrate|Artist|Album|Title|Genre|Track|Year|Composer|ContentCreateDate|HandlerVendorID):"
+        else
+          echo "Install 'mediainfo' or 'exiftool' for detailed audio metadata"
+        fi
+        ;;
+        
+      *archive*|*zip*|*tar*|*gzip*|*compressed*|*rar*|*7-zip*)
+        echo "📦 ARCHIVE FILE DETECTED"
+        echo ""
+        
+        case "$file_lower" in
+          *zip*)
+            if command -v unzip >/dev/null 2>&1; then
+              echo "--- ZIP Archive Contents ---"
+              unzip -l "$file_path" 2>/dev/null | head -20
+            fi
+            ;;
+          *tar*|*gzip*)
+            echo "--- TAR Archive Contents ---"
+            tar -tvf "$file_path" 2>/dev/null | head -20
+            ;;
+          *rar*)
+            if command -v unrar >/dev/null 2>&1; then
+              echo "--- RAR Archive Contents ---"
+              unrar l "$file_path" 2>/dev/null | head -20
+            fi
+            ;;
+          *7-zip*|*7z*)
+            local sevenzip_cmd=""
+            if command -v 7z >/dev/null 2>&1; then
+              sevenzip_cmd="7z"
+            elif command -v 7zz >/dev/null 2>&1; then
+              sevenzip_cmd="7zz"
+            elif command -v 7za >/dev/null 2>&1; then
+              sevenzip_cmd="7za"
+            fi
+            if [[ -n "$sevenzip_cmd" ]]; then
+              echo "--- 7-Zip Archive Contents ---"
+              "$sevenzip_cmd" l "$file_path" 2>/dev/null | head -20
+            fi
+            ;;
+        esac
+        ;;
+        
+      *text*|*ascii*|*utf-8*|*script*)
+        echo "📝 TEXT FILE DETECTED"
+        echo ""
+        
+        echo "--- Text File Statistics ---"
+        local line_count=$(wc -l < "$file_path" 2>/dev/null)
+        local word_count=$(wc -w < "$file_path" 2>/dev/null)
+        local char_count=$(wc -c < "$file_path" 2>/dev/null)
+        local encoding=""
+        
+        if command -v file >/dev/null 2>&1; then
+          encoding=$(file -bi "$file_path" 2>/dev/null | grep --color=never -o 'charset=[^;]*' | cut -d= -f2)
+        fi
+        
+        echo "Lines: $line_count"
+        echo "Words: $word_count"
+        echo "Characters: $char_count"
+        [[ -n "$encoding" ]] && echo "Encoding: $encoding"
+        
+        # Show first few lines if it's a script
+        if [[ "$file_lower" == *script* ]] || [[ "$file_path" == *.sh ]] || [[ "$file_path" == *.py ]] || [[ "$file_path" == *.pl ]]; then
+          echo ""
+          echo "--- Script Preview (first 10 lines) ---"
+          head -10 "$file_path" 2>/dev/null
+        fi
+        ;;
+        
+      *executable*|*elf*|*mach-o*|*pe32*)
+        echo "⚙️  EXECUTABLE FILE DETECTED"
+        echo ""
+        
+        echo "--- Executable Information ---"
+        if command -v file >/dev/null 2>&1; then
+          file "$file_path" 2>/dev/null
+        fi
+        
+        # Additional info for ELF files on Linux
+        if [[ "$file_lower" == *elf* ]] && command -v readelf >/dev/null 2>&1; then
+          echo ""
+          echo "--- ELF Header Information ---"
+          readelf -h "$file_path" 2>/dev/null | grep --color=never -E "(Class|Data|Machine|Entry point)"
+        fi
+        
+        # Show linked libraries if available
+        if command -v ldd >/dev/null 2>&1 && [[ "$file_lower" == *elf* ]]; then
+          echo ""
+          echo "--- Linked Libraries (first 10) ---"
+          ldd "$file_path" 2>/dev/null | head -10
+        fi
+        ;;
+        
+      *)
+        echo "🔍 GENERAL FILE ANALYSIS"
+        echo ""
+        
+        # Try exiftool as last resort for any file
+        if command -v exiftool >/dev/null 2>&1; then
+          echo "--- General Metadata (exiftool) ---"
+          exiftool -S "$file_path" 2>/dev/null
+        else
+          echo "--- File Command Output ---"
+          file -i "$file_path" 2>/dev/null
+          echo ""
+          echo "For more detailed metadata, install 'exiftool'"
+        fi
+        ;;
+    esac
+    
+    echo ""
+    echo "=== ANALYSIS COMPLETE ==="
+  }
+fi
+
