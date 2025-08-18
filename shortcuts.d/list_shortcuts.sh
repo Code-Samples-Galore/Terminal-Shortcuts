@@ -136,6 +136,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo
     
     echo "⚙️ System Utilities:"
+    echo "  brewi       - Install packages with Homebrew (brew install)"
     echo "  h           - Show command history"
     echo "  killcmd     - Kill processes by command name"
     echo "  nginxreload - Reload nginx configuration (nginx -s reload)"

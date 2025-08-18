@@ -61,6 +61,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Log monitoring**: `sctllog` for service logs, `sctlwatch` for real-time log monitoring
 - **Nginx management**: `nginxstart`, `nginxstop`, `nginxrestart`, `nginxstatus` for nginx service control
 - **Nginx configuration**: `nginxconf` for config editing, `nginxtest` for syntax validation, `nginxreload` for config reload
+- **Package management**: `brewi` for Homebrew package installation (macOS)
 
 ### 🌐 Network Utilities
 
