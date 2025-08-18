@@ -748,3 +748,30 @@ $ csterminator
   terminator -x command   - Execute command in new window
   ...
 ```
+
+#### Terminal Cheatsheet (`csterminal`)
+Comprehensive terminal keyboard shortcuts cheatsheet covering:
+
+- Cursor movement and navigation within command line
+- Text cutting, deleting, and pasting operations
+- Command history search and navigation
+- Tab completion and text expansion
+- Process control signals (Ctrl+c, Ctrl+z, etc.)
+- Display and terminal control commands
+- Advanced command line editing features
+- ZSH-specific shortcuts and enhancements
+- Argument manipulation and word operations
+- Advanced shortcuts for power users
+- Workflow examples and practical tips
+- Key binding customization guidance
+
+```bash
+$ csterminal
+=== TERMINAL CHEATSHEET (BASH/ZSH) ===
+
+📝 CURSOR MOVEMENT:
+  Ctrl+a          - Move to beginning of line
+  Ctrl+e          - Move to end of line
+  Alt+f           - Move forward one word
+  ...
+```

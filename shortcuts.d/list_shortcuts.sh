@@ -20,6 +20,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  cstmux      - Display comprehensive tmux cheatsheet with sessions, windows, and panes"
     echo "  csless      - Display comprehensive less cheatsheet with navigation and search"
     echo "  csterminator - Display comprehensive Terminator cheatsheet with splits and layouts"
+    echo "  csterminal  - Display comprehensive terminal cheatsheet with bash/zsh keyboard shortcuts"
     echo
 
     echo "🛠️ Development Tools:"
