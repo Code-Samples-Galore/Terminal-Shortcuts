@@ -68,6 +68,20 @@ if ! should_exclude "csterminal" 2>/dev/null; then
     echo "  Ctrl+q          - Resume output (resume terminal)"
     echo
 
+    echo "🔄 BACKGROUND PROCESS MANAGEMENT:"
+    echo "  jobs            - List background/suspended jobs"
+    echo "  jobs -l         - List jobs with process IDs (PIDs)"
+    echo "  fg              - Bring most recent job to foreground"
+    echo "  fg %n           - Bring job number n to foreground"
+    echo "  bg              - Continue most recent job in background"
+    echo "  bg %n           - Continue job number n in background"
+    echo "  kill %n         - Kill job number n"
+    echo "  kill -9 %n      - Force kill job number n"
+    echo "  disown %n       - Remove job from shell's job table"
+    echo "  nohup command & - Run command immune to hangups"
+    echo "  command &       - Start command in background directly"
+    echo
+
     echo "📺 DISPLAY & TERMINAL:"
     echo "  Ctrl+l          - Clear screen (same as 'clear' command)"
     echo "  Ctrl+v          - Insert literal next character"
@@ -131,6 +145,9 @@ if ! should_exclude "csterminal" 2>/dev/null; then
     echo "  3) Type 'rm file', Ctrl+w, type 'ls'          - Change rm to ls quickly"
     echo "  4) !! | grep error                            - Pipe last command to grep"
     echo "  5) Ctrl+u, type new command                   - Clear line and start over"
+    echo "  6) Ctrl+z, bg, jobs                           - Suspend, background, list jobs"
+    echo "  7) fg %1                                       - Bring job 1 to foreground"
+    echo "  8) command & (run in background from start)"
     echo
   }
 fi
