@@ -62,6 +62,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Nginx management**: `nginxstart`, `nginxstop`, `nginxrestart`, `nginxstatus` for nginx service control
 - **Nginx configuration**: `nginxconf` for config editing, `nginxtest` for syntax validation, `nginxreload` for config reload
 - **Package management**: `brewi` for Homebrew package installation (macOS)
+- **Package management**: `brewi` for Homebrew package installation, `brewu` for updating and upgrading packages (macOS)
 
 ### 🌐 Network Utilities
 

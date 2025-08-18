@@ -70,6 +70,7 @@ if ! should_exclude "nginxstop" 2>/dev/null; then alias nginxstop='sudo systemct
 if ! should_exclude "nginxtest" 2>/dev/null; then alias nginxtest='sudo nginx -t'; fi
 if ! should_exclude "ta" 2>/dev/null; then alias ta='tmux attach -t'; fi
 if ! should_exclude "brewi" 2>/dev/null; then alias brewi='brew install'; fi
+if ! should_exclude "brewu" 2>/dev/null; then alias brewu='brew update && brew upgrade'; fi
 
 if ! should_exclude "sysinfo" 2>/dev/null; then
   sysinfo() {
