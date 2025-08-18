@@ -48,6 +48,8 @@ cleanup_shortcut "nginxstatus"
 cleanup_shortcut "nginxstop"
 cleanup_shortcut "nginxtest"
 cleanup_shortcut "ta"
+cleanup_shortcut "brewi"
+cleanup_shortcut "brewu"
 
 # System Utilities
 if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
