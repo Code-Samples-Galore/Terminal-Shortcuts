@@ -78,7 +78,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Quick Python access**: `p` alias for python3
 - **Package management**: `pipi`, `pupu`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
-- **Class inspection**: `pmem` for displaying public members of built-in classes
+- **Class inspection**: `pmem` for displaying members of classes
 
 ### 📦 Node.js Development
 
