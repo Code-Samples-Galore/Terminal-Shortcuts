@@ -826,10 +826,11 @@ fi
 if ! should_exclude "numconv" 2>/dev/null; then
   numconv() {
     if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
-      echo "Usage: numconv <number> [target_base] [source_base]"
+      echo "Usage: numconv <number|range> [target_base] [source_base]"
       echo ""
       echo "Convert numbers between different number bases."
       echo "Supports binary, octal, decimal, hexadecimal, and custom bases (2-36)."
+      echo "Also supports range conversion (e.g., 100-120)."
       echo ""
       echo "Target bases (default: dec):"
       echo "  bin, binary, 2     Binary (base 2)"
@@ -845,6 +846,9 @@ if ! should_exclude "numconv" 2>/dev/null; then
       echo "  • 0 prefix = octal"
       echo "  • default = decimal"
       echo ""
+      echo "Range format:"
+      echo "  start-end          Convert all numbers from start to end (inclusive)"
+      echo ""
       echo "Examples:"
       echo "  numconv 255 hex               # Convert 255 to hex: FF"
       echo "  numconv 255 bin               # Convert 255 to binary: 11111111"
@@ -856,13 +860,18 @@ if ! should_exclude "numconv" 2>/dev/null; then
       echo "  numconv 377 hex 8             # Convert octal 377 to hex: FF"
       echo "  numconv 1000 36               # Convert 1000 to base 36: RS"
       echo "  numconv 0xFF                  # Convert hex FF to decimal (default): 255"
+      echo ""
+      echo "Range examples:"
+      echo "  numconv 100-110 hex           # Convert 100-110 to hex: 64, 65, 66, ..., 6E"
+      echo "  numconv 0x10-0x1F dec         # Convert hex 10-1F to decimal: 16, 17, ..., 31"
+      echo "  numconv 8-12 bin              # Convert 8-12 to binary: 1000, 1001, ..., 1100"
+      echo "  numconv 250-255 hex           # Convert 250-255 to hex: FA, FB, FC, FD, FE, FF"
       return 1
     fi
     
-    local number="$1"
+    local input="$1"
     local target_base="${2:-dec}"
     local source_base="${3:-auto}"
-    local decimal_value
     local target_base_num
     
     # Normalize target base
@@ -878,19 +887,135 @@ if ! should_exclude "numconv" 2>/dev/null; then
         ;;
     esac
     
+    # Check if input is a range (contains hyphen and numbers)
+    if [[ "$input" =~ ^([^-]+)-([^-]+)$ ]]; then
+      # Extract start and end using parameter expansion (portable across bash/zsh)
+      local range_start="${input%%-*}"
+      local range_end="${input##*-}"
+      
+      # Validate that we actually have a range (not just a single hyphen)
+      if [[ "$range_start" == "$input" || "$range_end" == "$input" || -z "$range_start" || -z "$range_end" ]]; then
+        echo "Error: Invalid range format '$input'. Use format: start-end"
+        echo "Example: 100-110, 0x10-0x1F, 8-12"
+        return 1
+      fi
+      
+      local start_decimal end_decimal
+      
+      # Function to convert single number to decimal
+      _convert_to_decimal() {
+        local num="$1"
+        local src_base="$2"
+        
+        # Auto-detect source base if not specified
+        if [[ "$src_base" == "auto" ]]; then
+          if [[ "$num" =~ ^0[xX][0-9a-fA-F]+$ ]]; then
+            src_base=16
+            num="${num#0[xX]}"  # Remove 0x or 0X prefix
+            num=$(echo "$num" | tr '[:lower:]' '[:upper:]')  # Convert to uppercase for bc
+          elif [[ "$num" =~ ^0b[01]+$ ]]; then
+            src_base=2
+            num="${num#0b}"  # Remove 0b prefix
+          elif [[ "$num" =~ ^0[0-7]+$ ]] && [[ "$num" != "0" ]]; then
+            src_base=8
+            num="${num#0}"   # Remove leading 0
+          elif [[ "$num" =~ ^[0-9]+$ ]]; then
+            src_base=10
+          else
+            echo "Error: Cannot auto-detect base for '$num'. Please specify source base."
+            return 1
+          fi
+        fi
+        
+        # Validate source base
+        if ! [[ "$src_base" =~ ^([2-9]|[12][0-9]|3[0-6])$ ]]; then
+          echo "Error: Invalid source base '$src_base'. Use 2-36"
+          return 1
+        fi
+        
+        # Convert to decimal
+        if [[ "$src_base" == "10" ]]; then
+          echo "$num"
+        else
+          local result=$(echo "ibase=$src_base; $num" | bc 2>/dev/null)
+          if [[ -z "$result" ]]; then
+            echo "Error: Invalid number '$num' for base $src_base" >&2
+            return 1
+          fi
+          echo "$result"
+        fi
+      }
+      
+      # Convert start and end to decimal
+      start_decimal=$(_convert_to_decimal "$range_start" "$source_base")
+      local start_exit_code=$?
+      end_decimal=$(_convert_to_decimal "$range_end" "$source_base")
+      local end_exit_code=$?
+      
+      if [[ $start_exit_code -ne 0 || $end_exit_code -ne 0 ]]; then
+        echo "Error: Failed to convert range bounds to decimal"
+        echo "  Start: '$range_start' -> '$start_decimal'"
+        echo "  End: '$range_end' -> '$end_decimal'"
+        return 1
+      fi
+      
+      # Validate that both are non-negative integers
+      if ! [[ "$start_decimal" =~ ^[0-9]+$ ]] || ! [[ "$end_decimal" =~ ^[0-9]+$ ]]; then
+        echo "Error: Range bounds must be non-negative integers"
+        echo "  Start: '$range_start' -> '$start_decimal'"
+        echo "  End: '$range_end' -> '$end_decimal'"
+        return 1
+      fi
+      
+      # Validate range order
+      if [[ "$start_decimal" -gt "$end_decimal" ]]; then
+        echo "Error: Start of range ($start_decimal) cannot be greater than end ($end_decimal)"
+        return 1
+      fi
+      
+      # Check for reasonable range size (prevent excessive output)
+      local range_size=$((end_decimal - start_decimal + 1))
+      if [[ "$range_size" -gt 1000 ]]; then
+        echo "Error: Range too large ($range_size numbers). Maximum allowed is 1000."
+        echo "Hint: Use smaller ranges to prevent excessive output."
+        return 1
+      fi
+      
+      # Convert each number in the range
+      echo "Converting range $start_decimal-$end_decimal to base $target_base_num:"
+      local result
+      for ((i=start_decimal; i<=end_decimal; i++)); do
+        if [[ "$target_base_num" == "10" ]]; then
+          result="$i"
+        else
+          # Capture bc output cleanly without intermediate messages
+          result=$(echo "obase=$target_base_num; $i" | bc)
+          if [[ "$target_base_num" == "16" ]]; then
+            result=$(echo "$result" | tr 'a-f' 'A-F')  # Uppercase hex
+          fi
+        fi
+        printf "%3d -> %s\n" "$i" "$result"
+      done
+      
+      return 0
+    fi
+    
+    # Single number conversion (existing logic)
+    local decimal_value
+    
     # Auto-detect source base if not specified
     if [[ "$source_base" == "auto" ]]; then
-      if [[ "$number" =~ ^0[xX][0-9a-fA-F]+$ ]]; then
+      if [[ "$input" =~ ^0[xX][0-9a-fA-F]+$ ]]; then
         source_base=16
-        number="${number#0x}"  # Remove 0x prefix
-        number=$(echo "$number" | tr '[:lower:]' '[:upper:]')  # Convert to uppercase for bc
-      elif [[ "$number" =~ ^0b[01]+$ ]]; then
+        input="${input#0x}"  # Remove 0x prefix
+        input=$(echo "$input" | tr '[:lower:]' '[:upper:]')  # Convert to uppercase for bc
+      elif [[ "$input" =~ ^0b[01]+$ ]]; then
         source_base=2
-        number="${number#0b}"  # Remove 0b prefix
-      elif [[ "$number" =~ ^0[0-7]+$ ]]; then
+        input="${input#0b}"  # Remove 0b prefix
+      elif [[ "$input" =~ ^0[0-7]+$ ]]; then
         source_base=8
-        number="${number#0}"   # Remove leading 0
-      elif [[ "$number" =~ ^[0-9]+$ ]]; then
+        input="${input#0}"   # Remove leading 0
+      elif [[ "$input" =~ ^[0-9]+$ ]]; then
         source_base=10
       else
         echo "Error: Cannot auto-detect base for '$1'. Please specify source base."
@@ -906,12 +1031,12 @@ if ! should_exclude "numconv" 2>/dev/null; then
     
     # Convert to decimal first (if not already decimal)
     if [[ "$source_base" == "10" ]]; then
-      decimal_value="$number"
+      decimal_value="$input"
     else
       # Use bc for base conversion to decimal
-      decimal_value=$(echo "ibase=$source_base; $number" | bc 2>/dev/null)
+      decimal_value=$(echo "ibase=$source_base; $input" | bc)
       if [[ -z "$decimal_value" ]]; then
-        echo "Error: Invalid number '$number' for base $source_base"
+        echo "Error: Invalid number '$input' for base $source_base"
         return 1
       fi
     fi
@@ -932,80 +1057,6 @@ if ! should_exclude "numconv" 2>/dev/null; then
       else
         echo "$result"
       fi
-    fi
-  }
-fi
-
-# Replace text in strings or files
-if ! should_exclude "replace" 2>/dev/null; then
-  replace() {
-    if [[ $# -lt 3 || "$1" == "--help" || "$1" == "-h" ]]; then
-      echo "Usage: replace <string_or_file|-> <search_pattern> <replacement> [--backup]"
-      echo ""
-      echo "Find and replace text in strings, files, or stdin input."
-      echo "Supports literal text replacement with optional backup creation."
-      echo ""
-      echo "Options:"
-      echo "  --backup     Create timestamped backup before modifying files"
-      echo ""
-      echo "Input types:"
-      echo "  String       Direct text manipulation"
-      echo "  File         In-place file modification"
-      echo "  Stdin (-)    Process piped input"
-      echo ""
-      echo "Examples:"
-      echo "  replace \"hello world\" \"world\" \"universe\"    # String replacement"
-      echo "  replace config.txt \"old_value\" \"new_value\"   # File replacement"
-      echo "  replace data.txt \"pattern\" \"replacement\" --backup  # With backup"
-      echo "  echo \"test data\" | replace - \"test\" \"demo\"   # Stdin replacement"
-      echo "  replace script.sh \"#!/bin/bash\" \"#!/bin/zsh\"  # Shebang replacement"
-      echo ""
-      echo "Backup format:"
-      echo "  original_file.bak.YYYYMMDD_HHMMSS"
-      echo ""
-      echo "Note:"
-      echo "  • Use '-' as first argument to read from stdin"
-      echo "  • File modifications are permanent unless --backup is used"
-      echo "  • Pattern matching is literal (not regex)"
-      return 1
-    fi
-    
-    local input="$1"
-    local search="$2"
-    local replacement="$3"
-    local create_backup=false
-    
-    # Check for backup flag
-    if [[ "$4" == "--backup" ]]; then
-      create_backup=true
-    fi
-    
-    # Check if input is stdin
-    if [[ "$input" == "-" ]]; then
-      # Replace in stdin and output result
-      sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
-    # Check if input is a file
-    elif [[ -f "$input" ]]; then
-      # Create backup if requested
-      if [[ "$create_backup" == true ]]; then
-        local backup_name="${input}.bak.$(date +%Y%m%d_%H%M%S)"
-        cp "$input" "$backup_name"
-        echo "Backup created: $backup_name"
-      fi
-      
-      # Replace in file using sed (cross-platform compatible)
-      if command -v gsed >/dev/null 2>&1; then
-        # Use GNU sed if available (macOS with homebrew)
-        gsed -i "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input"
-      else
-        # Use system sed
-        sed -i.tmp "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input" && rm "${input}.tmp"
-      fi
-      
-      echo "Replaced '${search}' with '${replacement}' in file: $input"
-    else
-      # Treat as string and output result
-      echo "$input" | sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
     fi
   }
 fi

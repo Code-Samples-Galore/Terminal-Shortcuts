@@ -29,7 +29,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  hashit      - Compute hash of strings, files, or stdin"
     echo "  jsonpp      - Pretty-print JSON files or stdin"
     echo "  log2        - Calculate base-2 logarithm of positive integers"
-    echo "  numconv     - Convert numbers between different bases (binary, octal, decimal, hex, custom 2-36)"
+    echo "  numconv     - Convert numbers or ranges between different bases (binary, octal, decimal, hex, custom 2-36)"
     echo "  pow2        - Calculate powers of 2 (2^X) for given integer exponents"
     echo "  randstr     - Generate secure random passwords with custom length"
     echo "  replace     - Find and replace text in strings, files, or stdin"

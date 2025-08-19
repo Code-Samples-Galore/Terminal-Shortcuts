@@ -595,6 +595,16 @@ $ numconv 255 16                 # Convert 255 to base 16: 255 = ff₁₆
 $ numconv abc 16 2               # Convert abc from base 16 to base 2: abc₁₆ = 101010111100₂
 ```
 
+**Range conversion** (convert multiple consecutive numbers):
+```bash
+$ numconv 100-110 hex            # Convert 100-110 to hex: 64, 65, 66, ..., 6E
+$ numconv 0x10-0x1F dec          # Convert hex 10-1F to decimal: 16, 17, ..., 31
+$ numconv 8-12 bin               # Convert 8-12 to binary: 1000, 1001, ..., 1100
+$ numconv 250-255 hex            # Convert 250-255 to hex: FA, FB, FC, FD, FE, FF
+```
+
+Range format supports the same base auto-detection and supports up to 1000 numbers per range.
+
 #### Random Password Generator (`randstr`)
 Generate secure random passwords:
 
