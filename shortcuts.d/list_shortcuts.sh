@@ -121,6 +121,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  pipl        - List installed packages (pip list)"
     echo "  pipu        - Upgrade Python package(s), all packages, or from requirements.txt"
     echo "  pm          - Run Python modules using file path notation"
+    echo "  pmem        - Display public/magic members of Python built-in classes with optional docstrings"
     echo "  svenv       - Auto-activate Python virtual environment"
     echo "  cdsvenv     - Navigate to project directory and activate virtual environment"
     echo "  cvenv       - Create .venv with conda's Python, activate, and upgrade pip"

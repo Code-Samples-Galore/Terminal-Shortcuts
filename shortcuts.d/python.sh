@@ -37,6 +37,7 @@ cleanup_shortcut "svenv"
 cleanup_shortcut "pm"
 cleanup_shortcut "cdsvenv"
 cleanup_shortcut "cvenv"
+cleanup_shortcut "pmem"
 
 # Python
 if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi
@@ -304,6 +305,271 @@ if ! should_exclude "pm" 2>/dev/null; then
     
     echo "Running: python3 -m $module_path ${*:2}"
     python3 -m "$module_path" "${@:2}"
+  }
+fi
+
+# Python public members inspector - show public methods/attributes of built-in classes
+if ! should_exclude "pmem" 2>/dev/null; then
+  pmem() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: pmem [options] <class_name>"
+      echo ""
+      echo "Display members (methods and attributes) of Python built-in classes."
+      echo ""
+      echo "Options:"
+      echo "  -m, --magic     Show magic methods (names starting with __)"
+      echo "  -a, --all       Show both public and magic methods"
+      echo "  -d, --docs      Show docstrings for each member"
+      echo "  (no options)    Show public methods only (default)"
+      echo ""
+      echo "Examples:"
+      echo "  pmem str                         # Show public members of str class"
+      echo "  pmem -m list                     # Show magic methods of list class"
+      echo "  pmem --magic dict                # Show magic methods of dict class"
+      echo "  pmem -a bytearray                # Show both public and magic methods"
+      echo "  pmem --all int                   # Show both public and magic methods"
+      echo "  pmem -d str                      # Show public members with docstrings"
+      echo "  pmem -ad list                    # Show all members with docstrings"
+      echo "  pmem xmlrpc.client.ServerProxy   # Show members of ServerProxy class"
+      echo "  pmem -d urllib.request.Request   # Show Request class with docstrings"
+      echo "  pmem pathlib.Path                # Show Path class members"
+      echo ""
+      echo "Class specification:"
+      echo "  <class_name>     - Built-in class (str, int, list, dict, etc.)"
+      echo "  <module.class>   - Module class (xmlrpc.client.ServerProxy)"
+      echo ""
+      echo "Common built-in classes to explore:"
+      echo "  str, int, float, bool, list, tuple, dict, set, frozenset"
+      echo "  bytes, bytearray, memoryview, range, slice, type, object"
+      echo ""
+      echo "Common module classes to explore:"
+      echo "  xmlrpc.client.ServerProxy, urllib.request.Request, pathlib.Path"
+      echo "  json.JSONEncoder, sqlite3.Connection, threading.Thread"
+      return 1
+    fi
+    
+    local show_magic=False
+    local show_all=False
+    local show_docs=False
+    local class_name=""
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        -m|--magic)
+          show_magic=True
+          shift
+          ;;
+        -a|--all)
+          show_all=True
+          shift
+          ;;
+        -d|--docs)
+          show_docs=True
+          shift
+          ;;
+        -*)
+          # Handle combined flags like -ad, -md, etc.
+          if [[ "$1" =~ ^-[amd]+$ ]]; then
+            [[ "$1" =~ a ]] && show_all=True
+            [[ "$1" =~ m ]] && show_magic=True
+            [[ "$1" =~ d ]] && show_docs=True
+            shift
+          else
+            echo "Error: Unknown option '$1'"
+            echo "Use 'pmem --help' for usage information"
+            return 1
+          fi
+          ;;
+        *)
+          if [[ -z "$class_name" ]]; then
+            class_name="$1"
+          else
+            echo "Error: Multiple class names provided"
+            echo "Use 'pmem --help' for usage information"
+            return 1
+          fi
+          shift
+          ;;
+      esac
+    done
+    
+    if [[ -z "$class_name" ]]; then
+      echo "Error: No class name provided"
+      echo "Usage: pmem [options] <class_name>"
+      echo "Use 'pmem --help' for more information"
+      return 1
+    fi
+    
+    python3 -c "
+def public_members(cls):
+    return {name for name in dir(cls) if not name.startswith('_')}
+
+def magic_members(cls):
+    return {name for name in dir(cls) if name.startswith('__')}
+
+def get_member_info(cls, name):
+    try:
+        member = getattr(cls, name)
+        doc = getattr(member, '__doc__', None)
+        if doc:
+            # Clean up docstring - remove extra whitespace and newlines
+            doc = ' '.join(doc.strip().split())
+        return doc
+    except:
+        return None
+
+def get_class_from_string(class_string):
+    '''Get class object from string, supporting both built-ins and module.class notation'''
+    try:
+        # First try as built-in or already imported class
+        return eval(class_string)
+    except NameError:
+        # If it contains dots, try importing the module
+        if '.' in class_string:
+            parts = class_string.split('.')
+            if len(parts) >= 2:
+                # Try different module/class combinations
+                for i in range(1, len(parts)):
+                    module_name = '.'.join(parts[:i])
+                    class_path = parts[i:]
+                    
+                    try:
+                        # Import the module
+                        module = __import__(module_name, fromlist=[parts[i]])
+                        
+                        # Navigate to the class
+                        cls = module
+                        for part in class_path:
+                            cls = getattr(cls, part)
+                        
+                        return cls
+                    except (ImportError, AttributeError):
+                        continue
+        
+        # If all else fails, raise the original error
+        raise NameError(f'Class \'{class_string}\' not found')
+
+def display_members_with_docs(members, cls, title):
+    print(f'=== {title} ===')
+    print(f'Total: {len(members)} members')
+    print()
+    
+    if not members:
+        print('No members found')
+        return
+    
+    # Find members with and without docs
+    with_docs = []
+    without_docs = []
+    
+    for name in members:
+        doc = get_member_info(cls, name)
+        if doc:
+            with_docs.append((name, doc))
+        else:
+            without_docs.append(name)
+    
+    # Display members with documentation first
+    if with_docs:
+        print('MEMBERS WITH DOCUMENTATION:')
+        for name, doc in with_docs:
+            print(f'  {name}')
+            print(f'    {doc}')
+            print()
+    
+    # Display members without documentation
+    if without_docs:
+        print('MEMBERS WITHOUT DOCUMENTATION:')
+        import textwrap
+        wrapped = textwrap.fill(', '.join(without_docs), width=80, initial_indent='  ', subsequent_indent='  ')
+        print(wrapped)
+
+def display_members_simple(members, title):
+    print(f'=== {title} ===')
+    print(f'Total: {len(members)} members')
+    print()
+    
+    if members:
+        import textwrap
+        wrapped = textwrap.fill(', '.join(members), width=80)
+        print(wrapped)
+    else:
+        print('No members found')
+
+class_name = '$class_name'
+show_magic = $show_magic
+show_all = $show_all
+show_docs = $show_docs
+
+try:
+    # Get the class object (supports both built-ins and module.class)
+    cls = get_class_from_string(class_name)
+    
+    if show_all:
+        public = sorted(public_members(cls))
+        magic = sorted(magic_members(cls))
+        
+        if show_docs:
+            display_members_with_docs(public, cls, f'PUBLIC MEMBERS OF {cls.__name__}')
+            print()
+            display_members_with_docs(magic, cls, f'MAGIC METHODS OF {cls.__name__}')
+        else:
+            print(f'=== ALL MEMBERS OF {cls.__name__} ===')
+            print(f'Public: {len(public)} members | Magic: {len(magic)} members')
+            print()
+            
+            if public:
+                print('PUBLIC MEMBERS:')
+                import textwrap
+                wrapped = textwrap.fill(', '.join(public), width=80)
+                print(wrapped)
+                print()
+            
+            if magic:
+                print('MAGIC METHODS:')
+                import textwrap
+                wrapped = textwrap.fill(', '.join(magic), width=80)
+                print(wrapped)
+        
+    elif show_magic:
+        members = sorted(magic_members(cls))
+        
+        if show_docs:
+            display_members_with_docs(members, cls, f'MAGIC METHODS OF {cls.__name__}')
+        else:
+            display_members_simple(members, f'MAGIC METHODS OF {cls.__name__}')
+    
+    else:
+        members = sorted(public_members(cls))
+        
+        if show_docs:
+            display_members_with_docs(members, cls, f'PUBLIC MEMBERS OF {cls.__name__}')
+        else:
+            display_members_simple(members, f'PUBLIC MEMBERS OF {cls.__name__}')
+        
+except NameError as e:
+    if '.' in class_name:
+        print(f'Error: Could not import or find class \'{class_name}\'')
+        parts = class_name.split('.')
+        if len(parts) >= 2:
+            module_name = '.'.join(parts[:-1])
+            class_part = parts[-1]
+            print(f'Make sure module \'{module_name}\' exists and contains class \'{class_part}\'')
+        print('Examples: xmlrpc.client.ServerProxy, urllib.request.Request, pathlib.Path')
+    else:
+        print(f'Error: \'{class_name}\' is not a recognized built-in class')
+        print('Try: str, int, float, list, dict, set, bytes, bytearray, etc.')
+        print('Or use module.class notation: xmlrpc.client.ServerProxy')
+except ImportError as e:
+    print(f'Error: Could not import module for \'{class_name}\'')
+    print(f'Import error: {e}')
+except AttributeError as e:
+    print(f'Error: Class \'{class_name}\' not found in module')
+    print(f'Attribute error: {e}')
+except Exception as e:
+    print(f'Error: {e}')
+"
   }
 fi
 

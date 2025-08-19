@@ -78,6 +78,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Quick Python access**: `p` alias for python3
 - **Package management**: `pipi`, `pupu`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
+- **Class inspection**: `pmem` for displaying public members of built-in classes
 
 ### 📦 Node.js Development
 
@@ -344,6 +345,42 @@ Run Python modules using file paths:
 $ pm script.py              # Run script.py as module
 $ pm path/to/module.py      # Run module with full path
 ```
+
+#### Python Class Inspector (`pmem`)
+Display public members (methods and attributes) of Python built-in classes:
+
+```bash
+$ pmem str                       # Show public members of str class
+$ pmem -m list                   # Show magic methods of list class
+$ pmem --magic dict              # Show magic methods of dict class
+$ pmem -a bytearray              # Show both public and magic methods
+$ pmem --all int                 # Show both public and magic methods
+$ pmem -d str                    # Show public members with docstrings
+$ pmem -ad list                  # Show all members with docstrings
+$ pmem -md dict                  # Show magic methods with docstrings
+$ pmem xmlrpc.client.ServerProxy # Show ServerProxy class members
+$ pmem -d urllib.request.Request # Show Request class with docstrings
+$ pmem pathlib.Path              # Show Path class members
+```
+
+**Class Specification:**
+- **Built-in classes**: Use simple names like `str`, `int`, `list`, `dict`
+- **Module classes**: Use dot notation like `xmlrpc.client.ServerProxy`, `urllib.request.Request`
+
+**Options:**
+- Default: Shows public members (methods and attributes that don't start with underscore)
+- `-m, --magic`: Shows magic methods (names starting with `__`)
+- `-a, --all`: Shows both public and magic methods in separate sections
+- `-d, --docs`: Shows docstrings for each member (when available)
+
+The function automatically imports required modules when using dot notation, making it easy to explore any Python class without manual imports.
+
+**Common Examples:**
+- `pmem xmlrpc.client.ServerProxy` - XML-RPC client methods
+- `pmem urllib.request.Request` - HTTP request class
+- `pmem pathlib.Path` - Modern path handling
+- `pmem json.JSONEncoder` - JSON encoding methods
+- `pmem sqlite3.Connection` - Database connection methods
 
 ### Node.js Development Tools
 
