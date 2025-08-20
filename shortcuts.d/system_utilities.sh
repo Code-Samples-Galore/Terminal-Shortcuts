@@ -10,6 +10,7 @@
 #   killcmd    - Interactive process killer by command name
 #   topcpu     - Show top 10 processes by CPU usage
 #   topmem     - Show top 10 processes by memory usage
+#   list_functions - List all defined functions in the current shell session
 #
 # Aliases:
 #   h          - Command history
@@ -29,6 +30,8 @@
 #   $ path                       # Display PATH variable formatted
 #   $ so ~/.bashrc               # Source bashrc
 #   $ ta session_name             # Attach to a tmux session
+#   $ list_functions              # List all functions
+#   $ list_functions git          # List functions containing 'git'
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "so"
@@ -50,6 +53,7 @@ cleanup_shortcut "nginxtest"
 cleanup_shortcut "ta"
 cleanup_shortcut "brewi"
 cleanup_shortcut "brewu"
+cleanup_shortcut "list_functions"
 
 # System Utilities
 if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
@@ -329,6 +333,54 @@ if ! should_exclude "topmem" 2>/dev/null; then
     else
       # Linux - use GNU-style ps
       ps aux --sort=-%mem | head -$((count + 1))
+    fi
+  }
+fi
+
+# List Functions
+if ! should_exclude "list_functions" 2>/dev/null; then
+  list_functions() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: list_functions [pattern]"
+      echo ""
+      echo "List all defined functions in the current shell session."
+      echo "Functions are displayed in alphabetical order for easy browsing."
+      echo ""
+      echo "Options:"
+      echo "  pattern    Optional grep pattern to filter function names"
+      echo ""
+      echo "Examples:"
+      echo "  list_functions                   # List all functions"
+      echo "  list_functions git               # List functions containing 'git'"
+      echo "  list_functions '^c'              # List functions starting with 'c'"
+      echo "  list_functions 'backup\|restore' # List functions with 'backup' or 'restore'"
+      echo ""
+      echo "Output:"
+      echo "  Function names are displayed one per line, sorted alphabetically"
+      echo "  Includes both built-in shell functions and user-defined functions"
+      echo ""
+      echo "Note: This shows functions from all loaded scripts and modules"
+      return 0
+    fi
+    
+    local pattern="$1"
+    local functions_list
+    
+    # Get all function definitions and extract function names
+    functions_list=$(typeset -f | grep -E '^[a-zA-Z][a-zA-Z0-9_]*[[:space:]]*\(\)' | sed 's/().*//' | sort)
+    
+    if [[ -n "$pattern" ]]; then
+      # Filter by pattern if provided
+      echo "$functions_list" | grep -E "$pattern"
+      local count=$(echo "$functions_list" | grep -E "$pattern" | wc -l)
+      echo
+      echo "Found $count function(s) matching pattern: '$pattern'"
+    else
+      # Show all functions
+      echo "$functions_list"
+      local count=$(echo "$functions_list" | wc -l)
+      echo
+      echo "Total: $count function(s) defined"
     fi
   }
 fi

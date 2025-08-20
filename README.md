@@ -61,7 +61,6 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Log monitoring**: `sctllog` for service logs, `sctlwatch` for real-time log monitoring
 - **Nginx management**: `nginxstart`, `nginxstop`, `nginxrestart`, `nginxstatus` for nginx service control
 - **Nginx configuration**: `nginxconf` for config editing, `nginxtest` for syntax validation, `nginxreload` for config reload
-- **Package management**: `brewi` for Homebrew package installation (macOS)
 - **Package management**: `brewi` for Homebrew package installation, `brewu` for updating and upgrading packages (macOS)
 
 ### 🌐 Network Utilities
@@ -74,7 +73,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 ### 🐍 Python Development
 
 - **Virtual environment**: `svenv` for automatic venv activation, `cdsvenv` for navigate and activate
-- **Create and bootstrap venv**: `cvenv` to create .venv with conda’s Python, activate it, and upgrade pip
+- **Create and bootstrap venv**: `cvenv` to create .venv with conda's Python, activate it, and upgrade pip
 - **Quick Python access**: `p` alias for python3
 - **Package management**: `pipi`, `pupu`, `pipl` for pip operations
 - **Module execution**: `pm` for running Python modules using file paths
@@ -101,6 +100,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Password generation**: `randstr` for secure random passwords
 - **String/data conversion**: `strconv` for converting between hex, base64, and binary formats
 - **Number base conversion**: `numconv` for converting numbers between different bases (2-36) with auto-detection
+- **Unit conversion**: `unitconv` for converting between different units of measurement
 - **Entropy analysis**: `entropy` for calculating Shannon entropy of strings, files, or stdin
 - **Mathematical calculations**: `calc`, `log2`, and `pow2` functions
 - **JSON formatting**: `jsonpp` for pretty-printing JSON
@@ -119,6 +119,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **tmux reference**: `cstmux` for terminal multiplexer usage with sessions, windows, and panes
 - **less reference**: `csless` for file viewer navigation, search, and advanced features
 - **Terminator reference**: `csterminator` for advanced terminal emulator with splits and layouts
+- **Terminal shortcuts**: `csterminal` for comprehensive terminal keyboard shortcuts and command line editing
 
 ## 📖 Detailed Function Reference
 
@@ -141,6 +142,30 @@ OS: Darwin
 Kernel: 21.6.0
 ...
 ```
+
+### Function Listing (`list_functions`)
+
+Display all defined functions in the current shell session with optional filtering:
+
+```bash
+$ list_functions                   # List all functions
+$ list_functions git               # List functions containing 'git'
+$ list_functions '^c'              # List functions starting with 'c'
+$ list_functions 'backup|restore'  # List functions with 'backup' or 'restore'
+```
+
+**Features:**
+- Alphabetically sorted output for easy browsing
+- Optional grep pattern filtering for targeted searches
+- Includes both built-in shell functions and user-defined functions
+- Shows total count of functions found
+- Supports regular expressions for advanced filtering
+
+**Common Use Cases:**
+- Explore available functions in your shell environment
+- Find functions related to specific tasks (e.g., git, file operations)
+- Debug shell configurations by listing loaded functions
+- Discover functions from loaded modules and scripts
 
 ### Process Management (`killcmd`)
 
@@ -642,6 +667,55 @@ $ numconv 250-255 hex            # Convert 250-255 to hex: FA, FB, FC, FD, FE, F
 
 Range format supports the same base auto-detection and supports up to 1000 numbers per range.
 
+#### Unit Converter (`unitconv`)
+Convert between different units of measurement across multiple categories:
+
+```bash
+$ unitconv 100 cm m              # Convert 100 cm to meters: 1
+$ unitconv 32 f c                # Convert 32°F to Celsius: 0
+$ unitconv 1 km mi               # Convert 1 km to miles: 0.621371
+$ unitconv 1000 g kg             # Convert 1000g to kg: 1
+$ unitconv 1 gb mb               # Convert 1 GB to MB: 1000
+$ unitconv 24 h min              # Convert 24 hours to minutes: 1440
+$ unitconv 1 m2 ft2              # Convert 1 m² to ft²: 10.7639
+$ unitconv 1 l ml                # Convert 1 liter to ml: 1000
+```
+
+**Supported Categories:**
+
+**Length Units:**
+- Metric: `mm`, `cm`, `m`, `km`, `nm`, `um`
+- Imperial: `in`, `ft`, `yd`, `mi`, `mil`
+
+**Weight/Mass Units:**
+- Metric: `mg`, `g`, `kg`, `t`
+- Imperial: `oz`, `lb`, `st`, `ton`
+
+**Temperature Units:**
+- `c` (Celsius), `f` (Fahrenheit), `k` (Kelvin)
+
+**Volume Units:**
+- Metric: `ml`, `l`
+- Imperial: `gal`, `qt`, `pt`, `cup`, `fl_oz`, `tsp`, `tbsp`
+
+**Area Units:**
+- Metric: `mm2`, `cm2`, `m2`, `km2`, `ha`
+- Imperial: `in2`, `ft2`, `yd2`, `mi2`, `acre`
+
+**Time Units:**
+- `ms`, `s`, `min`, `h`, `d`, `w`, `mo`, `y`
+
+**Data/Storage Units:**
+- Decimal: `b`, `kb`, `mb`, `gb`, `tb`, `pb`
+- Binary: `kib`, `mib`, `gib`, `tib`, `pib`
+
+**Features:**
+- Case-insensitive unit names
+- High precision calculations using bc
+- Automatic decimal cleanup for clean output
+- Cross-category conversion prevention
+- Comprehensive error handling and validation
+
 #### Random Password Generator (`randstr`)
 Generate secure random passwords:
 
@@ -695,7 +769,7 @@ $ wordlist -x 10 random.txt              # Randomize and take 10 entries
 $ wordlist --split-mb 100 large.txt      # Split into 100MB files
 ```
 
-### Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`)
+### Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`, `csterminal`)
 
 #### Vim Cheatsheet (`csvim`)
 Comprehensive Vim cheatsheet covering:
@@ -811,6 +885,7 @@ Comprehensive terminal keyboard shortcuts cheatsheet covering:
 - ZSH-specific shortcuts and enhancements
 - Argument manipulation and word operations
 - Advanced shortcuts for power users
+- Background process management (jobs, fg, bg)
 - Workflow examples and practical tips
 - Key binding customization guidance
 

@@ -16,6 +16,7 @@
 #   jsonpp     - Pretty-print JSON files or stdin
 #   replace    - Find and replace text in strings, files, or stdin
 #   numconv    - Convert numbers between different bases (binary, octal, decimal, hex, custom)
+#   unitconv    - Convert between different units of measurement (length, weight, temperature, etc.)
 #
 # Usage Examples:
 #   $ hashit sha256 "text"        # Hash string with SHA256
@@ -49,6 +50,11 @@
 #   $ numconv hex 377 8          # Convert octal 377 to hex: FF
 #   $ numconv 36 1000            # Convert 1000 to base 36: RS
 #   $ numconv 255                # Convert 255 to decimal (default): 255
+#   $ unitconv 100 cm m          # Convert 100 cm to meters
+#   $ unitconv 32 f c            # Convert 32°F to Celsius
+#   $ unitconv 1 km mi           # Convert 1 km to miles
+#   $ unitconv 1000 g kg         # Convert 1000g to kg
+#   $ unitconv 1 gb mb           # Convert 1 GB to MB
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "jsonpp"
@@ -61,6 +67,7 @@ cleanup_shortcut "hashit"
 cleanup_shortcut "entropy"
 cleanup_shortcut "numconv"
 cleanup_shortcut "replace"
+cleanup_shortcut "unitconv"
 
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
@@ -1060,3 +1067,335 @@ if ! should_exclude "numconv" 2>/dev/null; then
     fi
   }
 fi
+
+# Unit converter function
+if ! should_exclude "unitconv" 2>/dev/null; then
+  unitconv() {
+    if [[ -z "$1" || -z "$2" || -z "$3" || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: unitconv <value> <from_unit> <to_unit>"
+      echo ""
+      echo "Convert between different units of measurement."
+      echo "Supports length, weight, temperature, volume, area, time, and data units."
+      echo ""
+      echo "Length units:"
+      echo "  mm, cm, m, km, in, ft, yd, mi, mil, nm, um"
+      echo ""
+      echo "Weight/Mass units:"
+      echo "  mg, g, kg, t, oz, lb, st, ton"
+      echo ""
+      echo "Temperature units:"
+      echo "  c, f, k (Celsius, Fahrenheit, Kelvin)"
+      echo ""
+      echo "Volume units:"
+      echo "  ml, l, gal, qt, pt, cup, fl_oz, tsp, tbsp"
+      echo ""
+      echo "Area units:"
+      echo "  mm2, cm2, m2, km2, in2, ft2, yd2, mi2, ha, acre"
+      echo ""
+      echo "Time units:"
+      echo "  ms, s, min, h, d, w, mo, y"
+      echo ""
+      echo "Data/Storage units:"
+      echo "  b, kb, mb, gb, tb, pb, kib, mib, gib, tib, pib"
+      echo ""
+      echo "Examples:"
+      echo "  unitconv 100 cm m              # Convert 100 cm to meters: 1"
+      echo "  unitconv 32 f c                # Convert 32°F to Celsius: 0"
+      echo "  unitconv 1 km mi               # Convert 1 km to miles: 0.621371"
+      echo "  unitconv 1000 g kg             # Convert 1000g to kg: 1"
+      echo "  unitconv 1 gb mb               # Convert 1 GB to MB: 1024"
+      echo "  unitconv 24 h min              # Convert 24 hours to minutes: 1440"
+      echo "  unitconv 1 m2 ft2              # Convert 1 m² to ft²: 10.7639"
+      echo "  unitconv 1 l ml                # Convert 1 liter to ml: 1000"
+      return 1
+    fi
+    
+    local value="$1"
+    local from_unit="$2"
+    local to_unit="$3"
+    
+    # Validate input value is numeric
+    if ! [[ "$value" =~ ^-?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?$ ]]; then
+      echo "Error: Value must be a number"
+      return 1
+    fi
+    
+    # Convert to lowercase for case-insensitive matching
+    from_unit=$(echo "$from_unit" | tr '[:upper:]' '[:lower:]')
+    to_unit=$(echo "$to_unit" | tr '[:upper:]' '[:lower:]')
+    
+    # Function to convert value to base unit, then to target unit
+    _convert_unit() {
+      local val="$1"
+      local from="$2"
+      local to="$3"
+      local category="$4"
+      
+      local base_value result
+      
+      case "$category" in
+        length)
+          # Convert to meters first
+          case "$from" in
+            mm) base_value=$(echo "scale=10; $val / 1000" | bc -l) ;;
+            cm) base_value=$(echo "scale=10; $val / 100" | bc -l) ;;
+            m) base_value="$val" ;;
+            km) base_value=$(echo "scale=10; $val * 1000" | bc -l) ;;
+            in) base_value=$(echo "scale=10; $val * 0.0254" | bc -l) ;;
+            ft) base_value=$(echo "scale=10; $val * 0.3048" | bc -l) ;;
+            yd) base_value=$(echo "scale=10; $val * 0.9144" | bc -l) ;;
+            mi) base_value=$(echo "scale=10; $val * 1609.344" | bc -l) ;;
+            mil) base_value=$(echo "scale=10; $val * 0.0000254" | bc -l) ;;
+            nm) base_value=$(echo "scale=10; $val / 1000000000" | bc -l) ;;
+            um) base_value=$(echo "scale=10; $val / 1000000" | bc -l) ;;
+            *) echo "Error: Unknown length unit '$from'"; return 1 ;;
+          esac
+          
+          # Convert from meters to target unit
+          case "$to" in
+            mm) result=$(echo "scale=6; $base_value * 1000" | bc -l) ;;
+            cm) result=$(echo "scale=6; $base_value * 100" | bc -l) ;;
+            m) result="$base_value" ;;
+            km) result=$(echo "scale=6; $base_value / 1000" | bc -l) ;;
+            in) result=$(echo "scale=6; $base_value / 0.0254" | bc -l) ;;
+            ft) result=$(echo "scale=6; $base_value / 0.3048" | bc -l) ;;
+            yd) result=$(echo "scale=6; $base_value / 0.9144" | bc -l) ;;
+            mi) result=$(echo "scale=6; $base_value / 1609.344" | bc -l) ;;
+            mil) result=$(echo "scale=6; $base_value / 0.0000254" | bc -l) ;;
+            nm) result=$(echo "scale=6; $base_value * 1000000000" | bc -l) ;;
+            um) result=$(echo "scale=6; $base_value * 1000000" | bc -l) ;;
+            *) echo "Error: Unknown length unit '$to'"; return 1 ;;
+          esac
+          ;;
+          
+        weight)
+          # Convert to grams first
+          case "$from" in
+            mg) base_value=$(echo "scale=10; $val / 1000" | bc -l) ;;
+            g) base_value="$val" ;;
+            kg) base_value=$(echo "scale=10; $val * 1000" | bc -l) ;;
+            t) base_value=$(echo "scale=10; $val * 1000000" | bc -l) ;;
+            oz) base_value=$(echo "scale=10; $val * 28.3495" | bc -l) ;;
+            lb) base_value=$(echo "scale=10; $val * 453.592" | bc -l) ;;
+            st) base_value=$(echo "scale=10; $val * 6350.29" | bc -l) ;;
+            ton) base_value=$(echo "scale=10; $val * 907185" | bc -l) ;;
+            *) echo "Error: Unknown weight unit '$from'"; return 1 ;;
+          esac
+          
+          # Convert from grams to target unit
+          case "$to" in
+            mg) result=$(echo "scale=6; $base_value * 1000" | bc -l) ;;
+            g) result="$base_value" ;;
+            kg) result=$(echo "scale=6; $base_value / 1000" | bc -l) ;;
+            t) result=$(echo "scale=6; $base_value / 1000000" | bc -l) ;;
+            oz) result=$(echo "scale=6; $base_value / 28.3495" | bc -l) ;;
+            lb) result=$(echo "scale=6; $base_value / 453.592" | bc -l) ;;
+            st) result=$(echo "scale=6; $base_value / 6350.29" | bc -l) ;;
+            ton) result=$(echo "scale=6; $base_value / 907185" | bc -l) ;;
+            *) echo "Error: Unknown weight unit '$to'"; return 1 ;;
+          esac
+          ;;
+          
+        temperature)
+          # Special handling for temperature (no common base unit conversion)
+          if [[ "$from" == "$to" ]]; then
+            result="$val"
+          elif [[ "$from" == "c" && "$to" == "f" ]]; then
+            result=$(echo "scale=6; $val * 9/5 + 32" | bc -l)
+          elif [[ "$from" == "c" && "$to" == "k" ]]; then
+            result=$(echo "scale=6; $val + 273.15" | bc -l)
+          elif [[ "$from" == "f" && "$to" == "c" ]]; then
+            result=$(echo "scale=6; ($val - 32) * 5/9" | bc -l)
+          elif [[ "$from" == "f" && "$to" == "k" ]]; then
+            result=$(echo "scale=6; ($val - 32) * 5/9 + 273.15" | bc -l)
+          elif [[ "$from" == "k" && "$to" == "c" ]]; then
+            result=$(echo "scale=6; $val - 273.15" | bc -l)
+          elif [[ "$from" == "k" && "$to" == "f" ]]; then
+            result=$(echo "scale=6; ($val - 273.15) * 9/5 + 32" | bc -l)
+          else
+            echo "Error: Unknown temperature unit '$from' or '$to'"
+            return 1
+          fi
+          ;;
+          
+        volume)
+          # Convert to liters first
+          case "$from" in
+            ml) base_value=$(echo "scale=10; $val / 1000" | bc -l) ;;
+            l) base_value="$val" ;;
+            gal) base_value=$(echo "scale=10; $val * 3.78541" | bc -l) ;;
+            qt) base_value=$(echo "scale=10; $val * 0.946353" | bc -l) ;;
+            pt) base_value=$(echo "scale=10; $val * 0.473176" | bc -l) ;;
+            cup) base_value=$(echo "scale=10; $val * 0.236588" | bc -l) ;;
+            fl_oz) base_value=$(echo "scale=10; $val * 0.0295735" | bc -l) ;;
+            tsp) base_value=$(echo "scale=10; $val * 0.00492892" | bc -l) ;;
+            tbsp) base_value=$(echo "scale=10; $val * 0.0147868" | bc -l) ;;
+            *) echo "Error: Unknown volume unit '$from'"; return 1 ;;
+          esac
+          
+          # Convert from liters to target unit
+          case "$to" in
+            ml) result=$(echo "scale=6; $base_value * 1000" | bc -l) ;;
+            l) result="$base_value" ;;
+            gal) result=$(echo "scale=6; $base_value / 3.78541" | bc -l) ;;
+            qt) result=$(echo "scale=6; $base_value / 0.946353" | bc -l) ;;
+            pt) result=$(echo "scale=6; $base_value / 0.473176" | bc -l) ;;
+            cup) result=$(echo "scale=6; $base_value / 0.236588" | bc -l) ;;
+            fl_oz) result=$(echo "scale=6; $base_value / 0.0295735" | bc -l) ;;
+            tsp) result=$(echo "scale=6; $base_value / 0.00492892" | bc -l) ;;
+            tbsp) result=$(echo "scale=6; $base_value / 0.0147868" | bc -l) ;;
+            *) echo "Error: Unknown volume unit '$to'"; return 1 ;;
+          esac
+          ;;
+          
+        area)
+          # Convert to square meters first
+          case "$from" in
+            mm2) base_value=$(echo "scale=10; $val / 1000000" | bc -l) ;;
+            cm2) base_value=$(echo "scale=10; $val / 10000" | bc -l) ;;
+            m2) base_value="$val" ;;
+            km2) base_value=$(echo "scale=10; $val * 1000000" | bc -l) ;;
+            in2) base_value=$(echo "scale=10; $val * 0.00064516" | bc -l) ;;
+            ft2) base_value=$(echo "scale=10; $val * 0.092903" | bc -l) ;;
+            yd2) base_value=$(echo "scale=10; $val * 0.836127" | bc -l) ;;
+            mi2) base_value=$(echo "scale=10; $val * 2589988.11" | bc -l) ;;
+            ha) base_value=$(echo "scale=10; $val * 10000" | bc -l) ;;
+            acre) base_value=$(echo "scale=10; $val * 4046.86" | bc -l) ;;
+            *) echo "Error: Unknown area unit '$from'"; return 1 ;;
+          esac
+          
+          # Convert from square meters to target unit
+          case "$to" in
+            mm2) result=$(echo "scale=6; $base_value * 1000000" | bc -l) ;;
+            cm2) result=$(echo "scale=6; $base_value * 10000" | bc -l) ;;
+            m2) result="$base_value" ;;
+            km2) result=$(echo "scale=6; $base_value / 1000000" | bc -l) ;;
+            in2) result=$(echo "scale=6; $base_value / 0.00064516" | bc -l) ;;
+            ft2) result=$(echo "scale=6; $base_value / 0.092903" | bc -l) ;;
+            yd2) result=$(echo "scale=6; $base_value / 0.836127" | bc -l) ;;
+            mi2) result=$(echo "scale=6; $base_value / 2589988.11" | bc -l) ;;
+            ha) result=$(echo "scale=6; $base_value / 10000" | bc -l) ;;
+            acre) result=$(echo "scale=6; $base_value / 4046.86" | bc -l) ;;
+            *) echo "Error: Unknown area unit '$to'"; return 1 ;;
+          esac
+          ;;
+          
+        time)
+          # Convert to seconds first
+          case "$from" in
+            ms) base_value=$(echo "scale=10; $val / 1000" | bc -l) ;;
+            s) base_value="$val" ;;
+            min) base_value=$(echo "scale=10; $val * 60" | bc -l) ;;
+            h) base_value=$(echo "scale=10; $val * 3600" | bc -l) ;;
+            d) base_value=$(echo "scale=10; $val * 86400" | bc -l) ;;
+            w) base_value=$(echo "scale=10; $val * 604800" | bc -l) ;;
+            mo) base_value=$(echo "scale=10; $val * 2629746" | bc -l) ;;
+            y) base_value=$(echo "scale=10; $val * 31556952" | bc -l) ;;
+            *) echo "Error: Unknown time unit '$from'"; return 1 ;;
+          esac
+          
+          # Convert from seconds to target unit
+          case "$to" in
+            ms) result=$(echo "scale=6; $base_value * 1000" | bc -l) ;;
+            s) result="$base_value" ;;
+            min) result=$(echo "scale=6; $base_value / 60" | bc -l) ;;
+            h) result=$(echo "scale=6; $base_value / 3600" | bc -l) ;;
+            d) result=$(echo "scale=6; $base_value / 86400" | bc -l) ;;
+            w) result=$(echo "scale=6; $base_value / 604800" | bc -l) ;;
+            mo) result=$(echo "scale=6; $base_value / 2629746" | bc -l) ;;
+            y) result=$(echo "scale=6; $base_value / 31556952" | bc -l) ;;
+            *) echo "Error: Unknown time unit '$to'"; return 1 ;;
+          esac
+          ;;
+          
+        data)
+          # Convert to bytes first
+          case "$from" in
+            b) base_value="$val" ;;
+            kb) base_value=$(echo "scale=10; $val * 1000" | bc -l) ;;
+            mb) base_value=$(echo "scale=10; $val * 1000000" | bc -l) ;;
+            gb) base_value=$(echo "scale=10; $val * 1000000000" | bc -l) ;;
+            tb) base_value=$(echo "scale=10; $val * 1000000000000" | bc -l) ;;
+            pb) base_value=$(echo "scale=10; $val * 1000000000000000" | bc -l) ;;
+            kib) base_value=$(echo "scale=10; $val * 1024" | bc -l) ;;
+            mib) base_value=$(echo "scale=10; $val * 1048576" | bc -l) ;;
+            gib) base_value=$(echo "scale=10; $val * 1073741824" | bc -l) ;;
+            tib) base_value=$(echo "scale=10; $val * 1099511627776" | bc -l) ;;
+            pib) base_value=$(echo "scale=10; $val * 1125899906842624" | bc -l) ;;
+            *) echo "Error: Unknown data unit '$from'"; return 1 ;;
+          esac
+          
+          # Convert from bytes to target unit
+          case "$to" in
+            b) result="$base_value" ;;
+            kb) result=$(echo "scale=6; $base_value / 1000" | bc -l) ;;
+            mb) result=$(echo "scale=6; $base_value / 1000000" | bc -l) ;;
+            gb) result=$(echo "scale=6; $base_value / 1000000000" | bc -l) ;;
+            tb) result=$(echo "scale=6; $base_value / 1000000000000" | bc -l) ;;
+            pb) result=$(echo "scale=6; $base_value / 1000000000000000" | bc -l) ;;
+            kib) result=$(echo "scale=6; $base_value / 1024" | bc -l) ;;
+            mib) result=$(echo "scale=6; $base_value / 1048576" | bc -l) ;;
+            gib) result=$(echo "scale=6; $base_value / 1073741824" | bc -l) ;;
+            tib) result=$(echo "scale=6; $base_value / 1099511627776" | bc -l) ;;
+            pib) result=$(echo "scale=6; $base_value / 1125899906842624" | bc -l) ;;
+            *) echo "Error: Unknown data unit '$to'"; return 1 ;;
+          esac
+          ;;
+      esac
+      
+      # Clean up result (remove trailing zeros and unnecessary decimal point)
+      result=$(echo "$result" | sed 's/\.000000$//' | sed 's/\([0-9]\)000000$/\1/' | sed 's/0*$//' | sed 's/\.$//')
+      echo "$result"
+    }
+    
+    # Determine category based on units
+    local category=""
+    local length_units="mm cm m km in ft yd mi mil nm um"
+    local weight_units="mg g kg t oz lb st ton"
+    local temp_units="c f k"
+    local volume_units="ml l gal qt pt cup fl_oz tsp tbsp"
+    local area_units="mm2 cm2 m2 km2 in2 ft2 yd2 mi2 ha acre"
+    local time_units="ms s min h d w mo y"
+    local data_units="b kb mb gb tb pb kib mib gib tib pib"
+    
+    if [[ " $length_units " =~ " $from_unit " ]] && [[ " $length_units " =~ " $to_unit " ]]; then
+      category="length"
+    elif [[ " $weight_units " =~ " $from_unit " ]] && [[ " $weight_units " =~ " $to_unit " ]]; then
+      category="weight"
+    elif [[ " $temp_units " =~ " $from_unit " ]] && [[ " $temp_units " =~ " $to_unit " ]]; then
+      category="temperature"
+    elif [[ " $volume_units " =~ " $from_unit " ]] && [[ " $volume_units " =~ " $to_unit " ]]; then
+      category="volume"
+    elif [[ " $area_units " =~ " $from_unit " ]] && [[ " $area_units " =~ " $to_unit " ]]; then
+      category="area"
+    elif [[ " $time_units " =~ " $from_unit " ]] && [[ " $time_units " =~ " $to_unit " ]]; then
+      category="time"
+    elif [[ " $data_units " =~ " $from_unit " ]] && [[ " $data_units " =~ " $to_unit " ]]; then
+      category="data"
+    else
+      echo "Error: Cannot convert between '$from_unit' and '$to_unit' (different categories or unknown units)"
+      echo ""
+      echo "Supported categories:"
+      echo "  Length: $length_units"
+      echo "  Weight: $weight_units"
+      echo "  Temperature: $temp_units"
+      echo "  Volume: $volume_units"
+      echo "  Area: $area_units"
+      echo "  Time: $time_units"
+      echo "  Data: $data_units"
+      return 1
+    fi
+    
+    # Perform conversion
+    local result
+    result=$(_convert_unit "$value" "$from_unit" "$to_unit" "$category")
+    local conversion_status=$?
+    
+    if [[ $conversion_status -eq 0 ]]; then
+      echo "$result"
+    else
+      return $conversion_status
+    fi
+  }
+fi
+
