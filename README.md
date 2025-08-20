@@ -76,6 +76,9 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Create and bootstrap venv**: `cvenv` to create .venv with conda's Python, activate it, and upgrade pip
 - **Quick Python access**: `p` alias for python3
 - **Package management**: `pipi`, `pupu`, `pipl` for pip operations
+- **Dependency analysis**: `preq` for analyzing project dependencies and environment
+- **Testing with coverage**: `pytestcov` for running tests with coverage reports
+- **Code formatting**: `pfmt` for formatting and linting with black, isort, and flake8
 - **Module execution**: `pm` for running Python modules using file paths
 - **Class inspection**: `pmem` for displaying members of classes
 
@@ -409,7 +412,101 @@ The function automatically imports required modules when using dot notation, mak
 - `pmem json.JSONEncoder` - JSON encoding methods
 - `pmem sqlite3.Connection` - Database connection methods
 
-### Node.js Development Tools
+#### Python Dependency Analysis (`preq`)
+Analyze Python project dependencies and environment information:
+
+```bash
+$ preq                             # Analyze current project dependencies
+```
+
+**Features:**
+- Detects and analyzes requirements.txt files
+- Shows installed packages matching requirements
+- Lists outdated packages with current/latest versions
+- Supports Pipenv projects with dependency graphs
+- Displays virtual environment disk usage
+- Detects Poetry projects in pyproject.toml files
+- Shows active virtual environment information
+
+**Supported Configuration Files:**
+- `requirements.txt` - Standard pip requirements
+- `Pipfile` - Pipenv project dependencies
+- `pyproject.toml` - Poetry and other modern Python projects
+
+**Output Information:**
+- Installed vs required packages comparison
+- Outdated packages that need updates
+- Virtual environment size and location
+- Dependency graphs for Pipenv projects
+- Active environment status
+
+#### Python Testing with Coverage (`pytestcov`)
+Run Python tests with comprehensive coverage analysis:
+
+```bash
+$ pytestcov                        # Test current directory with coverage
+$ pytestcov tests/                 # Test specific directory
+$ pytestcov test_module.py         # Test specific file
+$ pytestcov tests/ -v              # Verbose output
+$ pytestcov . --tb=short           # Short traceback format
+$ pytestcov tests/ -k "unit"       # Run only tests matching 'unit'
+```
+
+**Features:**
+- Automatic installation of pytest and pytest-cov if missing
+- Terminal coverage report with missing lines highlighted
+- HTML coverage report with detailed file-by-file analysis
+- Test execution statistics and comprehensive reporting
+- Supports all standard pytest options and filters
+- Generates interactive HTML coverage reports
+
+**Generated Output:**
+- Terminal coverage report with line-by-line analysis
+- `htmlcov/index.html` - Interactive HTML coverage report
+- `.coverage` - Coverage data file for further analysis
+- Test execution summary with pass/fail statistics
+
+**Requirements:**
+- Python testing environment with write permissions
+- Automatic tool installation via pip
+
+#### Python Code Formatting (`pfmt`)
+Format and lint Python code using industry-standard tools:
+
+```bash
+$ pfmt                             # Format current directory
+$ pfmt src/                        # Format specific directory
+$ pfmt module.py                   # Format specific file
+$ pfmt --check                     # Check formatting without changes
+$ pfmt --diff src/                 # Show formatting differences
+$ pfmt --line-length 100 .         # Use custom line length
+```
+
+**Tools Integration:**
+- **black** - PEP 8 compliant code formatter
+- **isort** - Import statement organizer with black compatibility
+- **flake8** - Code style checker and linter
+
+**Features:**
+- Automatic tool installation if missing
+- Consistent code formatting across entire projects
+- Import organization compatible with black formatting
+- Configurable line length (default: 88 characters)
+- Check and diff modes for CI/CD integration
+- Compatible with popular development workflows
+
+**Configuration:**
+- Line length: 88 characters (black default, configurable)
+- flake8 ignores: E203 (whitespace before ':'), W503 (line break before operator)
+- isort profile: black (ensures compatibility)
+- In-place formatting with version control recommended
+
+**Options:**
+- `--check` - Verify formatting without making changes
+- `--diff` - Show what would be changed without applying
+- `--line-length N` - Set custom maximum line length
+
+#### Node.js Development Tools
 
 #### Node Version Management (`nu`, `nl`, `ni`)
 Simplified nvm operations for Node.js version management:

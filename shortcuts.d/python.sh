@@ -38,6 +38,9 @@ cleanup_shortcut "pm"
 cleanup_shortcut "cdsvenv"
 cleanup_shortcut "cvenv"
 cleanup_shortcut "pmem"
+cleanup_shortcut "preq"
+cleanup_shortcut "pytestcov"
+cleanup_shortcut "pfmt"
 
 # Python
 if ! should_exclude "p" 2>/dev/null; then alias p='python3'; fi
@@ -570,6 +573,462 @@ except AttributeError as e:
 except Exception as e:
     print(f'Error: {e}')
 "
+
+# Python package dependencies analyzer
+if ! should_exclude "preq" 2>/dev/null; then
+  preq() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: preq"
+      echo ""
+      echo "Analyze Python project dependencies and environment information."
+      echo "Automatically detects requirements.txt and Pipfile configurations."
+      echo ""
+      echo "Features:"
+      echo "  • Check installed packages against requirements.txt"
+      echo "  • List outdated packages in current environment"
+      echo "  • Display dependency graph for Pipenv projects"
+      echo "  • Show virtual environment size"
+      echo "  • Detect dependency management tool (pip/pipenv)"
+      echo ""
+      echo "Examples:"
+      echo "  preq                         # Analyze current project dependencies"
+      echo ""
+      echo "Output includes:"
+      echo "  • Installed packages matching requirements.txt"
+      echo "  • List of outdated packages with current/latest versions"
+      echo "  • Dependency graph (for Pipenv projects)"
+      echo "  • Virtual environment disk usage"
+      echo ""
+      echo "Supported dependency files:"
+      echo "  • requirements.txt (pip-based projects)"
+      echo "  • Pipfile (pipenv-based projects)"
+      echo ""
+      echo "Note: This command takes no arguments and analyzes the current directory"
+      return 0
+    fi
+    
+    if [[ $# -gt 0 ]]; then
+      echo "Error: preq takes no arguments"
+      echo "Usage: preq"
+      echo "Use 'preq --help' for more information"
+      return 1
+    fi
+    
+    echo "📦 Analyzing Python dependencies..."
+    echo
+    
+    local found_config=false
+    
+    # Check for requirements.txt
+    if [[ -f "requirements.txt" ]]; then
+      found_config=true
+      echo "✅ Requirements.txt found"
+      echo "📋 Installed packages matching requirements:"
+      
+      # Extract package names from requirements.txt (handle various formats)
+      local req_packages=$(grep -v '^#' requirements.txt | grep -v '^$' | sed 's/[>=<!=].*//' | sed 's/\[.*\]//')
+      
+      if [[ -n "$req_packages" ]]; then
+        echo "$req_packages" | while read -r package; do
+          if [[ -n "$package" ]]; then
+            pip show "$package" >/dev/null 2>&1 && echo "  ✅ $package" || echo "  ❌ $package (not installed)"
+          fi
+        done
+      else
+        echo "  No packages found in requirements.txt"
+      fi
+      echo
+    fi
+    
+    # Check for Pipfile
+    if [[ -f "Pipfile" ]]; then
+      found_config=true
+      echo "✅ Pipfile found - pipenv project detected"
+      
+      if command -v pipenv >/dev/null 2>&1; then
+        echo "📊 Dependency graph:"
+        pipenv graph 2>/dev/null || echo "  Run 'pipenv install' to install dependencies first"
+      else
+        echo "  ⚠️  pipenv not installed. Install with: pip install pipenv"
+      fi
+      echo
+    fi
+    
+    # Check for pyproject.toml
+    if [[ -f "pyproject.toml" ]]; then
+      found_config=true
+      echo "✅ pyproject.toml found"
+      if grep -q "poetry" pyproject.toml; then
+        echo "  Poetry project detected"
+        if command -v poetry >/dev/null 2>&1; then
+          echo "📊 Poetry dependencies:"
+          poetry show 2>/dev/null || echo "  Run 'poetry install' to install dependencies first"
+        else
+          echo "  ⚠️  Poetry not installed. Install with: pip install poetry"
+        fi
+      fi
+      echo
+    fi
+    
+    if [[ "$found_config" == false ]]; then
+      echo "ℹ️  No dependency configuration files found"
+      echo "   Expected files: requirements.txt, Pipfile, pyproject.toml"
+      echo
+    fi
+    
+    # Check for outdated packages
+    echo "🔍 Checking for outdated packages..."
+    local outdated_output
+    outdated_output=$(pip list --outdated 2>/dev/null)
+    
+    if [[ -n "$outdated_output" ]]; then
+      echo "$outdated_output"
+    else
+      echo "  ✅ All packages are up to date"
+    fi
+    echo
+    
+    # Check virtual environment size
+    echo "💾 Virtual environment information:"
+    local venv_found=false
+    
+    for venv_dir in venv .venv env .virtualenv; do
+      if [[ -d "$venv_dir" ]]; then
+        venv_found=true
+        local size=$(du -sh "$venv_dir" 2>/dev/null | cut -f1)
+        echo "  📂 $venv_dir/: $size"
+      fi
+    done
+    
+    if [[ "$venv_found" == false ]]; then
+      echo "  ℹ️  No virtual environment found in current directory"
+      echo "     (Checked: venv/, .venv/, env/, .virtualenv/)"
+    fi
+    
+    # Show active environment info
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+      echo "  🔴 Active virtual environment: $VIRTUAL_ENV"
+      local active_size=$(du -sh "$VIRTUAL_ENV" 2>/dev/null | cut -f1)
+      echo "     Size: $active_size"
+    else
+      echo "  ℹ️  No virtual environment currently activated"
+    fi
+  }
+fi
+
+# Python test runner with coverage
+if ! should_exclude "pytestcov" 2>/dev/null; then
+  pytestcov() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: pytestcov [test_path] [pytest_options]"
+      echo ""
+      echo "Run Python tests with coverage analysis using pytest."
+      echo "Automatically installs pytest and pytest-cov if not present."
+      echo ""
+      echo "Parameters:"
+      echo "  test_path        Directory or file to test (default: current directory)"
+      echo "  pytest_options   Additional pytest options (passed through)"
+      echo ""
+      echo "Features:"
+      echo "  • Automatic tool installation (pytest, pytest-cov)"
+      echo "  • Coverage report in terminal and HTML format"
+      echo "  • Missing lines highlighted in coverage report"
+      echo "  • HTML coverage report with detailed file-by-file analysis"
+      echo "  • Comprehensive test execution statistics"
+      echo ""
+      echo "Examples:"
+      echo "  pytestcov                    # Test current directory with coverage"
+      echo "  pytestcov tests/             # Test specific directory"
+      echo "  pytestcov test_module.py     # Test specific file"
+      echo "  pytestcov tests/ -v          # Verbose output"
+      echo "  pytestcov . --tb=short       # Short traceback format"
+      echo "  pytestcov tests/ -k \"unit\"   # Run only tests matching 'unit'"
+      echo ""
+      echo "Output:"
+      echo "  • Terminal coverage report with missing lines"
+      echo "  • HTML coverage report at htmlcov/index.html"
+      echo "  • Test execution summary and statistics"
+      echo ""
+      echo "Generated files:"
+      echo "  • htmlcov/         - HTML coverage report directory"
+      echo "  • .coverage        - Coverage data file"
+      echo ""
+      echo "Note: Requires Python testing environment with write permissions"
+      return 0
+    fi
+    
+    local test_path="${1:-.}"
+    
+    # Validate test path exists
+    if [[ ! -e "$test_path" ]]; then
+      echo "Error: Test path '$test_path' does not exist"
+      return 1
+    fi
+    
+    echo "🧪 Running Python tests with coverage analysis..."
+    echo "📍 Test path: $test_path"
+    echo
+    
+    # Check and install required packages
+    echo "📦 Checking required packages..."
+    local packages_to_install=()
+    
+    if ! pip show pytest >/dev/null 2>&1; then
+      packages_to_install+=("pytest")
+    fi
+    
+    if ! pip show pytest-cov >/dev/null 2>&1; then
+      packages_to_install+=("pytest-cov")
+    fi
+    
+    if [[ ${#packages_to_install[@]} -gt 0 ]]; then
+      echo "Installing required packages: ${packages_to_install[*]}"
+      pip install "${packages_to_install[@]}" || {
+        echo "Error: Failed to install required packages"
+        return 1
+      }
+      echo
+    else
+      echo "✅ All required packages are installed"
+      echo
+    fi
+    
+    # Run tests with coverage
+    echo "🔬 Running tests with coverage..."
+    echo "Command: pytest \"$test_path\" --cov=. --cov-report=html --cov-report=term-missing ${*:2}"
+    echo
+    
+    # Execute pytest with coverage
+    pytest "$test_path" --cov=. --cov-report=html --cov-report=term-missing "${@:2}"
+    local exit_code=$?
+    
+    echo
+    echo "📊 Test Results Summary:"
+    
+    if [[ $exit_code -eq 0 ]]; then
+      echo "✅ All tests passed successfully"
+    else
+      echo "❌ Some tests failed (exit code: $exit_code)"
+    fi
+    
+    # Check for HTML coverage report
+    if [[ -d "htmlcov" ]]; then
+      echo "📈 Coverage report generated successfully"
+      echo "   HTML report: htmlcov/index.html"
+      echo "   Open with: open htmlcov/index.html"
+      
+      # Show file count in HTML report
+      local html_files=$(find htmlcov -name "*.html" | wc -l)
+      echo "   Report contains $html_files HTML files"
+    else
+      echo "⚠️  HTML coverage report not generated"
+    fi
+    
+    # Check for .coverage file
+    if [[ -f ".coverage" ]]; then
+      echo "📁 Coverage data saved to .coverage file"
+    fi
+    
+    return $exit_code
+  }
+fi
+
+# Python code formatter and linter
+if ! should_exclude "pfmt" 2>/dev/null; then
+  pfmt() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: pfmt [target] [options]"
+      echo ""
+      echo "Format and lint Python code using black, isort, and flake8."
+      echo "Automatically installs required tools if not present."
+      echo ""
+      echo "Parameters:"
+      echo "  target           File or directory to format (default: current directory)"
+      echo ""
+      echo "Options:"
+      echo "  --check          Check if formatting is needed without making changes"
+      echo "  --diff           Show formatting differences without applying them"
+      echo "  --line-length N  Set maximum line length (default: 88)"
+      echo ""
+      echo "Tools used:"
+      echo "  • black    - Code formatter (PEP 8 compliant)"
+      echo "  • isort    - Import statement organizer"  
+      echo "  • flake8   - Code style checker and linter"
+      echo ""
+      echo "Features:"
+      echo "  • Automatic tool installation if missing"
+      echo "  • Import organization with isort"
+      echo "  • Code formatting with black (88 char line length)"
+      echo "  • Style checking with flake8"
+      echo "  • Consistent formatting across entire project"
+      echo "  • Compatible with popular CI/CD pipelines"
+      echo ""
+      echo "Examples:"
+      echo "  pfmt                         # Format current directory"
+      echo "  pfmt src/                    # Format specific directory"
+      echo "  pfmt module.py               # Format specific file"
+      echo "  pfmt --check                 # Check formatting without changes"
+      echo "  pfmt --diff src/             # Show formatting differences"
+      echo "  pfmt --line-length 100 .     # Use custom line length"
+      echo ""
+      echo "Configuration:"
+      echo "  • Line length: 88 characters (black default)"
+      echo "  • flake8 ignores: E203 (whitespace before :), W503 (line break before operator)"
+      echo "  • isort profile: black (compatible with black formatting)"
+      echo ""
+      echo "Generated files:"
+      echo "  Code is formatted in-place. Consider using version control."
+      return 0
+    fi
+    
+    local target="${1:-.}"
+    local check_only=false
+    local show_diff=false
+    local line_length=88
+    
+    # Parse options
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        --check)
+          check_only=true
+          shift
+          ;;
+        --diff)
+          show_diff=true
+          shift
+          ;;
+        --line-length)
+          line_length="$2"
+          shift 2
+          ;;
+        --line-length=*)
+          line_length="${1#*=}"
+          shift
+          ;;
+        -*)
+          echo "Error: Unknown option '$1'"
+          echo "Use 'pfmt --help' for usage information"
+          return 1
+          ;;
+        *)
+          target="$1"
+          shift
+          ;;
+      esac
+    done
+    
+    # Validate target exists
+    if [[ ! -e "$target" ]]; then
+      echo "Error: Target '$target' does not exist"
+      return 1
+    fi
+    
+    # Validate line length
+    if ! [[ "$line_length" =~ ^[0-9]+$ ]] || [[ "$line_length" -lt 40 ]]; then
+      echo "Error: Line length must be a number >= 40"
+      return 1
+    fi
+    
+    echo "🎨 Python code formatting and linting"
+    echo "📍 Target: $target"
+    echo "📏 Line length: $line_length"
+    if [[ "$check_only" == true ]]; then
+      echo "🔍 Check mode: will not modify files"
+    elif [[ "$show_diff" == true ]]; then
+      echo "📄 Diff mode: showing changes without applying"
+    fi
+    echo
+    
+    # Check and install required tools
+    echo "📦 Checking required tools..."
+    local tools_to_install=()
+    
+    if ! pip show black >/dev/null 2>&1; then
+      tools_to_install+=("black")
+    fi
+    
+    if ! pip show isort >/dev/null 2>&1; then
+      tools_to_install+=("isort")
+    fi
+    
+    if ! pip show flake8 >/dev/null 2>&1; then
+      tools_to_install+=("flake8")
+    fi
+    
+    if [[ ${#tools_to_install[@]} -gt 0 ]]; then
+      echo "Installing required tools: ${tools_to_install[*]}"
+      pip install "${tools_to_install[@]}" || {
+        echo "Error: Failed to install required tools"
+        return 1
+      }
+      echo
+    else
+      echo "✅ All required tools are installed"
+      echo
+    fi
+    
+    local overall_success=true
+    
+    # Run isort
+    echo "🔄 Organizing imports with isort..."
+    local isort_cmd="isort"
+    if [[ "$check_only" == true ]]; then
+      isort_cmd="$isort_cmd --check-only"
+    elif [[ "$show_diff" == true ]]; then
+      isort_cmd="$isort_cmd --diff"
+    fi
+    
+    $isort_cmd --profile black "$target"
+    if [[ $? -ne 0 ]]; then
+      overall_success=false
+      echo "⚠️  isort found issues"
+    else
+      echo "✅ Import organization complete"
+    fi
+    echo
+    
+    # Run black
+    echo "🖤 Formatting code with black..."
+    local black_cmd="black --line-length $line_length"
+    if [[ "$check_only" == true ]]; then
+      black_cmd="$black_cmd --check"
+    elif [[ "$show_diff" == true ]]; then
+      black_cmd="$black_cmd --diff"
+    fi
+    
+    $black_cmd "$target"
+    if [[ $? -ne 0 ]]; then
+      overall_success=false
+      echo "⚠️  black found formatting issues"
+    else
+      echo "✅ Code formatting complete"
+    fi
+    echo
+    
+    # Run flake8
+    echo "🔍 Checking code style with flake8..."
+    flake8 "$target" --max-line-length="$line_length" --extend-ignore=E203,W503
+    if [[ $? -ne 0 ]]; then
+      overall_success=false
+      echo "⚠️  flake8 found style issues"
+    else
+      echo "✅ Code style check passed"
+    fi
+    echo
+    
+    # Final summary
+    if [[ "$overall_success" == true ]]; then
+      echo "🎉 Code formatting and linting complete!"
+      if [[ "$check_only" == false && "$show_diff" == false ]]; then
+        echo "   All files have been formatted and pass style checks"
+      fi
+    else
+      echo "⚠️  Some issues were found during formatting/linting"
+      if [[ "$check_only" == true ]]; then
+        echo "   Run 'pfmt $target' to apply formatting fixes"
+      fi
+      return 1
+    fi
   }
 fi
 
