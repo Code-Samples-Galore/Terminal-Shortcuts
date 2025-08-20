@@ -506,7 +506,7 @@ show_all = $show_all
 show_docs = $show_docs
 
 try:
-    # Get the class object (supports both built-ins and module.class)
+    # Get the class object (supports both built-in and module.class)
     cls = get_class_from_string(class_name)
     
     if show_all:
@@ -573,6 +573,8 @@ except AttributeError as e:
 except Exception as e:
     print(f'Error: {e}')
 "
+  }
+fi
 
 # Python package dependencies analyzer
 if ! should_exclude "preq" 2>/dev/null; then
