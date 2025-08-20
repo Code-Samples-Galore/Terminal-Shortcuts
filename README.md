@@ -96,6 +96,8 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 ### 🛠️ Development Tools
 
+- **API testing**: `apitest` for quick HTTP API testing with curl
+- **Asset optimization**: `optimizeassets` for minifying JavaScript and CSS files
 - **Hash computation**: `hashit` for MD5, SHA1, SHA256, SHA512 hashing of strings, files, or stdin
 - **Password generation**: `randstr` for secure random passwords
 - **String/data conversion**: `strconv` for converting between hex, base64, and binary formats
@@ -587,6 +589,67 @@ $ ta                       # Attach to most recent session
 ```
 
 ### Development Tools
+
+#### API Testing (`apitest`)
+Quick HTTP API testing tool using curl with automatic formatting and timing:
+
+```bash
+$ apitest localhost:3000/api/users                    # GET request
+$ apitest api.example.com/data GET                    # Explicit GET
+$ apitest localhost/api/users POST '{"name":"John"}'  # POST with data
+$ apitest api.site.com/users/1 PUT '{"age":25}'       # PUT request
+$ apitest localhost:8080/api/users/1 DELETE           # DELETE request
+$ apitest https://api.github.com/users/octocat         # External API
+```
+
+**Features:**
+- Automatic Content-Type and Accept headers for JSON
+- Response time measurement and HTTP status code display
+- Support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS methods
+- Automatic protocol detection (adds http:// if missing)
+- Pretty formatted output with response information
+- Error handling with helpful troubleshooting tips
+
+**Response Information:**
+- HTTP status code
+- Response time in seconds
+- Response size in bytes
+- Complete response body
+
+#### Asset Optimization (`optimizeassets`)
+Optimize web assets by minifying JavaScript and CSS files:
+
+```bash
+$ optimizeassets                   # Optimize current directory
+$ optimizeassets ./src/assets      # Optimize specific directory
+$ optimizeassets /path/to/project  # Optimize project directory
+$ optimizeassets ../public         # Optimize relative path
+```
+
+**Features:**
+- Automatic minification of JavaScript files using UglifyJS
+- Automatic minification of CSS files using clean-css
+- Preserves original files while creating .min.js and .min.css versions
+- Skips already minified files and node_modules directories
+- Automatic tool installation via npm if not present
+- File size reduction reporting with percentage savings
+- Smart file timestamp checking to avoid unnecessary reprocessing
+
+**Requirements:**
+- Node.js and npm installed
+- Write permissions in target directory
+- npm global install permissions (for tool installation)
+
+**Output Information:**
+- Progress reporting for each processed file
+- File size reduction percentages
+- Summary of processed files and any errors
+- Skips files that are already up to date
+
+**Supported File Types:**
+- JavaScript: `.js` files (creates `.min.js`)
+- CSS: `.css` files (creates `.min.css`)
+- Automatically excludes already minified files (`.min.js`, `.min.css`)
 
 #### Hash Calculator (`hashit`)
 Compute various hash functions for strings, files, or stdin. Supports both simple cryptographic hashes and secure password hashes:

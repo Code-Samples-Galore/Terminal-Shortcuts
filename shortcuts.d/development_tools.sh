@@ -17,7 +17,9 @@
 #   replace    - Find and replace text in strings, files, or stdin
 #   numconv    - Convert numbers between different bases (binary, octal, decimal, hex, custom)
 #   unitconv    - Convert between different units of measurement (length, weight, temperature, etc.)
-#
+#   apitest    - Quick API testing with curl (GET/POST/PUT/DELETE with timing and status)
+#   optimizeassets - Optimize web assets by minifying JavaScript and CSS files
+
 # Usage Examples:
 #   $ hashit sha256 "text"        # Hash string with SHA256
 #   $ hashit md5 file.txt         # Hash file with MD5
@@ -68,6 +70,8 @@ cleanup_shortcut "entropy"
 cleanup_shortcut "numconv"
 cleanup_shortcut "replace"
 cleanup_shortcut "unitconv"
+cleanup_shortcut "apitest"
+cleanup_shortcut "optimizeassets"
 
 # JSON prettify
 if ! should_exclude "jsonpp" 2>/dev/null; then
@@ -1395,6 +1399,280 @@ if ! should_exclude "unitconv" 2>/dev/null; then
       echo "$result"
     else
       return $conversion_status
+    fi
+  }
+fi
+
+# API testing function
+if ! should_exclude "apitest" 2>/dev/null; then
+  apitest() {
+    if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: apitest <url> [method] [data]"
+      echo ""
+      echo "Quick API testing tool using curl with automatic formatting and timing."
+      echo "Automatically sets appropriate headers and displays response status and timing."
+      echo ""
+      echo "Parameters:"
+      echo "  url      Target URL (required)"
+      echo "  method   HTTP method (default: GET)"
+      echo "  data     JSON data for POST/PUT requests (optional)"
+      echo ""
+      echo "Features:"
+      echo "  • Automatic Content-Type and Accept headers for JSON"
+      echo "  • Response time measurement"
+      echo "  • HTTP status code display"
+      echo "  • Pretty formatting of output"
+      echo ""
+      echo "Examples:"
+      echo "  apitest localhost:3000/api/users                    # GET request"
+      echo "  apitest api.example.com/data GET                    # Explicit GET"
+      echo "  apitest localhost/api/users POST '{\"name\":\"John\"}' # POST with data"
+      echo "  apitest api.site.com/users/1 PUT '{\"age\":25}'      # PUT request"
+      echo "  apitest localhost:8080/api/users/1 DELETE           # DELETE request"
+      echo "  apitest https://api.github.com/users/octocat         # External API"
+      echo ""
+      echo "Supported methods:"
+      echo "  GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS"
+      echo ""
+      echo "Note: Automatically adds 'http://' if no protocol specified"
+      return 1
+    fi
+    
+    local url="$1"
+    local method="${2:-GET}"
+    local data="$3"
+    
+    # Validate HTTP method
+    case "${method^^}" in
+      GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)
+        method="${method^^}"
+        ;;
+      *)
+        echo "Error: Unsupported HTTP method '$method'"
+        echo "Supported methods: GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS"
+        return 1
+        ;;
+    esac
+    
+    # Add http:// if no protocol specified
+    if [[ ! "$url" =~ ^https?:// ]]; then
+      url="http://$url"
+    fi
+    
+    echo "🔍 Testing API: $method $url"
+    
+    # Check if curl is available
+    if ! command -v curl >/dev/null 2>&1; then
+      echo "Error: curl is required but not installed"
+      return 1
+    fi
+    
+    # Build curl command based on whether data is provided
+    if [[ -n "$data" ]]; then
+      echo "📤 Sending data: $data"
+
+      echo
+      curl -X "$method" \
+           -H "Content-Type: application/json" \
+           -H "Accept: application/json" \
+           -d "$data" \
+           -w "\n\n📊 Response Info:\n  Status: %{http_code}\n  Time: %{time_total}s\n  Size: %{size_download} bytes\n" \
+           -s \
+           "$url"
+    else
+      curl -X "$method" \
+           -H "Accept: application/json" \
+           -w "\n\n📊 Response Info:\n  Status: %{http_code}\n  Time: %{time_total}s\n  Size: %{size_download} bytes\n" \
+           -s \
+           "$url"
+    fi
+    
+    local exit_code=$?
+    echo
+    
+    if [[ $exit_code -ne 0 ]]; then
+      echo "❌ Request failed (curl exit code: $exit_code)"
+      echo "Common issues:"
+      echo "  • Check if the URL is correct and accessible"
+      echo "  • Verify network connectivity"
+      echo "  • Ensure the service is running on the specified port"
+      return $exit_code
+    fi
+  }
+fi
+
+# Asset optimization function
+if ! should_exclude "optimizeassets" 2>/dev/null; then
+  optimizeassets() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: optimizeassets [directory]"
+      echo ""
+      echo "Optimize web assets by minifying JavaScript and CSS files."
+      echo "Automatically installs required tools (uglify-js, clean-css-cli) if not present."
+      echo ""
+      echo "Parameters:"
+      echo "  directory    Target directory to optimize (default: current directory)"
+      echo ""
+      echo "Features:"
+      echo "  • Minifies all .js files to .min.js (excluding already minified files)"
+      echo "  • Minifies all .css files to .min.css (excluding already minified files)"
+      echo "  • Skips node_modules directories automatically"
+      echo "  • Automatic tool installation via npm"
+      echo "  • Progress reporting for each processed file"
+      echo ""
+      echo "Requirements:"
+      echo "  • Node.js and npm installed"
+      echo "  • Write permissions in target directory"
+      echo ""
+      echo "Examples:"
+      echo "  optimizeassets                   # Optimize current directory"
+      echo "  optimizeassets ./src/assets      # Optimize specific directory"
+      echo "  optimizeassets /path/to/project  # Optimize project directory"
+      echo "  optimizeassets ../public         # Optimize relative path"
+      echo ""
+      echo "Output:"
+      echo "  • Creates .min.js and .min.css versions of source files"
+      echo "  • Original files are preserved unchanged"
+      echo "  • Shows optimization progress and results"
+      echo ""
+      echo "Note: Requires npm global install permissions for tool installation"
+      return 1
+    fi
+    
+    local target_dir="${1:-.}"
+    
+    # Validate target directory
+    if [[ ! -d "$target_dir" ]]; then
+      echo "Error: Directory '$target_dir' does not exist"
+      return 1
+    fi
+    
+    # Check if we have read/write access
+    if [[ ! -r "$target_dir" || ! -w "$target_dir" ]]; then
+      echo "Error: Insufficient permissions for directory '$target_dir'"
+      return 1
+    fi
+    
+    echo "🎯 Optimizing assets in $target_dir..."
+    
+    # Check for Node.js and npm
+    if ! command -v node >/dev/null 2>&1; then
+      echo "Error: Node.js is required but not installed"
+      echo "Please install Node.js from https://nodejs.org/"
+      return 1
+    fi
+    
+    if ! command -v npm >/dev/null 2>&1; then
+      echo "Error: npm is required but not installed"
+      echo "Please install npm (usually comes with Node.js)"
+      return 1
+    fi
+    
+    echo "📦 Checking required tools..."
+    
+    # Install tools if needed
+    if ! command -v uglifyjs &> /dev/null; then
+      echo "Installing uglify-js..."
+      if ! npm install -g uglify-js; then
+        echo "Error: Failed to install uglify-js. Check npm permissions."
+        echo "Try: sudo npm install -g uglify-js"
+        return 1
+      fi
+    fi
+    
+    if ! command -v cleancss &> /dev/null; then
+      echo "Installing clean-css-cli..."
+      if ! npm install -g clean-css-cli; then
+        echo "Error: Failed to install clean-css-cli. Check npm permissions."
+        echo "Try: sudo npm install -g clean-css-cli"
+        return 1
+      fi
+    fi
+    
+    echo "🔧 Tools ready. Starting optimization..."
+    echo
+    
+    local js_count=0
+    local css_count=0
+    local js_errors=0
+    local css_errors=0
+    
+    # Minify JS files
+    echo "📄 Processing JavaScript files..."
+    while IFS= read -r -d '' file; do
+      local minified="${file%.js}.min.js"
+      
+      # Skip if minified version already exists and is newer
+      if [[ -f "$minified" && "$minified" -nt "$file" ]]; then
+        echo "⏭️  Skipping $file (minified version is up to date)"
+        continue
+      fi
+      
+      if uglifyjs "$file" -o "$minified" -c -m 2>/dev/null; then
+        local original_size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "0")
+        local minified_size=$(stat -c%s "$minified" 2>/dev/null || stat -f%z "$minified" 2>/dev/null || echo "0")
+        local savings=$((original_size - minified_size))
+        local percent=0
+        
+        if [[ $original_size -gt 0 ]]; then
+          percent=$(( (savings * 100) / original_size ))
+        fi
+        
+        echo "✅ Minified: $(basename "$file") -> $(basename "$minified") (${percent}% reduction)"
+        ((js_count++))
+      else
+        echo "❌ Failed to minify: $file"
+        ((js_errors++))
+      fi
+    done < <(find "$target_dir" -name "*.js" -not -name "*.min.js" -not -path "*/node_modules/*" -print0)
+    
+    echo
+    
+    # Minify CSS files
+    echo "🎨 Processing CSS files..."
+    while IFS= read -r -d '' file; do
+      local minified="${file%.css}.min.css"
+      
+      # Skip if minified version already exists and is newer
+      if [[ -f "$minified" && "$minified" -nt "$file" ]]; then
+        echo "⏭️  Skipping $file (minified version is up to date)"
+        continue
+      fi
+      
+      if cleancss -o "$minified" "$file" 2>/dev/null; then
+        local original_size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "0")
+        local minified_size=$(stat -c%s "$minified" 2>/dev/null || stat -f%z "$minified" 2>/dev/null || echo "0")
+        local savings=$((original_size - minified_size))
+        local percent=0
+        
+        if [[ $original_size -gt 0 ]]; then
+          percent=$(( (savings * 100) / original_size ))
+        fi
+        
+        echo "✅ Minified: $(basename "$file") -> $(basename "$minified") (${percent}% reduction)"
+        ((css_count++))
+      else
+        echo "❌ Failed to minify: $file"
+        ((css_errors++))
+      fi
+    done < <(find "$target_dir" -name "*.css" -not -name "*.min.css" -not -path "*/node_modules/*" -print0)
+    
+    echo
+    echo "📊 Optimization Summary:"
+    echo "  JavaScript files processed: $js_count"
+    echo "  CSS files processed: $css_count"
+    
+    if [[ $js_errors -gt 0 || $css_errors -gt 0 ]]; then
+      echo "  Errors encountered:"
+      [[ $js_errors -gt 0 ]] && echo "    JavaScript errors: $js_errors"
+      [[ $css_errors -gt 0 ]] && echo "    CSS errors: $css_errors"
+    fi
+    
+    if [[ $js_count -eq 0 && $css_count -eq 0 ]]; then
+      echo "  No unprocessed assets found in '$target_dir'"
+      echo "  (Files may already be optimized or directory may be empty)"
+    else
+      echo "🎉 Asset optimization complete!"
     fi
   }
 fi
