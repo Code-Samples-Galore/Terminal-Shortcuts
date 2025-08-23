@@ -1059,3 +1059,7 @@ $ csterminal
   Alt+f           - Move forward one word
   ...
 ```
+
+## 📄 License
+
+MIT License
