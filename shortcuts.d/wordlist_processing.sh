@@ -837,5 +837,4 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     fi
   }
 
-  unset -f wordlist_usage
 fi
