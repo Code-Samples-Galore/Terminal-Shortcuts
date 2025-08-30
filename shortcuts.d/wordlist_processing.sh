@@ -43,57 +43,56 @@ cleanup_shortcut "wordlist"
 
 # Wordlist processing function
 if ! should_exclude "wordlist" 2>/dev/null; then
-  wordlist_usage() {
-    echo "Usage: wordlist [OPTIONS] <file|->"
-      echo ""
-      echo "Process and filter wordlists with sorting, deduplication, and advanced filtering options."
-      echo ""
-      echo "Options:"
-      echo "  -s                Sort the wordlist"
-      echo "  -u                Remove duplicate entries"
-      echo "  -su               Sort and remove duplicates"
-      echo "  -r                Randomize word order"
-      echo "  -i                Case-insensitive regex matching"
-      echo "  -I                Case-sensitive regex matching (default)"
-      echo "  -keepws           Keep only words containing whitespace"
-      echo "  -removews         Remove words containing whitespace"
-      echo "  -o FILE           Save output to file instead of stdout"
-      echo "  -split SIZE       Split output into files of max SIZE (e.g., 100MB, 1GB)"
-      echo "  -splitpct \"X Y Z\" Split output into files with X%, Y%, Z% of words"
-      echo "  -min N            Keep words with minimum N characters"
-      echo "  -max N            Keep words with maximum N characters"
-      echo "  -minentropy E     Keep words with minimum entropy E"
-      echo "  -maxentropy E     Keep words with maximum entropy E"
-      echo "  -minnum N         Keep words with minimum N numbers"
-      echo "  -maxnum N         Keep words with maximum N numbers"
-      echo "  -minlower N       Keep words with minimum N lowercase letters"
-      echo "  -maxlower N       Keep words with maximum N lowercase letters"
-      echo "  -minupper N       Keep words with minimum N uppercase letters"
-      echo "  -maxupper N       Keep words with maximum N uppercase letters"
-      echo "  -minspecial N     Keep words with minimum N special characters"
-      echo "  -maxspecial N     Keep words with maximum N special characters"
-      echo "  -regex PATTERN    Keep words matching regex pattern"
-      echo "  -notregex PATTERN Exclude words matching regex pattern"
-      echo ""
-      echo "Examples:"
-      echo "  wordlist file.txt                         # Display wordlist as-is"
-      echo "  wordlist -s file.txt                      # Sort wordlist"
-      echo "  wordlist -u file.txt                      # Remove duplicates"
-      echo "  wordlist -su file.txt                     # Sort and remove duplicates"
-      echo "  wordlist -min 5 file.txt                  # Keep words ≥5 characters"
-      echo "  wordlist -max 10 file.txt                 # Keep words ≤10 characters"
-      echo "  wordlist -min 3 -max 8 -su file.txt       # Filter by length, sort unique"
-      echo "  wordlist -minentropy 2.5 file.txt         # Keep words with entropy ≥2.5"
-      echo "  wordlist -regex \"^[a-z]+\$\" file.txt       # Only lowercase words"
-      echo "  wordlist -notregex \"[0-9]\" file.txt       # Exclude words with numbers"
-      echo "  wordlist -min 5 -su -o filtered.txt file.txt  # Save to file"
-      echo "  wordlist -split 10MB -o parts.txt file.txt    # Split into 10MB files"
-      echo "  wordlist -splitpct \"30 30 40\" -o parts.txt file.txt  # Split by percentage"
-      echo "  wordlist -r -o random.txt file.txt        # Randomize word order"
-      echo "  cat passwords.txt | wordlist -su -        # Read from stdin"
-      echo ""
-      echo "Note: Use '-' as filename to read from stdin"
-  }
+  USAGE="Usage: wordlist [OPTIONS] <file|->
+
+Process and filter wordlists with sorting, deduplication, and advanced filtering options.
+
+Options:
+  -s                Sort the wordlist
+  -u                Remove duplicate entries
+  -su               Sort and remove duplicates
+  -r                Randomize word order
+  -i                Case-insensitive regex matching
+  -I                Case-sensitive regex matching (default)
+  -keepws           Keep only words containing whitespace
+  -removews         Remove words containing whitespace
+  -o FILE           Save output to file instead of stdout
+  -split SIZE       Split output into files of max SIZE (e.g., 100MB, 1GB)
+  -splitpct \"X Y Z\" Split output into files with X%, Y%, Z% of words
+  -min N            Keep words with minimum N characters
+  -max N            Keep words with maximum N characters
+  -minentropy E     Keep words with minimum entropy E
+  -maxentropy E     Keep words with maximum entropy E
+  -minnum N         Keep words with minimum N numbers
+  -maxnum N         Keep words with maximum N numbers
+  -minlower N       Keep words with minimum N lowercase letters
+  -maxlower N       Keep words with maximum N lowercase letters
+  -minupper N       Keep words with minimum N uppercase letters
+  -maxupper N       Keep words with maximum N uppercase letters
+  -minspecial N     Keep words with minimum N special characters
+  -maxspecial N     Keep words with maximum N special characters
+  -regex PATTERN    Keep words matching regex pattern
+  -notregex PATTERN Exclude words matching regex pattern
+
+Examples:
+  wordlist file.txt                         # Display wordlist as-is
+  wordlist -s file.txt                      # Sort wordlist
+  wordlist -u file.txt                      # Remove duplicates
+  wordlist -su file.txt                     # Sort and remove duplicates
+  wordlist -min 5 file.txt                  # Keep words ≥5 characters
+  wordlist -max 10 file.txt                 # Keep words ≤10 characters
+  wordlist -min 3 -max 8 -su file.txt       # Filter by length, sort unique
+  wordlist -minentropy 2.5 file.txt         # Keep words with entropy ≥2.5
+  wordlist -regex \"^[a-z]+\$\" file.txt       # Only lowercase words
+  wordlist -notregex \"[0-9]\" file.txt       # Exclude words with numbers
+  wordlist -min 5 -su -o filtered.txt file.txt  # Save to file
+  wordlist -split 10MB -o parts.txt file.txt    # Split into 10MB files
+  wordlist -splitpct \"30 30 40\" -o parts.txt file.txt  # Split by percentage
+  wordlist -r -o random.txt file.txt        # Randomize word order
+  cat passwords.txt | wordlist -su -        # Read from stdin
+
+Note: Use '-' as filename to read from stdin
+"
 
   wordlist() {
     local sort_flag=false
@@ -324,13 +323,13 @@ if ! should_exclude "wordlist" 2>/dev/null; then
           shift
           ;;
         -h|--help)
-          wordlist_usage
+          echo "$USAGE"
           return 0
           ;;
         -*)
           echo "Error: Unknown option '$1'"
           echo ""
-          wordlist_usage
+          echo "$USAGE"
           return 1
           ;;
         *)
@@ -347,7 +346,7 @@ if ! should_exclude "wordlist" 2>/dev/null; then
     
     # Check if file is provided
     if [[ -z "$input_file" ]]; then
-      wordlist_usage
+      echo "$USAGE"
       return 1
     fi
     
