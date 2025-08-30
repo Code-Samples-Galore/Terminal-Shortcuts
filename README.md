@@ -1,10 +1,10 @@
-# Terminal Shortcuts Collection
+# 🚀 Terminal Shortcuts Collection
 
 A comprehensive collection of bash aliases and functions designed to enhance terminal productivity and streamline common development tasks.
 
 ## 🚀 Quick Start
 
-### Installation
+### ⚡️ Installation
 
 1. Clone or download this repository:
 
@@ -26,7 +26,7 @@ source ~/terminal_shortcuts/shortcuts.sh
 source ~/.bashrc  # or ~/.zshrc
 ```
 
-### Quick Reference
+### 📝 Quick Reference
 
 Use `sc` command to see all available shortcuts and their descriptions.
 
@@ -128,7 +128,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 
 ## 📖 Detailed Function Reference
 
-### System Information (`sysinfo`)
+### 🖥️ System Information (`sysinfo`)
 
 Displays comprehensive system information including:
 
@@ -148,7 +148,7 @@ Kernel: 21.6.0
 ...
 ```
 
-### Function Listing (`list_functions`)
+### 🧩 Function Listing (`list_functions`)
 
 Display all defined functions in the current shell session with optional filtering:
 
@@ -172,7 +172,7 @@ $ list_functions 'backup|restore'  # List functions with 'backup' or 'restore'
 - Debug shell configurations by listing loaded functions
 - Discover functions from loaded modules and scripts
 
-### Process Management (`killcmd`)
+### 🗑️ Process Management (`killcmd`)
 
 Interactive process termination by command name:
 
@@ -185,9 +185,9 @@ PID: 1234 - /Applications/Firefox.app/Contents/MacOS/firefox
 Kill all these processes? (y/N):
 ```
 
-### Service Management
+### 🛎️ Service Management
 
-#### Systemctl Operations (`sctlstart`, `sctlstop`, `sctlrestart`, `sctlstatus`)
+#### 🛠️ Systemctl Operations (`sctlstart`, `sctlstop`, `sctlrestart`, `sctlstatus`)
 Simplified systemd service management:
 
 ```bash
@@ -197,7 +197,7 @@ $ sctlrestart ssh           # Restart SSH service
 $ sctlstatus postgresql     # Check PostgreSQL status
 ```
 
-#### Service Logging (`sctllog`, `sctlwatch`)
+#### 📜 Service Logging (`sctllog`, `sctlwatch`)
 Monitor systemd service logs:
 
 ```bash
@@ -205,7 +205,7 @@ $ sctllog nginx             # View nginx service logs
 $ sctlwatch apache2         # Watch apache2 logs in real-time
 ```
 
-#### Nginx Management (`nginxstart`, `nginxstop`, `nginxrestart`, `nginxstatus`, `nginxconf`, `nginxtest`, `nginxreload`)
+#### 🕸️ Nginx Management (`nginxstart`, `nginxstop`, `nginxrestart`, `nginxstatus`, `nginxconf`, `nginxtest`, `nginxreload`)
 Complete nginx service control:
 
 ```bash
@@ -218,9 +218,9 @@ $ nginxtest                 # Test nginx configuration syntax
 $ nginxreload               # Reload nginx configuration
 ```
 
-### Archive Operations (`extract`, `compress`)
+### 📦 Archive Operations (`extract`, `compress`)
 
-#### Universal Archive Extractor (`extract`)
+#### 📤 Universal Archive Extractor (`extract`)
 Automatically detects and extracts any archive format:
 
 ```bash
@@ -232,7 +232,7 @@ $ extract package.7z        # Extract 7-Zip file
 
 Supports: `.zip`, `.tar`, `.tar.gz`, `.tar.bz2`, `.tar.xz`, `.rar`, `.7z`, `.gz`, `.bz2`, `.xz`, and more.
 
-#### Archive Creator (`compress`)
+#### 📦 Archive Creator (`compress`)
 Create archives with optional volume splitting:
 
 ```bash
@@ -242,9 +242,9 @@ $ compress data.7z -v100M file1 file2        # Create 7z with 100MB volumes
 $ compress split.zip -v1G large_folder/      # Create ZIP with 1GB volumes
 ```
 
-### File Operations
+### 📁 File Operations
 
-#### Find Files (`ff`)
+#### 🔍 Find Files (`ff`)
 Search for files by name pattern:
 
 ```bash
@@ -253,7 +253,7 @@ $ ff "config"         # Find files containing "config"
 $ ff "test*.js"       # Find JavaScript test files
 ```
 
-#### Search in Files (`search`)
+#### 🔎 Search in Files (`search`)
 Advanced text search with regex support:
 
 ```bash
@@ -263,7 +263,7 @@ $ search -r "regex.*pattern" directory/       # Extended regex
 $ search -g "compressed" archive.gz           # Search in gzipped files
 ```
 
-#### Find and Replace (`replace`)
+#### 📝 Find and Replace (`replace`)
 Replace text in strings, files, or stdin:
 
 ```bash
@@ -272,7 +272,7 @@ $ replace "old" "new" file.txt               # Replace in file
 $ echo "old text" | replace "old" "new" -   # Replace from stdin
 ```
 
-#### File Backup (`backup`)
+#### 🗄️ File Backup (`backup`)
 Create timestamped backups with optional compression:
 
 ```bash
@@ -281,7 +281,7 @@ $ backup -c folder/                  # Create compressed backup: folder.backup.2
 $ backup -c -z file.txt             # Create gzipped backup
 ```
 
-#### File Metadata Analysis (`meta`)
+#### 🏷️ File Metadata Analysis (`meta`)
 Display comprehensive file type information and extract metadata automatically based on file type:
 
 ```bash
@@ -310,9 +310,9 @@ $ meta program                       # Show executable architecture, libraries
 - `identify` - ImageMagick image information
 - Standard tools: `file`, `stat`, `wc`, `readelf`, `ldd`
 
-### File Monitoring
+### 👀 File Monitoring
 
-#### Watch Log Files (`watchlog`)
+#### 👁️‍🗨️ Watch Log Files (`watchlog`)
 Monitor log file changes in real-time:
 
 ```bash
@@ -320,7 +320,7 @@ $ watchlog /var/log/nginx/access.log    # Monitor nginx access log
 $ watchlog app.log                      # Monitor application log
 ```
 
-#### Watch Directory (`watchdir`)
+#### 🗂️ Watch Directory (`watchdir`)
 Monitor directory contents for changes:
 
 ```bash
@@ -328,9 +328,9 @@ $ watchdir /home/user/downloads/        # Watch downloads folder
 $ watchdir .                           # Watch current directory
 ```
 
-### Python Development Tools
+### 🐍 Python Development Tools
 
-#### Package Management (`pipi`, `pupu`, `pipl`)
+#### 📦 Package Management (`pipi`, `pupu`, `pipl`)
 Simplified pip operations:
 
 ```bash
@@ -342,7 +342,7 @@ $ pupu requirements.txt    # Upgrade packages from requirements
 $ pipl                     # List installed packages
 ```
 
-#### Virtual Environment Auto-Activation (`svenv`)
+#### 🧪 Virtual Environment Auto-Activation (`svenv`)
 Automatically detect and activate Python virtual environments:
 
 ```bash
@@ -352,7 +352,7 @@ Activated virtual environment: /home/user/project/.venv
 
 Searches for virtual environments in: `.venv/`, `venv/`, `.virtualenv/`
 
-#### Navigate and Activate (`cdsvenv`)
+#### 📂 Navigate and Activate (`cdsvenv`)
 Navigate to project directory and activate virtual environment:
 
 ```bash
@@ -360,7 +360,7 @@ $ cdsvenv ~/myproject        # Navigate and activate venv
 $ cdsvenv                   # Use current directory
 ```
 
-#### Create Virtual Environment (`cvenv`)
+#### 🏗️ Create Virtual Environment (`cvenv`)
 Create `.venv` using conda's Python, activate it, and upgrade pip:
 
 ```bash
@@ -368,7 +368,7 @@ $ cvenv                     # Create venv in current directory
 $ cvenv myproject           # Create venv in myproject/ directory
 ```
 
-#### Python Module Runner (`pm`)
+#### 🏃 Python Module Runner (`pm`)
 Run Python modules using file paths:
 
 ```bash
@@ -376,7 +376,7 @@ $ pm script.py              # Run script.py as module
 $ pm path/to/module.py      # Run module with full path
 ```
 
-#### Python Class Inspector (`pmem`)
+#### 🕵️ Python Class Inspector (`pmem`)
 Display public members (methods and attributes) of Python built-in classes:
 
 ```bash
@@ -412,7 +412,7 @@ The function automatically imports required modules when using dot notation, mak
 - `pmem json.JSONEncoder` - JSON encoding methods
 - `pmem sqlite3.Connection` - Database connection methods
 
-#### Python Dependency Analysis (`preq`)
+#### 📊 Python Dependency Analysis (`preq`)
 Analyze Python project dependencies and environment information:
 
 ```bash
@@ -440,7 +440,7 @@ $ preq                             # Analyze current project dependencies
 - Dependency graphs for Pipenv projects
 - Active environment status
 
-#### Python Testing with Coverage (`pytestcov`)
+#### 🧪 Python Testing with Coverage (`pytestcov`)
 Run Python tests with comprehensive coverage analysis:
 
 ```bash
@@ -470,7 +470,7 @@ $ pytestcov tests/ -k "unit"       # Run only tests matching 'unit'
 - Python testing environment with write permissions
 - Automatic tool installation via pip
 
-#### Python Code Formatting (`pfmt`)
+#### 🎨 Python Code Formatting (`pfmt`)
 Format and lint Python code using industry-standard tools:
 
 ```bash
@@ -506,9 +506,9 @@ $ pfmt --line-length 100 .         # Use custom line length
 - `--diff` - Show what would be changed without applying
 - `--line-length N` - Set custom maximum line length
 
-#### Node.js Development Tools
+#### 📦 Node.js Development Tools
 
-#### Node Version Management (`nu`, `nl`, `ni`)
+#### 🔢 Node Version Management (`nu`, `nl`, `ni`)
 Simplified nvm operations for Node.js version management:
 
 ```bash
@@ -519,7 +519,7 @@ $ ni 20.5.0                # Install Node.js version 20.5.0
 $ ni --lts                 # Install latest LTS version
 ```
 
-### Time and Date Utilities (`now`, `nowtime`, `nowdate`)
+### 🕰️ Time and Date Utilities (`now`, `nowtime`, `nowdate`)
 
 Get current time and date information:
 
@@ -529,7 +529,7 @@ $ nowtime                  # Current time only: 14:30:22
 $ nowdate                  # Current date only: 2023-12-01
 ```
 
-### Resource Monitoring (`topcpu`, `topmem`)
+### 📈 Resource Monitoring (`topcpu`, `topmem`)
 
 Monitor system resource usage:
 
@@ -540,7 +540,7 @@ $ topmem                   # Show top processes by memory usage
 
 Output shows processes sorted by resource consumption with PID, user, and command details.
 
-### Network Monitoring (`isup`, `myip`)
+### 🌍 Network Monitoring (`isup`, `myip`)
 
 Check website availability:
 
@@ -565,7 +565,7 @@ External IP Address:
   203.0.113.45
 ```
 
-### Network Utilities (`ports`)
+### 🌐 Network Utilities (`ports`)
 
 Show active network connections and listening ports:
 
@@ -575,7 +575,7 @@ $ ports                    # Display all network connections and listening ports
 
 Shows local/remote addresses, connection states, and associated processes.
 
-### Git Repository Information (`gitinfo`)
+### 🔎 Git Repository Information (`gitinfo`)
 
 Display comprehensive Git repository status:
 
@@ -595,9 +595,9 @@ Recent Commits:
   d4e5f6g - Add new feature (1 day ago)
 ```
 
-### Configuration Management
+### ⚙️ Configuration Management
 
-#### Quick Configuration Access (`bashrc`, `zshrc`, `vimrc`, `nginxconf`)
+#### ⚡️ Quick Configuration Access (`bashrc`, `zshrc`, `vimrc`, `nginxconf`)
 Instantly open configuration files for editing:
 
 ```bash
@@ -607,7 +607,7 @@ $ vimrc                    # Edit ~/.vimrc
 $ nginxconf                # Edit /etc/nginx/nginx.conf
 ```
 
-#### Configuration Reloading (`sobashrc`, `sozshrc`)
+#### 🔄 Configuration Reloading (`sobashrc`, `sozshrc`)
 Quickly reload shell configurations:
 
 ```bash
@@ -615,9 +615,9 @@ $ sobashrc                 # Reload ~/.bashrc
 $ sozshrc                  # Reload ~/.zshrc
 ```
 
-### Directory Navigation Enhancements
+### 📂 Directory Navigation Enhancements
 
-#### Smart Navigation (`..`, `...`, `....`, `~`)
+#### 🚶‍♂️ Smart Navigation (`..`, `...`, `....`, `~`)
 Quick directory traversal shortcuts:
 
 ```bash
@@ -627,7 +627,7 @@ $ ....                     # Go up three directories (cd ../../..)
 $ ~                        # Go to home directory (cd ~)
 ```
 
-#### Create and Navigate (`mkcd`)
+#### 🏗️ Create and Navigate (`mkcd`)
 Create directory and navigate into it in one command:
 
 ```bash
@@ -635,9 +635,9 @@ $ mkcd new_project         # Create and enter new_project directory
 $ mkcd path/to/deep/dir    # Create nested directories and navigate
 ```
 
-### Enhanced File Listing
+### 📃 Enhanced File Listing
 
-#### File Listing Variants (`ll`, `la`, `l`)
+#### 📄 File Listing Variants (`ll`, `la`, `l`)
 Enhanced directory listing with different detail levels:
 
 ```bash
@@ -646,9 +646,9 @@ $ la                       # List all files including hidden (ls -la)
 $ l                        # Compact column format (ls -CF)
 ```
 
-### File Viewing Enhancements
+### 👁️ File Viewing Enhancements
 
-#### Enhanced Less (`less`, `le`, `tle`)
+#### 🔎 Enhanced Less (`less`, `le`, `tle`)
 Improved file viewing with enhanced less functionality:
 
 ```bash
@@ -659,16 +659,16 @@ $ tle file.txt             # Open file with less, start at end (+G)
 
 Features include syntax highlighting, mouse support, and improved navigation.
 
-### System Path and History
+### 🛤️ System Path and History
 
-#### Path Display (`path`)
+#### 🛣️ Path Display (`path`)
 Format and display the system PATH variable:
 
 ```bash
 $ path                     # Display PATH with each directory on separate line
 ```
 
-#### Command History (`h`)
+#### 🕰️ Command History (`h`)
 Quick access to command history:
 
 ```bash
@@ -676,7 +676,7 @@ $ h                        # Display command history
 $ h pattern                # Search history for pattern
 ```
 
-### tmux Session Management (`ta`)
+### 🖥️ tmux Session Management (`ta`)
 
 Quick tmux session attachment:
 
@@ -685,9 +685,9 @@ $ ta session_name          # Attach to named tmux session
 $ ta                       # Attach to most recent session
 ```
 
-### Development Tools
+### 🛠️ Development Tools
 
-#### API Testing (`apitest`)
+#### 🧪 API Testing (`apitest`)
 Quick HTTP API testing tool using curl with automatic formatting and timing:
 
 ```bash
@@ -713,7 +713,7 @@ $ apitest https://api.github.com/users/octocat         # External API
 - Response size in bytes
 - Complete response body
 
-#### Asset Optimization (`optimizeassets`)
+#### 🗜️ Asset Optimization (`optimizeassets`)
 Optimize web assets by minifying JavaScript and CSS files:
 
 ```bash
@@ -748,7 +748,7 @@ $ optimizeassets ../public         # Optimize relative path
 - CSS: `.css` files (creates `.min.css`)
 - Automatically excludes already minified files (`.min.js`, `.min.css`)
 
-#### Hash Calculator (`hashit`)
+#### 🔑 Hash Calculator (`hashit`)
 Compute various hash functions for strings, files, or stdin. Supports both simple cryptographic hashes and secure password hashes:
 
 **Simple Hash Functions:**
@@ -775,7 +775,7 @@ $ echo "mypassword" | hashit bcrypt - # Hash password from stdin
 
 Password hashes automatically include random salt and produce different outputs each time for security.
 
-#### Entropy Calculator (`entropy`)
+#### 🎲 Entropy Calculator (`entropy`)
 Calculate Shannon entropy for strings, files, or stdin to measure randomness/complexity:
 
 ```bash
@@ -786,7 +786,7 @@ $ echo "random data" | entropy - # Calculate entropy of stdin
 
 Entropy values range from 0 (completely predictable) to ~8 (maximum randomness for byte data).
 
-#### String/Data Converter (`strconv`)
+#### 🔄 String/Data Converter (`strconv`)
 Convert between different data encodings and representations:
 
 ```bash
@@ -805,7 +805,7 @@ Supports:
 - **Base64**: `base64`/`b64` (encode), `base64-decode`/`b64-d` (decode)
 - **Binary**: `bin`/`binary` (integers to binary numbers, strings to ASCII binary)
 
-#### Number Base Converter (`numconv`)
+#### 🔢 Number Base Converter (`numconv`)
 Convert numbers between different bases (2-36) with auto-detection:
 
 ```bash
@@ -827,7 +827,7 @@ $ numconv 250-255 hex            # Convert 250-255 to hex: FA, FB, FC, FD, FE, F
 
 Range format supports the same base auto-detection and supports up to 1000 numbers per range.
 
-#### Unit Converter (`unitconv`)
+#### 📏 Unit Converter (`unitconv`)
 Convert between different units of measurement across multiple categories:
 
 ```bash
@@ -876,7 +876,7 @@ $ unitconv 1 l ml                # Convert 1 liter to ml: 1000
 - Cross-category conversion prevention
 - Comprehensive error handling and validation
 
-#### Random Password Generator (`randstr`)
+#### 🔐 Random Password Generator (`randstr`)
 Generate secure random passwords:
 
 ```bash
@@ -885,7 +885,7 @@ $ randstr 16           # Generate 16-character password
 $ randstr 8            # Generate 8-character password
 ```
 
-#### Mathematical Calculators (`calc`, `log2`, `pow2`)
+#### 🧮 Mathematical Calculators (`calc`, `log2`, `pow2`)
 
 **Calculator (`calc`):**
 ```bash
@@ -907,7 +907,7 @@ $ pow2 3                    # Result: 8 (2³)
 $ pow2 10                   # Result: 1024 (2¹⁰)
 ```
 
-#### JSON Pretty Printer (`jsonpp`)
+#### 🧾 JSON Pretty Printer (`jsonpp`)
 Format and pretty-print JSON data:
 
 ```bash
@@ -915,7 +915,7 @@ $ jsonpp data.json          # Pretty-print JSON file
 $ echo '{"a":1,"b":2}' | jsonpp -    # Pretty-print JSON from stdin
 ```
 
-#### Wordlist Processor (`wordlist`)
+#### 📝 Wordlist Processor (`wordlist`)
 Advanced wordlist filtering and processing:
 
 ```bash
@@ -929,9 +929,9 @@ $ wordlist -x 10 random.txt              # Randomize and take 10 entries
 $ wordlist --split-mb 100 large.txt      # Split into 100MB files
 ```
 
-### Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`, `csterminal`)
+### 📚 Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`, `csterminal`)
 
-#### Vim Cheatsheet (`csvim`)
+#### 📝 Vim Cheatsheet (`csvim`)
 Comprehensive Vim cheatsheet covering:
 
 - Basic usage and modes (normal, insert, visual)
@@ -956,7 +956,7 @@ $ csvim
   ...
 ```
 
-#### tmux Cheatsheet (`cstmux`)
+#### 🖥️ tmux Cheatsheet (`cstmux`)
 Comprehensive tmux cheatsheet covering:
 
 - Session management (create, attach, detach, list)
@@ -978,7 +978,7 @@ $ cstmux
   ...
 ```
 
-#### less Cheatsheet (`csless`)
+#### 📖 less Cheatsheet (`csless`)
 Comprehensive less cheatsheet covering:
 
 - Basic file viewing and navigation
@@ -1004,7 +1004,7 @@ $ csless
   ...
 ```
 
-#### Terminator Cheatsheet (`csterminator`)
+#### 🖥️ Terminator Cheatsheet (`csterminator`)
 Comprehensive Terminator cheatsheet covering:
 
 - Window and terminal management
@@ -1032,7 +1032,7 @@ $ csterminator
   ...
 ```
 
-#### Terminal Cheatsheet (`csterminal`)
+#### ⌨️ Terminal Cheatsheet (`csterminal`)
 Comprehensive terminal keyboard shortcuts cheatsheet covering:
 
 - Cursor movement and navigation within command line
@@ -1062,4 +1062,4 @@ $ csterminal
 
 ## 📄 License
 
-MIT License
+MIT License.
