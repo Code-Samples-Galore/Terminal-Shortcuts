@@ -75,7 +75,7 @@ if ! should_exclude "mv" 2>/dev/null; then alias mv='mv -iv'; fi
 if ! should_exclude "rm" 2>/dev/null; then alias rm='rm -i'; fi
 if ! should_exclude "grep" 2>/dev/null; then alias grep='grep --color=auto'; fi
 if ! should_exclude "tree" 2>/dev/null; then alias tree='tree -C'; fi
-if ! should_exclude "less" 2>/dev/null; then alias less='less -RMNi --mouse --use-color'; fi
+if ! should_exclude "less" 2>/dev/null; then alias less='less -RMNi --use-color'; fi
 if ! should_exclude "le" 2>/dev/null; then alias le='less'; fi
 if ! should_exclude "tle" 2>/dev/null; then alias tle='less +G'; fi
 
