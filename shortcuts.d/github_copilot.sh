@@ -37,6 +37,7 @@ if ! should_exclude "gcm" 2>/dev/null; then
     fi
 
     # Use Copilot to generate commit message and commit
+    echo "Generating commit message with Copilot..."
     copilot --model gpt-5 --allow-tool 'shell(git commit)' --prompt "Commit staged changes"
   }
 fi
