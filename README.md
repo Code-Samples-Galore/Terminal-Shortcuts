@@ -72,7 +72,8 @@ gracefully and tell you what is missing:
 
 ### 🔀 Git Enhancements
 
-- **Quick git operations**: `gs`, `gc`, `gp`, `ga`, etc.
+- **Quick git operations**: `gs`, `gc`, `gp`, `ga`, `gaa`, etc.
+- **AI-powered commits**: `gcm` with GitHub Copilot for intelligent commit messages
 - **Auto-commit**: `gac` with intelligent commit messages
 - **Repository info**: `gitinfo` for comprehensive repo status
 - **Branch management**: Simplified checkout and branch creation
@@ -620,7 +621,58 @@ $ ports                    # Display all network connections and listening ports
 
 Shows local/remote addresses, connection states, and associated processes.
 
-### 🔎 Git Repository Information (`gitinfo`)
+### � Git Shortcuts
+
+Quick Git operations for common workflows:
+
+#### 🤖 AI-Powered Commits (`gcm`)
+
+Automatically stage all changes and generate intelligent commit messages using GitHub Copilot:
+
+```bash
+$ gcm                      # Stage all changes and commit with AI-generated message
+```
+
+**Features:**
+- Runs `git add -A` to stage all changes
+- Uses GitHub Copilot CLI to analyze changes and generate meaningful commit messages
+- Interactive workflow with Copilot for best commit message quality
+
+**Requirements:**
+- GitHub Copilot CLI installed: `npm install -g @githubnext/github-copilot-cli`
+- Authenticated with GitHub Copilot
+
+#### 📝 Basic Git Operations
+
+Common Git shortcuts for faster workflows:
+
+```bash
+$ gs                       # Git status
+$ ga file.txt              # Git add specific file
+$ gaa                      # Git add all files (git add -A)
+$ gc "commit message"      # Git commit with message
+$ gp                       # Git push
+$ gu                       # Git pull
+$ gb                       # Git branch
+$ gco branch-name          # Git checkout branch
+$ gcb new-branch           # Git checkout new branch
+$ gl                       # Git log one line
+$ gd                       # Git diff
+$ gdc                      # Git diff cached
+$ gr file.txt              # Git remove from cache
+```
+
+#### 🚀 Auto-Commit (`gac`)
+
+Quick commit with auto-generated message:
+
+```bash
+$ gac                      # Add all files and commit with auto message
+```
+
+Automatically generates commit message based on number of files changed.
+
+### �🔎 Git Repository Information (`gitinfo`)
 
 Display comprehensive Git repository status:
 

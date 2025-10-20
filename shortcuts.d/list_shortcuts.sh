@@ -76,11 +76,12 @@ if ! should_exclude "sc" 2>/dev/null; then
     
     echo "🔀 Git:"
     echo "  ga          - Git add"
-    echo "  gaa         - Git add all files"
+    echo "  gaa         - Git add all files (git add -A)"
     echo "  gac         - Git add all and commit with auto message"
     echo "  gb          - Git branch"
     echo "  gc          - Git commit with message"
     echo "  gcb         - Git checkout new branch"
+    echo "  gcm         - Git add all and commit with AI-generated message using Copilot"
     echo "  gco         - Git checkout"
     echo "  gd          - Git diff"
     echo "  gdc         - Git diff cached"
