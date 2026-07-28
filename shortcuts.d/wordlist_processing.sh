@@ -43,7 +43,9 @@ cleanup_shortcut "wordlist"
 
 # Wordlist processing function
 if ! should_exclude "wordlist" 2>/dev/null; then
-  USAGE="Usage: wordlist [OPTIONS] <file|->
+  # Namespaced rather than a bare USAGE, which leaked a large variable into
+  # every shell that sourced this file and could collide with the user's own.
+  WORDLIST_USAGE="Usage: wordlist [OPTIONS] <file|->
 
 Process and filter wordlists with sorting, deduplication, and advanced filtering options.
 
@@ -283,11 +285,13 @@ Note: Use '-' as filename to read from stdin
           fi
           # Validate percentage format and sum
           local pct_string="$2"
+          local -a pct_array
           if [[ -n "$ZSH_VERSION" ]]; then
             # zsh - use explicit word splitting
             pct_array=(${=pct_string})
           else
             # bash and other shells
+            # shellcheck disable=SC2206
             pct_array=($pct_string)
           fi
           local total_pct=0
@@ -323,13 +327,13 @@ Note: Use '-' as filename to read from stdin
           shift
           ;;
         -h|--help)
-          echo "$USAGE"
+          echo "$WORDLIST_USAGE"
           return 0
           ;;
         -*)
           echo "Error: Unknown option '$1'"
           echo ""
-          echo "$USAGE"
+          echo "$WORDLIST_USAGE"
           return 1
           ;;
         *)
@@ -346,7 +350,7 @@ Note: Use '-' as filename to read from stdin
     
     # Check if file is provided
     if [[ -z "$input_file" ]]; then
-      echo "$USAGE"
+      echo "$WORDLIST_USAGE"
       return 1
     fi
     
@@ -644,193 +648,203 @@ Note: Use '-' as filename to read from stdin
     
     # Execute the pipeline
     if [[ -n "$output_file" ]]; then
-      # Check for output file conflicts
-      if [[ -n "$output_file" ]]; then
-        # Check if output file is the same as input file
-        if [[ "$output_file" -ef "$input_file" ]]; then
-          echo "Error: Output file cannot be the same as input file"
-          return 1
-        fi
-        
-        # For split modes, check if any existing split files would conflict
-        if [[ -n "$split_size" || -n "$split_percentages" ]]; then
-          local base_name="${output_file%.*}"
-          local extension="${output_file##*.}"
-          if [[ "$base_name" == "$extension" ]]; then
-            extension=""
-          else
-            extension=".$extension"
-          fi
-            
-          # Check for existing split files with portable glob handling
-          local existing_splits=""
-          if find . -maxdepth 1 -name "${base_name}_part_*${extension}" -type f -print -quit 2>/dev/null | grep -q .; then
-            existing_splits="found"
-          fi
+      # Check if output file is the same as input file
+      if [[ "$input_file" != "-" && "$output_file" -ef "$input_file" ]]; then
+        echo "Error: Output file cannot be the same as input file"
+        return 1
+      fi
 
-          if [[ -n "$existing_splits" ]]; then
-            echo -n "Split files '${base_name}_part_*${extension}' exist. Overwrite? (y/N): "
-            read -r response
-            if [[ ! "$response" =~ ^[Yy]$ ]]; then
-              echo "Operation cancelled"
-              return 1
-            fi
-            # Remove existing split files
-            rm -f ${base_name}_part_*${extension} 2>/dev/null
+      local base_name="${output_file%.*}"
+      local extension="${output_file##*.}"
+      if [[ "$base_name" == "$extension" ]]; then
+        extension=""
+      else
+        extension=".$extension"
+      fi
+
+      # Split parts are enumerated with find rather than a glob: an unmatched
+      # glob is a fatal error in zsh, and an unquoted one breaks on spaces.
+      local part_dir part_pattern
+      part_dir=$(dirname "$base_name")
+      part_pattern="$(basename "$base_name")_part_*${extension}"
+
+      _wordlist_parts() {
+        find "$part_dir" -maxdepth 1 -type f -name "$part_pattern" 2>/dev/null | sort
+      }
+
+      # For split modes, check if any existing split files would conflict
+      if [[ -n "$split_size" || -n "$split_percentages" ]]; then
+        if [[ -n "$(_wordlist_parts)" ]]; then
+          echo -n "Split files '${base_name}_part_*${extension}' exist. Overwrite? (y/N): "
+          read -r response
+          if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            echo "Operation cancelled"
+            unset -f _wordlist_parts
+            return 1
           fi
-        else
-          # Check if output file exists and prompt for confirmation
-          if [[ -f "$output_file" ]]; then
-            echo -n "Output file '$output_file' exists. Overwrite? (y/N): "
-            read -r response
-            if [[ ! "$response" =~ ^[Yy]$ ]]; then
-              echo "Operation cancelled"
-              return 1
-            fi
-          fi
+          # Remove existing split files
+          _wordlist_parts | while IFS= read -r stale_part; do
+            command rm -f "$stale_part"
+          done
         fi
-        
-        # Check if output directory is writable
-        local output_dir
-        output_dir=$(dirname "$output_file")
-        if [[ ! -w "$output_dir" ]]; then
-          echo "Error: Cannot write to directory '$output_dir'"
-          return 1
+      else
+        # Check if output file exists and prompt for confirmation
+        if [[ -f "$output_file" ]]; then
+          echo -n "Output file '$output_file' exists. Overwrite? (y/N): "
+          read -r response
+          if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            echo "Operation cancelled"
+            unset -f _wordlist_parts
+            return 1
+          fi
         fi
       fi
-      
+
+      # Check if output directory is writable
+      local output_dir
+      output_dir=$(dirname "$output_file")
+      if [[ ! -w "$output_dir" ]]; then
+        echo "Error: Cannot write to directory '$output_dir'"
+        unset -f _wordlist_parts
+        return 1
+      fi
+
+      local exit_code=0
+
       if [[ -n "$split_percentages" ]]; then
         # Split the output into percentage-based files
-        local base_name="${output_file%.*}"
-        local extension="${output_file##*.}"
-        if [[ "$base_name" == "$extension" ]]; then
-          extension=""
-        else
-          extension=".$extension"
-        fi
-        
+
         # Create temporary file to store all processed output
-        local temp_file=$(mktemp)
+        local temp_file
+        temp_file=$(mktemp) || { unset -f _wordlist_parts; return 1; }
         eval "$processing_pipeline" > "$temp_file"
-        local exit_code=$?
-        
-        if [[ $exit_code -eq 0 ]]; then
-          local total_words=$(wc -l < "$temp_file")
-          if [[ -n "$ZSH_VERSION" ]]; then
-            # zsh - use explicit word splitting
-            pct_array=(${=pct_string})
-          else
-            # bash and other shells
-            pct_array=($pct_string)
-          fi
-          local current_line=1
-          local file_index=1
-            
-          echo "Splitting $total_words words into ${#pct_array[@]} percentage-based files:"
-          
-          for pct in "${pct_array[@]}"; do
-            # Use bash arithmetic for percentage calculation
-            local words_in_file=$((total_words * pct / 100))
-            
-            # For the last file, take all remaining words to handle rounding
-            if [[ $file_index -eq ${#pct_array[@]} ]]; then
-              words_in_file=$((total_words - current_line + 1))
-            fi
-            
-            local output_part="${base_name}_part_$(printf "%02d" $file_index)${extension}"
-            
-            if [[ $words_in_file -gt 0 ]]; then
-              sed -n "${current_line},$((current_line + words_in_file - 1))p" "$temp_file" > "$output_part"
-              local actual_words=$(wc -l < "$output_part")
-              local actual_pct=$((actual_words * 100 / total_words))
-              local size=$(ls -lh "$output_part" | awk '{print $5}')
-              echo "  $output_part: $actual_words words (${actual_pct}%, $size)"
-              current_line=$((current_line + words_in_file))
-            else
-              # Create empty file for 0% splits
-              touch "$output_part"
-              echo "  $output_part: 0 words (0%, 0B)"
-            fi
-            
-            file_index=$((file_index + 1))
-          done
-          
-          echo "Total: $total_words words split into ${#pct_array[@]} files"
-        else
+        exit_code=$?
+
+        if [[ $exit_code -ne 0 ]]; then
           echo "Error: Failed to process wordlist"
-          rm -f "$temp_file"
+          command rm -f "$temp_file"
+          unset -f _wordlist_parts
           return $exit_code
         fi
-        
-        # Clean up temporary file
-        rm -f "$temp_file"
-        
-      elif [[ -n "$split_size" ]]; then
-        # Split the output into multiple files
-        local base_name="${output_file%.*}"
-        local extension="${output_file##*.}"
-        if [[ "$base_name" == "$extension" ]]; then
-          extension=""
+
+        local total_words
+        total_words=$(wc -l < "$temp_file" | tr -d '[:space:]')
+        local -a pct_array
+        if [[ -n "$ZSH_VERSION" ]]; then
+          # zsh - use explicit word splitting
+          pct_array=(${=pct_string})
         else
-          extension=".$extension"
+          # bash and other shells
+          # shellcheck disable=SC2206
+          pct_array=($pct_string)
         fi
-        
-        # Use split command with size-based splitting
-        eval "$processing_pipeline" | split -d -b "$split_size" - "${base_name}_part_"
-        
+        local current_line=1
+        local file_index=1
+
+        echo "Splitting $total_words words into ${#pct_array[@]} percentage-based files:"
+
+        # Declared once outside the loop: re-running a bare "local a b" for
+        # names that already hold values makes zsh print them.
+        local pct="" words_in_file="" output_part=""
+        local actual_words="" actual_pct="" size=""
+        for pct in "${pct_array[@]}"; do
+          words_in_file=$((total_words * pct / 100))
+
+          # For the last file, take all remaining words to handle rounding
+          if [[ $file_index -eq ${#pct_array[@]} ]]; then
+            words_in_file=$((total_words - current_line + 1))
+          fi
+
+          output_part="${base_name}_part_$(printf "%02d" $file_index)${extension}"
+
+          if [[ $words_in_file -gt 0 ]]; then
+            sed -n "${current_line},$((current_line + words_in_file - 1))p" "$temp_file" > "$output_part"
+            actual_words=$(wc -l < "$output_part" | tr -d '[:space:]')
+            if [[ $total_words -gt 0 ]]; then
+              actual_pct=$((actual_words * 100 / total_words))
+            else
+              actual_pct=0
+            fi
+            size=$(ls -lh "$output_part" | awk '{print $5}')
+            echo "  $output_part: $actual_words words (${actual_pct}%, $size)"
+            current_line=$((current_line + words_in_file))
+          else
+            # Create empty file for 0% splits
+            : > "$output_part"
+            echo "  $output_part: 0 words (0%, 0B)"
+          fi
+
+          file_index=$((file_index + 1))
+        done
+
+        echo "Total: $total_words words split into ${#pct_array[@]} files"
+        command rm -f "$temp_file"
+
+      elif [[ -n "$split_size" ]]; then
+        # Size-based splitting. The pipeline's status is written to a side
+        # channel: PIPESTATUS is bash-only (zsh spells it pipestatus and
+        # indexes from 1) and was previously read after later commands had
+        # already overwritten it.
+        local status_file
+        status_file=$(mktemp) || { unset -f _wordlist_parts; return 1; }
+        { eval "$processing_pipeline"; echo $? > "$status_file"; } \
+          | split -d -b "$split_size" - "${base_name}_part_"
+        exit_code=$(cat "$status_file" 2>/dev/null || echo 1)
+        command rm -f "$status_file"
+
+        if [[ "$exit_code" -ne 0 ]]; then
+          echo "Error: Failed to process wordlist"
+          unset -f _wordlist_parts
+          return "$exit_code"
+        fi
+
         # Add extension to split files if needed
         if [[ -n "$extension" ]]; then
-          for file in ${base_name}_part_*; do
-            if [[ -f "$file" && ! "$file" =~ $extension$ ]]; then
-              mv "$file" "${file}${extension}"
-            fi
-          done
+          local raw_part
+          while IFS= read -r raw_part; do
+            case "$raw_part" in
+              *"$extension") ;;
+              *) command mv "$raw_part" "${raw_part}${extension}" ;;
+            esac
+          done < <(find "$part_dir" -maxdepth 1 -type f -name "$(basename "$base_name")_part_*" 2>/dev/null | sort)
         fi
-        
-        local exit_code=${PIPESTATUS[0]}
-        if [[ $exit_code -eq 0 ]]; then
-          local split_files=""
-          # Use ls with error handling instead of shell globbing
-          if ls ${base_name}_part_*${extension} 2>/dev/null >/dev/null; then
-            split_files=$(ls ${base_name}_part_*${extension} 2>/dev/null)
-          fi
-          local total_words=0
-          local file_count=0
-          
-          if [[ -n "$split_files" ]]; then
-            echo "Processed wordlist split into files:"
-            echo "$split_files" | while IFS= read -r file; do
-              if [[ -f "$file" ]]; then
-                local words=$(wc -l < "$file" 2>/dev/null || echo "0")
-                local size=$(ls -lh "$file" | awk '{print $5}')
-                echo "  $file: $words words ($size)"
-                file_count=$((file_count + 1))
-                total_words=$((total_words + words))
-              fi
-            done
-            # Count files for summary
-            file_count=$(echo "$split_files" | wc -l)
-            echo "Total: split into $file_count files"
-          else
-            echo "No split files were created"
-          fi
+
+        local file_count=0
+        local part="" words="" size=""
+        local parts_listing
+        parts_listing=$(_wordlist_parts)
+
+        if [[ -n "$parts_listing" ]]; then
+          echo "Processed wordlist split into files:"
+          # Fed by a here-string rather than a pipe: a piped while loop runs in
+          # a subshell, so the counters were discarded.
+          while IFS= read -r part; do
+            [[ -n "$part" ]] || continue
+            words=$(wc -l < "$part" 2>/dev/null | tr -d '[:space:]')
+            size=$(ls -lh "$part" | awk '{print $5}')
+            echo "  $part: $words words ($size)"
+            file_count=$((file_count + 1))
+          done <<< "$parts_listing"
+          echo "Total: split into $file_count files"
         else
-          echo "Error: Failed to process wordlist"
-          return $exit_code
+          echo "No split files were created"
         fi
       else
         # Single output file
         eval "$processing_pipeline" > "$output_file"
-        local exit_code=$?
-        if [[ $exit_code -eq 0 ]]; then
-          local word_count
-          word_count=$(wc -l < "$output_file")
-          echo "Processed wordlist saved to '$output_file' ($word_count words)"
-        else
+        exit_code=$?
+        if [[ $exit_code -ne 0 ]]; then
           echo "Error: Failed to process wordlist"
+          unset -f _wordlist_parts
           return $exit_code
         fi
+        local word_count
+        word_count=$(wc -l < "$output_file" | tr -d '[:space:]')
+        echo "Processed wordlist saved to '$output_file' ($word_count words)"
       fi
+
+      unset -f _wordlist_parts
+      return 0
     else
       eval "$processing_pipeline"
     fi

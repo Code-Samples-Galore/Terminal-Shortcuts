@@ -149,26 +149,30 @@ if ! should_exclude "jsonpp" 2>/dev/null; then
       fi
     fi
     
-    # Function to get input data
-    local get_input_cmd
-    if [[ -n "$input_file" && "$input_file" != "-" ]]; then
-      get_input_cmd="cat \"$input_file\""
-    else
-      get_input_cmd="cat"
-    fi
-    
+    # Function to get input data. A function rather than an eval'd string, so
+    # filenames containing quotes or $() cannot break or inject.
+    _jsonpp_input() {
+      if [[ -n "$input_file" && "$input_file" != "-" ]]; then
+        cat -- "$input_file"
+      else
+        cat
+      fi
+    }
+
     # Try different tools for JSON formatting with color support
     if [[ "$use_color" == "yes" ]]; then
       # First try: jq (best option for colored JSON)
       if command -v jq >/dev/null 2>&1; then
-        eval "$get_input_cmd" | jq '.'
-        return $?
+        _jsonpp_input | jq '.'
+        local jq_status=$?
+        unset -f _jsonpp_input
+        return $jq_status
       fi
-      
+
       # Second try: Python with pygments (good colors)
       if command -v python3 >/dev/null 2>&1; then
         local python_color_result
-        python_color_result=$(eval "$get_input_cmd" | python3 -c "
+        python_color_result=$(_jsonpp_input | python3 -c "
 import json
 import sys
 try:
@@ -194,19 +198,33 @@ except Exception as e:
         
         if [[ $? -eq 0 && -n "$python_color_result" ]]; then
           echo "$python_color_result"
+          unset -f _jsonpp_input
           return 0
         fi
       fi
-      
+
       # If colored options failed, fall through to plain formatting
       echo "Note: Colored output not available, using plain formatting" >&2
     fi
-    
-    # Fallback: Plain Python json.tool
-    if [[ -n "$input_file" && "$input_file" != "-" ]]; then
-      python3 -m json.tool "$input_file"
+
+    unset -f _jsonpp_input
+
+    # Fallback: plain formatting with jq or Python
+    if command -v jq >/dev/null 2>&1; then
+      if [[ -n "$input_file" && "$input_file" != "-" ]]; then
+        jq -M '.' "$input_file"
+      else
+        jq -M '.'
+      fi
+    elif command -v python3 >/dev/null 2>&1; then
+      if [[ -n "$input_file" && "$input_file" != "-" ]]; then
+        python3 -m json.tool "$input_file"
+      else
+        python3 -m json.tool
+      fi
     else
-      python3 -m json.tool
+      echo "Error: jq or python3 is required to format JSON" >&2
+      return 1
     fi
   }
 fi
@@ -229,12 +247,23 @@ if ! should_exclude "randstr" 2>/dev/null; then
     fi
     
     local length=${1:-16}
-    if ! [[ "$length" =~ ^[0-9]+$ ]]; then
+    if ! [[ "$length" =~ ^[0-9]+$ ]] || [[ "$length" -lt 1 ]]; then
       echo "Error: Length must be a positive integer"
       echo "Usage: randstr [length]"
       return 1
     fi
-    openssl rand -base64 32 | head -c "$length" && echo
+
+    if ! command -v openssl >/dev/null 2>&1; then
+      echo "Error: openssl is required but not installed"
+      return 1
+    fi
+
+    # Request enough entropy for the requested length: base64 of 32 bytes is
+    # only 44 characters, so anything longer used to be silently truncated.
+    # 3 raw bytes yield 4 base64 characters; +2 rounds the division up.
+    local bytes=$(( (length * 3 + 3) / 4 + 2 ))
+    openssl rand -base64 "$bytes" | tr -d '\n' | head -c "$length"
+    echo
   }
 fi
 
@@ -247,7 +276,9 @@ if ! should_exclude "calc" 2>/dev/null; then
       echo "Perform mathematical calculations with floating point precision."
       echo "Supports standard arithmetic operations and functions."
       echo ""
-      echo "Operators: +, -, *, /, ^, %, sqrt(), sin(), cos(), log(), etc."
+      echo "Operators: +, -, *, /, ^, %"
+      echo "Functions: sqrt(), sin(), cos(), tan(), atan(), ln(), log(), exp()"
+      echo "Constants: pi, e"
       echo ""
       echo "Examples:"
       echo "  calc \"2 + 2\"                # Basic addition: 4"
@@ -255,10 +286,29 @@ if ! should_exclude "calc" 2>/dev/null; then
       echo "  calc \"sqrt(16)\"             # Square root: 4"
       echo "  calc \"10 / 3\"               # Division with decimals"
       echo "  calc \"2^10\"                 # Powers: 1024"
-      echo "  calc \"sin(3.14159/2)\"       # Trigonometry"
+      echo "  calc \"sin(pi/2)\"            # Trigonometry: 1"
+      echo "  calc \"log(100)\"             # Base-10 logarithm: 2"
       return 1
     fi
-    echo "scale=3; $*" | bc -l
+
+    if ! command -v bc >/dev/null 2>&1; then
+      echo "Error: bc is required but not installed"
+      return 1
+    fi
+
+    # bc -l only ships s/c/a/l/e; define the names advertised above so the
+    # documented examples actually evaluate.
+    printf '%s\n' \
+      'define sin(x) { return s(x) }' \
+      'define cos(x) { return c(x) }' \
+      'define tan(x) { return s(x)/c(x) }' \
+      'define atan(x) { return a(x) }' \
+      'define ln(x) { return l(x) }' \
+      'define log(x) { return l(x)/l(10) }' \
+      'define exp(x) { return e(x) }' \
+      'pi = 4*a(1)' \
+      'e = e(1)' \
+      "scale=3; $*" | bc -l
   }
 fi
 
@@ -284,8 +334,17 @@ if ! should_exclude "log2" 2>/dev/null; then
       echo "Error: Input must be a positive integer"
       return 1
     fi
-    
-    echo "scale=6; l($1)/l(2)" | bc -l
+
+    if [[ "$1" -eq 0 ]]; then
+      echo "Error: log2 is undefined for 0"
+      return 1
+    fi
+
+    # Computed at high precision then rounded, otherwise exact powers of two
+    # come out as 10.000001 instead of 10.
+    local raw
+    raw=$(echo "scale=20; l($1)/l(2)" | bc -l)
+    printf '%.6f\n' "$raw"
   }
 fi
 
@@ -350,62 +409,71 @@ if ! should_exclude "strconv" 2>/dev/null; then
     fi
     
     local format="$1"
-    local input_source
-    
-    if [[ "$2" == "-" ]]; then
-      input_source="cat"
-    elif [[ -f "$2" ]]; then
-      input_source="cat \"$2\""
-    else
-      input_source="echo -n \"$2\""
-    fi
-    
+    local strconv_src="$2"
+
+    # A function rather than an eval'd command string: the old version broke
+    # (and could execute arbitrary code) on input containing quotes or $().
+    _strconv_input() {
+      if [[ "$strconv_src" == "-" ]]; then
+        cat
+      elif [[ -f "$strconv_src" ]]; then
+        cat -- "$strconv_src"
+      else
+        printf '%s' "$strconv_src"
+      fi
+    }
+
     case "$format" in
       hex|hex-encode)
-        eval "$input_source" | xxd -p | tr -d '\n'
+        if command -v xxd >/dev/null 2>&1; then
+          _strconv_input | xxd -p | tr -d '\n'
+        else
+          _strconv_input | od -An -tx1 | tr -d ' \n'
+        fi
         echo
         ;;
       hex-decode|hex-d)
-        eval "$input_source" | xxd -r -p
+        if ! command -v xxd >/dev/null 2>&1; then
+          echo "Error: 'xxd' is required for hex decoding (install vim-common or xxd)"
+          unset -f _strconv_input
+          return 1
+        fi
+        _strconv_input | xxd -r -p
         echo
         ;;
       base64|b64)
-        eval "$input_source" | base64
+        _strconv_input | base64
         ;;
       base64-decode|b64-d)
-        eval "$input_source" | base64 -d
+        _strconv_input | base64 -d
         echo
         ;;
       bin|binary)
         local input_data
-        if [[ "$2" == "-" ]]; then
-          input_data=$(cat)
-        elif [[ -f "$2" ]]; then
-          input_data=$(cat "$2")
-        else
-          input_data="$2"
-        fi
-        
+        input_data=$(_strconv_input)
+
         # Check if input is a number
         if [[ "$input_data" =~ ^[0-9]+$ ]]; then
           # Convert integer to binary
           echo "obase=2; $input_data" | bc
         else
-          # Convert string to binary (each character) using od for reliable character processing
-          echo -n "$input_data" | od -An -tu1 | tr -s ' ' '\n' | while read -r byte; do
-            if [[ -n "$byte" && "$byte" != "0" ]]; then
-              echo "obase=2; $byte" | bc
+          # Convert string to binary, one zero-padded byte per character
+          printf '%s' "$input_data" | od -An -tu1 -v | tr -s ' ' '\n' | while read -r byte; do
+            if [[ -n "$byte" ]]; then
+              printf '%08d ' "$(echo "obase=2; $byte" | bc)"
             fi
-          done | tr '\n' ' '
+          done
           echo
         fi
         ;;
       *)
         echo "Error: Unsupported format '$format'"
         echo "Supported formats: hex, hex-decode, base64, base64-decode, bin"
+        unset -f _strconv_input
         return 1
         ;;
     esac
+    unset -f _strconv_input
   }
 fi
 
@@ -453,105 +521,68 @@ if ! should_exclude "hashit" 2>/dev/null; then
     local hash_type="$1"
     local input="$2"
     
-    # Function to get input data
+    # Function to get input data. Everything is fed through stdin so that
+    # filenames containing quotes or spaces cannot break (or inject into) the
+    # command line, which the previous eval-based version allowed.
     _get_input_data() {
       if [[ "$input" == "-" ]]; then
         cat
       elif [[ -f "$input" ]]; then
-        cat "$input"
+        cat -- "$input"
       else
-        echo -n "$input"
+        printf '%s' "$input"
       fi
     }
-    
-    # Function to handle simple hash algorithms
+
+    # Run the first available hash command; each argument is a full command
+    # line, e.g. "shasum -a 256".
     _hash_input() {
-      local hash_cmd="$1"
-      if [[ "$input" == "-" ]]; then
-        eval "$hash_cmd" | cut -d' ' -f1
-      elif [[ -f "$input" ]]; then
-        eval "$hash_cmd \"$input\"" | cut -d' ' -f1
-      else
-        echo -n "$input" | eval "$hash_cmd" | cut -d' ' -f1
-      fi
+      local candidate
+      local -a hash_cmd
+      for candidate in "$@"; do
+        # Explicit split: zsh does not word-split unquoted scalars
+        if [ -n "$ZSH_VERSION" ]; then
+          hash_cmd=(${=candidate})
+        else
+          # shellcheck disable=SC2206
+          hash_cmd=($candidate)
+        fi
+        if command -v "${hash_cmd[@]:0:1}" >/dev/null 2>&1; then
+          _get_input_data | "${hash_cmd[@]}" | cut -d' ' -f1
+          return $?
+        fi
+      done
+      echo "Error: none of the required tools are available: $*"
+      return 1
     }
-    
+
     case "$hash_type" in
       md5)
-        _hash_input "md5sum"
+        _hash_input "md5sum" "md5 -q" "openssl md5 -r"
         ;;
       sha1)
-        _hash_input "sha1sum"
+        _hash_input "sha1sum" "shasum -a 1"
         ;;
       sha224)
-        if command -v sha224sum >/dev/null 2>&1; then
-          _hash_input "sha224sum"
-        elif command -v shasum >/dev/null 2>&1; then
-          # macOS fallback
-          if [[ "$input" == "-" ]]; then
-            shasum -a 224 | cut -d' ' -f1
-          elif [[ -f "$input" ]]; then
-            shasum -a 224 "$input" | cut -d' ' -f1
-          else
-            echo -n "$input" | shasum -a 224 | cut -d' ' -f1
-          fi
-        else
-          echo "Error: SHA224 not available on this system"
-          return 1
-        fi
+        _hash_input "sha224sum" "shasum -a 224"
         ;;
       sha256)
-        _hash_input "sha256sum"
+        _hash_input "sha256sum" "shasum -a 256"
         ;;
       sha384)
-        if command -v sha384sum >/dev/null 2>&1; then
-          _hash_input "sha384sum"
-        elif command -v shasum >/dev/null 2>&1; then
-          # macOS fallback
-          if [[ "$input" == "-" ]]; then
-            shasum -a 384 | cut -d' ' -f1
-          elif [[ -f "$input" ]]; then
-            shasum -a 384 "$input" | cut -d' ' -f1
-          else
-            echo -n "$input" | shasum -a 384 | cut -d' ' -f1
-          fi
-        else
-          echo "Error: SHA384 not available on this system"
-          return 1
-        fi
+        _hash_input "sha384sum" "shasum -a 384"
         ;;
       sha512)
-        _hash_input "sha512sum"
+        _hash_input "sha512sum" "shasum -a 512"
         ;;
       blake2)
-        if command -v b2sum >/dev/null 2>&1; then
-          _hash_input "b2sum"
-        else
-          echo "Error: BLAKE2 (b2sum) not available. Install coreutils or blake2 package."
-          return 1
-        fi
+        _hash_input "b2sum"
         ;;
       sha3)
-        if command -v sha3sum >/dev/null 2>&1; then
-          _hash_input "sha3sum"
-        else
-          echo "Error: SHA-3 not available. Install sha3sum package if available."
-          return 1
-        fi
+        _hash_input "sha3sum"
         ;;
       crc32)
-        if command -v cksum >/dev/null 2>&1; then
-          if [[ "$input" == "-" ]]; then
-            cksum | cut -d' ' -f1
-          elif [[ -f "$input" ]]; then
-            cksum "$input" | cut -d' ' -f1
-          else
-            echo -n "$input" | cksum | cut -d' ' -f1
-          fi
-        else
-          echo "Error: CRC32 (cksum) not available on this system"
-          return 1
-        fi
+        _hash_input "cksum"
         ;;
       bcrypt)
         local password_data
@@ -666,9 +697,13 @@ print(hashed)
         echo "Error: Unsupported hash type '$hash_type'"
         echo "Simple hashes: md5, sha1, sha224, sha256, sha384, sha512, blake2, sha3, crc32"
         echo "Password hashes: bcrypt, argon2, sha256crypt, sha512crypt"
+        unset -f _get_input_data _hash_input
         return 1
         ;;
     esac
+    local hash_status=$?
+    unset -f _get_input_data _hash_input
+    return $hash_status
   }
 fi
 
@@ -716,32 +751,41 @@ if ! should_exclude "replace" 2>/dev/null; then
       create_backup=true
     fi
     
+    # Escape every character sed would treat as special, so matching really is
+    # literal as documented. Escaping only '/' left ".", "*", "[", "^" and "$"
+    # active in the pattern and "&" active in the replacement.
+    local search_esc replacement_esc
+    search_esc=$(printf '%s' "$search" | sed 's|[][\.*^$/]|\\&|g')
+    replacement_esc=$(printf '%s' "$replacement" | sed 's|[\\/&]|\\&|g')
+    local sed_expr="s/${search_esc}/${replacement_esc}/g"
+
     # Check if input is stdin
     if [[ "$input" == "-" ]]; then
       # Replace in stdin and output result
-      sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
+      sed "$sed_expr"
     # Check if input is a file
     elif [[ -f "$input" ]]; then
       # Create backup if requested
       if [[ "$create_backup" == true ]]; then
         local backup_name="${input}.bak.$(date +%Y%m%d_%H%M%S)"
-        cp "$input" "$backup_name"
+        command cp "$input" "$backup_name" || return 1
         echo "Backup created: $backup_name"
       fi
-      
+
       # Replace in file using sed (cross-platform compatible)
       if command -v gsed >/dev/null 2>&1; then
         # Use GNU sed if available (macOS with homebrew)
-        gsed -i "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input"
+        gsed -i "$sed_expr" "$input" || return 1
       else
-        # Use system sed
-        sed -i.tmp "s/${search//\//\\/}/${replacement//\//\\/}/g" "$input" && rm "${input}.tmp"
+        # -i.tmp keeps BSD sed happy; the temp copy is removed afterwards
+        sed -i.tmp "$sed_expr" "$input" || return 1
+        command rm -f "${input}.tmp"
       fi
-      
+
       echo "Replaced '${search}' with '${replacement}' in file: $input"
     else
       # Treat as string and output result
-      echo "$input" | sed "s/${search//\//\\/}/${replacement//\//\\/}/g"
+      printf '%s\n' "$input" | sed "$sed_expr"
     fi
   }
 fi
@@ -766,7 +810,7 @@ if ! should_exclude "entropy" 2>/dev/null; then
       echo "  entropy \"hello world\"          # Analyze text entropy"
       echo "  entropy \"aaaaaaaaaa\"           # Low entropy (repetitive)"
       echo "  entropy document.txt           # Analyze file entropy"
-      echo "  entropy /dev/random            # Very high entropy"
+      echo "  head -c 1024 /dev/urandom | entropy -  # Very high entropy"
       echo "  echo \"password123\" | entropy -  # Analyze via stdin"
       echo "  entropy encrypted.bin          # Check encryption quality"
       echo ""
@@ -775,18 +819,20 @@ if ! should_exclude "entropy" 2>/dev/null; then
     fi
     
     local input="$1"
-    local data
-    
-    # Check if input is stdin
-    if [[ "$input" == "-" ]]; then
-      data=$(cat)
-    # Check if input is a file
-    elif [[ -f "$input" ]]; then
-      data=$(cat "$input")
-    else
-      data="$input"
-    fi
-    
+
+    # Stream the input rather than holding it in a variable: a variable cannot
+    # hold NUL bytes and command substitution strips trailing newlines, both of
+    # which skewed the result for files and binary data.
+    _entropy_stream() {
+      if [[ "$input" == "-" ]]; then
+        cat
+      elif [[ -f "$input" ]]; then
+        cat -- "$input"
+      else
+        printf '%s' "$input"
+      fi
+    }
+
     # Print entropy context information
     echo "=== ENTROPY INFORMATION ==="
     echo "Entropy Range: 0.0 (completely predictable) to 8.0 (maximum randomness)"
@@ -794,29 +840,28 @@ if ! should_exclude "entropy" 2>/dev/null; then
     echo "Random Data:   6.0 - 8.0 (cryptographic quality randomness)"
     echo ""
     
-    # Calculate Shannon entropy using awk with proper locale handling
-    local entropy_value=$(echo -n "$data" | LC_NUMERIC=C awk '
-    BEGIN { 
-      for (i = 0; i < 256; i++) freq[i] = 0 
-    }
+    # Calculate Shannon entropy over raw bytes. Feeding od's byte values into
+    # awk counts newlines and non-ASCII bytes, which per-line character
+    # counting silently dropped.
+    local entropy_value
+    entropy_value=$(_entropy_stream | od -An -tu1 -v | LC_NUMERIC=C awk '
     {
-      for (i = 1; i <= length($0); i++) {
-        char = substr($0, i, 1)
-        freq[sprintf("%c", char)]++
+      for (i = 1; i <= NF; i++) {
+        freq[$i]++
         total++
       }
     }
     END {
+      if (total == 0) { printf "0.000000"; exit }
       entropy = 0
-      for (char in freq) {
-        if (freq[char] > 0) {
-          p = freq[char] / total
-          entropy -= p * log(p) / log(2)
-        }
+      for (byte in freq) {
+        p = freq[byte] / total
+        entropy -= p * log(p) / log(2)
       }
       printf "%.6f", entropy
     }')
-    
+    unset -f _entropy_stream
+
     echo "Calculated Entropy: $entropy_value"
     
     # Provide interpretation using awk for floating point comparison (bc-independent)
@@ -884,7 +929,39 @@ if ! should_exclude "numconv" 2>/dev/null; then
     local target_base="${2:-dec}"
     local source_base="${3:-auto}"
     local target_base_num
-    
+
+    # Render a decimal value in the target base. For bases above 16 bc emits
+    # space-separated decimal digit groups ("27 28"), which are mapped back to
+    # alphanumeric digits here so base 36 prints RS rather than " 27 28".
+    _numconv_render() {
+      local dec="$1"
+      local base="$2"
+      local raw
+      # BC_LINE_LENGTH=0 stops bc wrapping long results with a backslash
+      raw=$(BC_LINE_LENGTH=0 bc <<< "obase=$base; $dec" | tr -d '\\\n')
+
+      if [[ "$base" -le 16 ]]; then
+        printf '%s\n' "$raw" | tr 'a-f' 'A-F'
+        return 0
+      fi
+
+      local digit_set="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      local out="" group
+      local -a groups
+      # Explicit split: zsh does not word-split unquoted parameters
+      if [ -n "$ZSH_VERSION" ]; then
+        groups=(${=raw})
+      else
+        # shellcheck disable=SC2206
+        groups=($raw)
+      fi
+      for group in "${groups[@]}"; do
+        # 10# forces base-10 so zero-padded groups such as 09 are not octal
+        out="${out}${digit_set:$((10#$group)):1}"
+      done
+      printf '%s\n' "$out"
+    }
+
     # Normalize target base
     case "$target_base" in
       bin|binary|2)     target_base_num=2 ;;
@@ -924,9 +1001,9 @@ if ! should_exclude "numconv" 2>/dev/null; then
             src_base=16
             num="${num#0[xX]}"  # Remove 0x or 0X prefix
             num=$(echo "$num" | tr '[:lower:]' '[:upper:]')  # Convert to uppercase for bc
-          elif [[ "$num" =~ ^0b[01]+$ ]]; then
+          elif [[ "$num" =~ ^0[bB][01]+$ ]]; then
             src_base=2
-            num="${num#0b}"  # Remove 0b prefix
+            num="${num#0[bB]}"  # Remove 0b or 0B prefix
           elif [[ "$num" =~ ^0[0-7]+$ ]] && [[ "$num" != "0" ]]; then
             src_base=8
             num="${num#0}"   # Remove leading 0
@@ -962,7 +1039,8 @@ if ! should_exclude "numconv" 2>/dev/null; then
       local start_exit_code=$?
       end_decimal=$(_convert_to_decimal "$range_end" "$source_base")
       local end_exit_code=$?
-      
+      unset -f _convert_to_decimal
+
       if [[ $start_exit_code -ne 0 || $end_exit_code -ne 0 ]]; then
         echo "Error: Failed to convert range bounds to decimal"
         echo "  Start: '$range_start' -> '$start_decimal'"
@@ -999,15 +1077,12 @@ if ! should_exclude "numconv" 2>/dev/null; then
         if [[ "$target_base_num" == "10" ]]; then
           result="$i"
         else
-          # Capture bc output cleanly without intermediate messages
-          result=$(echo "obase=$target_base_num; $i" | bc)
-          if [[ "$target_base_num" == "16" ]]; then
-            result=$(echo "$result" | tr 'a-f' 'A-F')  # Uppercase hex
-          fi
+          result=$(_numconv_render "$i" "$target_base_num")
         fi
         printf "%3d -> %s\n" "$i" "$result"
       done
-      
+
+      unset -f _numconv_render
       return 0
     fi
     
@@ -1018,11 +1093,11 @@ if ! should_exclude "numconv" 2>/dev/null; then
     if [[ "$source_base" == "auto" ]]; then
       if [[ "$input" =~ ^0[xX][0-9a-fA-F]+$ ]]; then
         source_base=16
-        input="${input#0x}"  # Remove 0x prefix
+        input="${input#0[xX]}"  # Remove 0x or 0X prefix
         input=$(echo "$input" | tr '[:lower:]' '[:upper:]')  # Convert to uppercase for bc
-      elif [[ "$input" =~ ^0b[01]+$ ]]; then
+      elif [[ "$input" =~ ^0[bB][01]+$ ]]; then
         source_base=2
-        input="${input#0b}"  # Remove 0b prefix
+        input="${input#0[bB]}"  # Remove 0b or 0B prefix
       elif [[ "$input" =~ ^0[0-7]+$ ]]; then
         source_base=8
         input="${input#0}"   # Remove leading 0
@@ -1062,13 +1137,9 @@ if ! should_exclude "numconv" 2>/dev/null; then
     if [[ "$target_base_num" == "10" ]]; then
       echo "$decimal_value"
     else
-      local result=$(echo "obase=$target_base_num; $decimal_value" | bc)
-      if [[ "$target_base_num" == "16" ]]; then
-        echo "$result" | tr 'a-f' 'A-F'  # Uppercase hex
-      else
-        echo "$result"
-      fi
+      _numconv_render "$decimal_value" "$target_base_num"
     fi
+    unset -f _numconv_render
   }
 fi
 
@@ -1107,7 +1178,8 @@ if ! should_exclude "unitconv" 2>/dev/null; then
       echo "  unitconv 32 f c                # Convert 32°F to Celsius: 0"
       echo "  unitconv 1 km mi               # Convert 1 km to miles: 0.621371"
       echo "  unitconv 1000 g kg             # Convert 1000g to kg: 1"
-      echo "  unitconv 1 gb mb               # Convert 1 GB to MB: 1024"
+      echo "  unitconv 1 gb mb               # Convert 1 GB to MB: 1000 (decimal units)"
+      echo "  unitconv 1 gib mib             # Convert 1 GiB to MiB: 1024 (binary units)"
       echo "  unitconv 24 h min              # Convert 24 hours to minutes: 1440"
       echo "  unitconv 1 m2 ft2              # Convert 1 m² to ft²: 10.7639"
       echo "  unitconv 1 l ml                # Convert 1 liter to ml: 1000"
@@ -1347,8 +1419,20 @@ if ! should_exclude "unitconv" 2>/dev/null; then
           ;;
       esac
       
-      # Clean up result (remove trailing zeros and unnecessary decimal point)
-      result=$(echo "$result" | sed 's/\.000000$//' | sed 's/\([0-9]\)000000$/\1/' | sed 's/0*$//' | sed 's/\.$//')
+      # Trim trailing zeros in the fractional part only. Stripping them
+      # unconditionally turned 1000 into 1 and 10 into 1.
+      case "$result" in
+        *.*)
+          result="${result%"${result##*[!0]}"}"   # drop trailing zeros
+          result="${result%.}"                    # drop a bare trailing dot
+          ;;
+      esac
+      # Normalise a bare fractional value such as .5 into 0.5
+      case "$result" in
+        .*)  result="0$result" ;;
+        -.*) result="-0${result#-}" ;;
+      esac
+      [[ -z "$result" ]] && result=0
       echo "$result"
     }
     
@@ -1362,21 +1446,31 @@ if ! should_exclude "unitconv" 2>/dev/null; then
     local time_units="ms s min h d w mo y"
     local data_units="b kb mb gb tb pb kib mib gib tib pib"
     
-    if [[ " $length_units " =~ " $from_unit " ]] && [[ " $length_units " =~ " $to_unit " ]]; then
+    # A case glob is used instead of [[ =~ ]]: bash treats a quoted right-hand
+    # side as a literal string while zsh always treats it as a regex.
+    _in_list() {
+      case " $1 " in
+        *" $2 "*) return 0 ;;
+      esac
+      return 1
+    }
+
+    if _in_list "$length_units" "$from_unit" && _in_list "$length_units" "$to_unit"; then
       category="length"
-    elif [[ " $weight_units " =~ " $from_unit " ]] && [[ " $weight_units " =~ " $to_unit " ]]; then
+    elif _in_list "$weight_units" "$from_unit" && _in_list "$weight_units" "$to_unit"; then
       category="weight"
-    elif [[ " $temp_units " =~ " $from_unit " ]] && [[ " $temp_units " =~ " $to_unit " ]]; then
+    elif _in_list "$temp_units" "$from_unit" && _in_list "$temp_units" "$to_unit"; then
       category="temperature"
-    elif [[ " $volume_units " =~ " $from_unit " ]] && [[ " $volume_units " =~ " $to_unit " ]]; then
+    elif _in_list "$volume_units" "$from_unit" && _in_list "$volume_units" "$to_unit"; then
       category="volume"
-    elif [[ " $area_units " =~ " $from_unit " ]] && [[ " $area_units " =~ " $to_unit " ]]; then
+    elif _in_list "$area_units" "$from_unit" && _in_list "$area_units" "$to_unit"; then
       category="area"
-    elif [[ " $time_units " =~ " $from_unit " ]] && [[ " $time_units " =~ " $to_unit " ]]; then
+    elif _in_list "$time_units" "$from_unit" && _in_list "$time_units" "$to_unit"; then
       category="time"
-    elif [[ " $data_units " =~ " $from_unit " ]] && [[ " $data_units " =~ " $to_unit " ]]; then
+    elif _in_list "$data_units" "$from_unit" && _in_list "$data_units" "$to_unit"; then
       category="data"
     else
+      unset -f _in_list
       echo "Error: Cannot convert between '$from_unit' and '$to_unit' (different categories or unknown units)"
       echo ""
       echo "Supported categories:"
@@ -1389,12 +1483,14 @@ if ! should_exclude "unitconv" 2>/dev/null; then
       echo "  Data: $data_units"
       return 1
     fi
-    
+    unset -f _in_list
+
     # Perform conversion
     local result
     result=$(_convert_unit "$value" "$from_unit" "$to_unit" "$category")
     local conversion_status=$?
-    
+    unset -f _convert_unit
+
     if [[ $conversion_status -eq 0 ]]; then
       echo "$result"
     else
@@ -1442,10 +1538,13 @@ if ! should_exclude "apitest" 2>/dev/null; then
     local method="${2:-GET}"
     local data="$3"
     
+    # Uppercase via tr: ${var^^} is a bash-only expansion and is a fatal
+    # "bad substitution" in zsh.
+    method=$(printf '%s' "$method" | tr '[:lower:]' '[:upper:]')
+
     # Validate HTTP method
-    case "${method^^}" in
+    case "$method" in
       GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)
-        method="${method^^}"
         ;;
       *)
         echo "Error: Unsupported HTTP method '$method'"
@@ -1619,10 +1718,10 @@ if ! should_exclude "optimizeassets" 2>/dev/null; then
         fi
         
         echo "✅ Minified: $(basename "$file") -> $(basename "$minified") (${percent}% reduction)"
-        ((js_count++))
+        js_count=$((js_count + 1))
       else
         echo "❌ Failed to minify: $file"
-        ((js_errors++))
+        js_errors=$((js_errors + 1))
       fi
     done < <(find "$target_dir" -name "*.js" -not -name "*.min.js" -not -path "*/node_modules/*" -print0)
     
@@ -1650,10 +1749,10 @@ if ! should_exclude "optimizeassets" 2>/dev/null; then
         fi
         
         echo "✅ Minified: $(basename "$file") -> $(basename "$minified") (${percent}% reduction)"
-        ((css_count++))
+        css_count=$((css_count + 1))
       else
         echo "❌ Failed to minify: $file"
-        ((css_errors++))
+        css_errors=$((css_errors + 1))
       fi
     done < <(find "$target_dir" -name "*.css" -not -name "*.min.css" -not -path "*/node_modules/*" -print0)
     

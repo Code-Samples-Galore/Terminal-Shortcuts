@@ -44,16 +44,12 @@ cleanup_shortcut "mv"
 cleanup_shortcut "rm"
 cleanup_shortcut "grep"
 cleanup_shortcut "tree"
-cleanup_shortcut "chown"
-cleanup_shortcut "chmod"
-cleanup_shortcut "chgrp"
 cleanup_shortcut "extract"
 cleanup_shortcut "compress"
 cleanup_shortcut "mkcd"
 cleanup_shortcut "ff"
 cleanup_shortcut "backup"
 cleanup_shortcut "watchfile"
-cleanup_shortcut "watchlog"
 cleanup_shortcut "search"
 cleanup_shortcut "watchdir"
 cleanup_shortcut "less"
@@ -409,14 +405,17 @@ if ! should_exclude "compress" 2>/dev/null; then
         fi
         ;;
       *.gz)
+        # ${files[@]:0:1} is the first element in both bash and zsh;
+        # ${files[0]} is empty in zsh, whose arrays start at index 1.
+        local first_file="${files[@]:0:1}"
         if [[ -n "$split_size" ]]; then
           echo "Warning: Volume splitting not supported for .gz format"
         fi
         if [[ ${#files[@]} -gt 1 ]]; then
-          echo "Warning: gzip can only compress single files. Using first file: ${files[0]}"
+          echo "Warning: gzip can only compress single files. Using first file: $first_file"
         fi
-        if [[ -f "${files[0]}" ]]; then
-          gzip -c "${files[0]}" > "$archive_name"
+        if [[ -f "$first_file" ]]; then
+          gzip -c "$first_file" > "$archive_name"
           echo "Created gzip compressed file: $archive_name"
           # Calculate and display checksum
           if command -v hashit >/dev/null 2>&1; then
@@ -424,19 +423,20 @@ if ! should_exclude "compress" 2>/dev/null; then
             hashit sha256 "$archive_name"
           fi
         else
-          echo "Error: '${files[0]}' is not a regular file"
+          echo "Error: '$first_file' is not a regular file"
           return 1
         fi
         ;;
       *.bz2)
+        local first_file="${files[@]:0:1}"
         if [[ -n "$split_size" ]]; then
           echo "Warning: Volume splitting not supported for .bz2 format"
         fi
         if [[ ${#files[@]} -gt 1 ]]; then
-          echo "Warning: bzip2 can only compress single files. Using first file: ${files[0]}"
+          echo "Warning: bzip2 can only compress single files. Using first file: $first_file"
         fi
-        if [[ -f "${files[0]}" ]]; then
-          bzip2 -c "${files[0]}" > "$archive_name"
+        if [[ -f "$first_file" ]]; then
+          bzip2 -c "$first_file" > "$archive_name"
           echo "Created bzip2 compressed file: $archive_name"
           # Calculate and display checksum
           if command -v hashit >/dev/null 2>&1; then
@@ -444,7 +444,7 @@ if ! should_exclude "compress" 2>/dev/null; then
             hashit sha256 "$archive_name"
           fi
         else
-          echo "Error: '${files[0]}' is not a regular file"
+          echo "Error: '$first_file' is not a regular file"
           return 1
         fi
         ;;
@@ -471,7 +471,9 @@ if ! should_exclude "mkcd" 2>/dev/null; then
       echo "  mkcd \"My Project\"          # Create directory with spaces in name"
       return 1
     fi
-    mkdir -p "$1" && cd "$1"
+    # 'command' bypasses the mkdir alias defined above, which would otherwise
+    # be expanded into this function body when the file is sourced.
+    command mkdir -p "$1" && cd "$1"
   }
 fi
 
@@ -491,7 +493,12 @@ if ! should_exclude "ff" 2>/dev/null; then
       echo "  ff \"*.txt\"                 # Find all text files"
       return 1
     fi
-    find . -type f -name "*$1*" 2>/dev/null
+    # A pattern that already contains glob characters is used as-is, so
+    # ff "*.py" matches only .py files rather than also matching .pyc.
+    case "$1" in
+      *[*?[]*) find . -type f -name "$1" 2>/dev/null ;;
+      *)       find . -type f -name "*$1*" 2>/dev/null ;;
+    esac
   }
 fi
 
@@ -567,66 +574,29 @@ if ! should_exclude "search" 2>/dev/null; then
           include_gzip=true
           shift
           ;;
-        -ri|-ir)
-          recursive=true
-          ignore_case=true
+        -[riEz]*)
+          # Any bundle of short flags, e.g. -ri, -rEz, -zEir.
+          local flags="${1#-}"
+          local i=1
+          while [[ $i -le ${#flags} ]]; do
+            case "${flags:$((i - 1)):1}" in
+              r) recursive=true ;;
+              i) ignore_case=true ;;
+              E) extended_regex=true ;;
+              z) include_gzip=true ;;
+              *)
+                echo "Error: Unknown option '-${flags:$((i - 1)):1}' in '$1'"
+                return 1
+                ;;
+            esac
+            i=$((i + 1))
+          done
           shift
           ;;
-        -rE|-Er)
-          recursive=true
-          extended_regex=true
-          shift
-          ;;
-        -rz|-zr)
-          recursive=true
-          include_gzip=true
-          shift
-          ;;
-        -iE|-Ei)
-          ignore_case=true
-          extended_regex=true
-          shift
-          ;;
-        -iz|-zi)
-          ignore_case=true
-          include_gzip=true
-          shift
-          ;;
-        -Ez|-zE)
-          extended_regex=true
-          include_gzip=true
-          shift
-          ;;
-        -riE|-rEi|-irE|-iEr|-Eri|-Eir)
-          recursive=true
-          ignore_case=true
-          extended_regex=true
-          shift
-          ;;
-        -riz|-rzi|-irz|-izr|-zri|-zir)
-          recursive=true
-          ignore_case=true
-          include_gzip=true
-          shift
-          ;;
-        -rEz|-rZe|-Erz|-Ezr|-zrE|-zEr)
-          recursive=true
-          extended_regex=true
-          include_gzip=true
-          shift
-          ;;
-        -iEz|-iZe|-Eiz|-Ezi|-ziE|-zEi)
-          ignore_case=true
-          extended_regex=true
-          include_gzip=true
-          shift
-          ;;
-        -riEz|-riZe|-rEiz|-rEzi|-irEz|-irZe|-iErz|-iEzr|-Eriz|-Erzi|-Eirz|-Eizr|-zriE|-zrEi|-zirE|-ziEr|-zEri|-zEir)
-          recursive=true
-          ignore_case=true
-          extended_regex=true
-          include_gzip=true
-          shift
+        --*|-*)
+          echo "Error: Unknown option '$1'"
+          echo "Use 'search --help' for usage information"
+          return 1
           ;;
         *)
           if [[ -z "$pattern" ]]; then
@@ -658,25 +628,23 @@ if ! should_exclude "search" 2>/dev/null; then
       return 1
     fi
     
-    # Build grep options
-    local grep_options="-n"
-    local color_option=""
-    
-    # Check if grep supports --color and we have a TTY
-    if [[ -t 1 ]] && grep --color=auto --version >/dev/null 2>&1; then
-      color_option="--color=always"
+    # Build grep options as an array: zsh does not word-split unquoted scalars,
+    # so a single "-niE" style string would not survive expansion there.
+    local -a grep_opts
+    grep_opts=(-n)
+
+    # Only colourise when writing to a terminal and grep understands --color
+    if [[ -t 1 ]] && command grep --color=auto --version >/dev/null 2>&1; then
+      grep_opts+=(--color=always)
     fi
-    
+
     if [[ "$ignore_case" == true ]]; then
-      grep_options+="i"
+      grep_opts+=(-i)
     fi
     if [[ "$extended_regex" == true ]]; then
-      grep_options+="E"
+      grep_opts+=(-E)
     fi
-    if [[ "$recursive" == true ]]; then
-      grep_options+="r"
-    fi
-    
+
     echo "=== SEARCH RESULTS ==="
     echo "Pattern: '$pattern'"
     if [[ "$target" == "." ]]; then
@@ -694,128 +662,65 @@ if ! should_exclude "search" 2>/dev/null; then
     fi
     echo ""
     
-    # Helper function to search in a single file (regular or gzipped)
-    search_file() {
+    # Collect matches into a temp file: this keeps memory flat for large trees
+    # and lets the match count be derived from the real output.
+    local results_file
+    results_file=$(mktemp) || return 1
+
+    # Search one file, always prefixing the filename so output is uniform.
+    _search_one() {
       local file="$1"
-      local pattern="$2"
-      local grep_opts="$3"
-      local color_opt="$4"
-      local allow_gz="$5"
-      
-      if [[ "$file" == *.gz && "$allow_gz" == true ]]; then
-        # Use zgrep for gzip files only if gzip option is enabled
+      if [[ "$file" == *.gz ]]; then
+        [[ "$include_gzip" == true ]] || return 0
         if command -v zgrep >/dev/null 2>&1; then
-          zgrep $grep_opts $color_opt "$pattern" "$file" 2>/dev/null
-        else
-          # Fallback: decompress and pipe to grep
-          zcat "$file" 2>/dev/null | grep $grep_opts $color_opt "$pattern" | sed "s|^|${file}:|"
-        fi
-      elif [[ "$file" != *.gz ]]; then
-        # Use regular grep for normal files
-        grep $grep_opts $color_opt "$pattern" "$file" 2>/dev/null
-      fi
-      # Skip gz files if gzip option is not enabled
-    }
-    
-    local results_found=false
-    local result_count=0
-    
-    if [[ -f "$target" ]]; then
-      # Search in a specific file (regular or gzipped)
-      local temp_results=$(search_file "$target" "$pattern" "$grep_options" "$color_option" "$include_gzip")
-      if [[ -n "$temp_results" ]]; then
-        echo "$temp_results"
-        result_count=$(echo "$temp_results" | wc -l)
-        results_found=true
-      fi
-    elif [[ -d "$target" ]]; then
-      # Search in directory
-      if [[ "$recursive" == true ]]; then
-        # Recursive search in directory - handle both regular and gz files
-        local temp_results=""
-        
-        # Search regular files
-        local regular_results=$(grep $grep_options $color_option "$pattern" "$target" 2>/dev/null)
-        if [[ -n "$regular_results" ]]; then
-          temp_results+="$regular_results"$'\n'
-        fi
-        
-        # Search gz files recursively only if gzip option is enabled
-        if [[ "$include_gzip" == true ]]; then
-          if command -v zgrep >/dev/null 2>&1; then
-            local gz_results=$(find "$target" -name "*.gz" -type f -exec zgrep $grep_options $color_option "$pattern" {} \; 2>/dev/null)
-            if [[ -n "$gz_results" ]]; then
-              temp_results+="$gz_results"$'\n'
-            fi
-          else
-            # Fallback for systems without zgrep
-            local gz_results=$(find "$target" -name "*.gz" -type f -exec sh -c 'zcat "$1" 2>/dev/null | grep '"$grep_options"' '"$color_option"' "'"$pattern"'" | sed "s|^|$1:|"' _ {} \; 2>/dev/null)
-            if [[ -n "$gz_results" ]]; then
-              temp_results+="$gz_results"$'\n'
-            fi
-          fi
-        fi
-        
-        if [[ -n "$temp_results" ]]; then
-          echo "$temp_results"
-          result_count=$(echo "$temp_results" | wc -l)
-          results_found=true
+          zgrep "${grep_opts[@]}" -- "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|"
+        elif command -v zcat >/dev/null 2>&1; then
+          zcat "$file" 2>/dev/null | command grep "${grep_opts[@]}" -- "$pattern" | sed "s|^|${file}:|"
         fi
       else
-        # Non-recursive search (only files in the specified directory)
-        local temp_results=""
-        
-        # Search regular files
-        local regular_files=$(find "$target" -maxdepth 1 -type f ! -name "*.gz" -exec grep -l $grep_options "$pattern" {} \; 2>/dev/null)
-        for file in $regular_files; do
-          local file_results=$(grep $grep_options $color_option "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|")
-          if [[ -n "$file_results" ]]; then
-            temp_results+="$file_results"$'\n'
-          fi
-        done
-        
-        # Search gz files only if gzip option is enabled
+        command grep "${grep_opts[@]}" -- "$pattern" "$file" 2>/dev/null | sed "s|^|${file}:|"
+      fi
+    }
+
+    if [[ -f "$target" ]]; then
+      _search_one "$target" >> "$results_file"
+    elif [[ -d "$target" ]]; then
+      if [[ "$recursive" == true ]]; then
+        # One grep -r pass over the tree instead of one grep per file
+        command grep -r "${grep_opts[@]}" --exclude="*.gz" -- "$pattern" "$target" 2>/dev/null >> "$results_file"
         if [[ "$include_gzip" == true ]]; then
-          local gz_files=$(find "$target" -maxdepth 1 -name "*.gz" -type f 2>/dev/null)
-          for file in $gz_files; do
-            local file_results=$(search_file "$file" "$pattern" "$grep_options" "$color_option" "$include_gzip" | sed "s|^|${file}:|")
-            if [[ -n "$file_results" ]]; then
-              temp_results+="$file_results"$'\n'
-            fi
-          done
+          while IFS= read -r gz_file; do
+            _search_one "$gz_file" >> "$results_file"
+          done < <(find "$target" -type f -name "*.gz" 2>/dev/null)
         fi
-        
-        if [[ -n "$temp_results" ]]; then
-          echo "$temp_results"
-          result_count=$(echo "$temp_results" | wc -l)
-          results_found=true
-        fi
+      else
+        while IFS= read -r one_file; do
+          _search_one "$one_file" >> "$results_file"
+        done < <(find "$target" -maxdepth 1 -type f 2>/dev/null)
       fi
     else
-      # Handle wildcards and multiple files
-      local temp_results=""
-      for file in $target; do
-        if [[ -f "$file" ]]; then
-          local file_results=$(search_file "$file" "$pattern" "$grep_options" "$color_option" "$include_gzip" | sed "s|^|${file}:|")
-          if [[ -n "$file_results" ]]; then
-            temp_results+="$file_results"$'\n'
-          fi
-        fi
-      done
-      if [[ -n "$temp_results" ]]; then
-        echo "$temp_results"
-        result_count=$(echo "$temp_results" | wc -l)
-        results_found=true
-      fi
+      # Target did not resolve to an existing file or directory
+      echo "Error: '$target' is neither a file nor a directory"
+      command rm -f "$results_file"
+      unset -f _search_one
+      return 1
     fi
-    
-    if [[ "$results_found" == false ]]; then
+
+    unset -f _search_one
+
+    local result_count
+    result_count=$(wc -l < "$results_file" | tr -d '[:space:]')
+
+    if [[ "$result_count" -eq 0 ]]; then
+      command rm -f "$results_file"
       echo "No matches found for pattern '$pattern'"
       return 1
-    else
-      echo ""
-      echo "Found $result_count match(es)"
     fi
+
+    cat "$results_file"
+    command rm -f "$results_file"
+    echo ""
+    echo "Found $result_count match(es)"
   }
 fi
 
@@ -885,15 +790,17 @@ if ! should_exclude "backup" 2>/dev/null; then
       fi
     else
       # Create simple copy backup
+      # 'command' bypasses the cp alias (cp -iv), which would otherwise turn
+      # these into interactive, prompting copies.
       if [[ -f "$source_path" ]]; then
         # File backup
         local backup_name="${source_path}.backup.${timestamp}"
-        cp "$source_path" "$backup_name"
+        command cp "$source_path" "$backup_name"
         echo "File backup created: $backup_name"
       elif [[ -d "$source_path" ]]; then
         # Directory backup
-        local backup_name="${basename}.backup.${timestamp}"
-        cp -r "$source_path" "$backup_name"
+        local backup_name="${source_path}.backup.${timestamp}"
+        command cp -r "$source_path" "$backup_name"
         echo "Folder backup created: $backup_name"
       else
         echo "Error: '$source_path' is neither a file nor a directory"
@@ -931,7 +838,7 @@ fi
 # Monitor directory contents
 if ! should_exclude "watchdir" 2>/dev/null; then
   watchdir() {
-    if [[ $# -eq 0 || "$1" == "--help" || "$1" == "-h" ]]; then
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
       echo "Usage: watchdir [directory_path]"
       echo ""
       echo "Monitor directory contents for changes in real-time."
@@ -963,7 +870,7 @@ if ! should_exclude "watchdir" 2>/dev/null; then
     echo "Press Ctrl+C to stop monitoring"
     echo ""
     
-    watch -n 2 "ls -lh '$target_dir'"
+    watch -n 2 ls -lh -- "$target_dir"
   }
 fi
 
@@ -1013,9 +920,10 @@ if ! should_exclude "meta" 2>/dev/null; then
     
     # Get basic file information
     local file_type=$(file -b "$file_path" 2>/dev/null)
-    local file_size=$(ls -lh "$file_path" 2>/dev/null | awk '{print $5}')
-    local file_perms=$(ls -l "$file_path" 2>/dev/null | awk '{print $1}')
-    local file_owner=$(ls -l "$file_path" 2>/dev/null | awk '{print $3":"$4}')
+    # -d so directories report themselves rather than their contents
+    local file_size=$(ls -ldh "$file_path" 2>/dev/null | awk '{print $5}')
+    local file_perms=$(ls -ld "$file_path" 2>/dev/null | awk '{print $1}')
+    local file_owner=$(ls -ld "$file_path" 2>/dev/null | awk '{print $3":"$4}')
     local file_modified=$(stat -c "%y" "$file_path" 2>/dev/null || stat -f "%Sm" "$file_path" 2>/dev/null)
     
     echo "=== FILE METADATA ANALYSIS ==="

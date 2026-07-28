@@ -44,6 +44,12 @@ cleanup_shortcut "sysinfo"
 cleanup_shortcut "killcmd"
 cleanup_shortcut "topcpu"
 cleanup_shortcut "topmem"
+cleanup_shortcut "sctlstart"
+cleanup_shortcut "sctlstop"
+cleanup_shortcut "sctlrestart"
+cleanup_shortcut "sctlstatus"
+cleanup_shortcut "sctllog"
+cleanup_shortcut "sctlwatch"
 cleanup_shortcut "nginxreload"
 cleanup_shortcut "nginxrestart"
 cleanup_shortcut "nginxstart"
@@ -58,7 +64,9 @@ cleanup_shortcut "list_functions"
 # System Utilities
 if ! should_exclude "so" 2>/dev/null; then alias so='source'; fi
 if ! should_exclude "h" 2>/dev/null; then alias h='history'; fi
-if ! should_exclude "path" 2>/dev/null; then alias path='echo -e ${PATH//:/\\n}'; fi
+# Piped through tr rather than expanded unquoted, so PATH entries containing
+# spaces stay on one line.
+if ! should_exclude "path" 2>/dev/null; then alias path='printf "%s\n" "$PATH" | tr ":" "\n"'; fi
 if ! should_exclude "now" 2>/dev/null; then alias now='date +"%T %Y-%m-%d"'; fi
 if ! should_exclude "nowtime" 2>/dev/null; then alias nowtime='date +"%T"'; fi
 if ! should_exclude "nowdate" 2>/dev/null; then alias nowdate='date +"%Y-%m-%d"'; fi
@@ -80,7 +88,7 @@ if ! should_exclude "brewu" 2>/dev/null; then alias brewu='brew update && brew u
 
 if ! should_exclude "sysinfo" 2>/dev/null; then
   sysinfo() {
-    if [[ $# -gt 0 || "$1" == "--help" || "$1" == "-h" ]]; then
+    if [[ $# -gt 0 ]]; then
       echo "Usage: sysinfo"
       echo ""
       echo "Display comprehensive system information including:"
@@ -192,9 +200,13 @@ if ! should_exclude "killcmd" 2>/dev/null; then
     echo "Searching for processes containing: '$search_term'"
     echo
     
-    # Find matching processes and create temporary file
+    # Find matching processes and create temporary file.
+    # $$ is dropped so killcmd can never target the shell it runs in.
     local temp_file=$(mktemp)
-    ps aux | grep -i "$search_term" | grep -v grep | grep -v "killcmd $search_term" > "$temp_file"
+    ps aux \
+      | command grep -i -- "$search_term" \
+      | command grep -v -- "grep" \
+      | awk -v self="$$" '$2 != self' > "$temp_file"
     
     if [[ ! -s "$temp_file" ]]; then
       echo "No processes found matching '$search_term'"
@@ -203,7 +215,7 @@ if ! should_exclude "killcmd" 2>/dev/null; then
       echo "  • Check if the process name is correct"
       echo "  • Try a partial name (e.g., 'fire' instead of 'firefox')"
       echo "  • Use 'ps aux | grep <name>' to see all matching processes"
-      rm "$temp_file"
+      command rm -f "$temp_file"
       return 1
     fi
     
@@ -221,7 +233,7 @@ if ! should_exclude "killcmd" 2>/dev/null; then
     echo
     
     echo -n "Kill all these processes? (y/N): "
-    read confirm
+    read -r confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
       echo "Terminating processes..."
       while IFS= read -r line; do
@@ -238,7 +250,7 @@ if ! should_exclude "killcmd" 2>/dev/null; then
       echo "Operation cancelled"
     fi
     
-    rm "$temp_file"
+    command rm -f "$temp_file"
   }
 fi
 
@@ -365,21 +377,32 @@ if ! should_exclude "list_functions" 2>/dev/null; then
     
     local pattern="$1"
     local functions_list
-    
-    # Get all function definitions and extract function names
-    functions_list=$(typeset -f | grep -E '^[a-zA-Z][a-zA-Z0-9_]*[[:space:]]*\(\)' | sed 's/().*//' | sort)
-    
+
+    # zsh can list names directly; bash needs the definitions parsed.
+    if [[ -n "$ZSH_VERSION" ]]; then
+      functions_list=$(print -l ${(k)functions} | sort)
+    else
+      functions_list=$(declare -F | awk '{print $3}' | sort)
+    fi
+
+    local matches count
     if [[ -n "$pattern" ]]; then
-      # Filter by pattern if provided
-      echo "$functions_list" | grep -E "$pattern"
-      local count=$(echo "$functions_list" | grep -E "$pattern" | wc -l)
-      echo
+      matches=$(printf '%s\n' "$functions_list" | command grep -E "$pattern")
+    else
+      matches="$functions_list"
+    fi
+
+    if [[ -z "$matches" ]]; then
+      count=0
+    else
+      printf '%s\n' "$matches"
+      count=$(printf '%s\n' "$matches" | wc -l | tr -d '[:space:]')
+    fi
+
+    echo
+    if [[ -n "$pattern" ]]; then
       echo "Found $count function(s) matching pattern: '$pattern'"
     else
-      # Show all functions
-      echo "$functions_list"
-      local count=$(echo "$functions_list" | wc -l)
-      echo
       echo "Total: $count function(s) defined"
     fi
   }
