@@ -1,6 +1,6 @@
 # 🚀 Terminal Shortcuts Collection
 
-A comprehensive collection of bash aliases and functions designed to enhance terminal productivity and streamline common development tasks.
+A comprehensive collection of shell aliases and functions designed to enhance terminal productivity and streamline common development tasks. Every shortcut works in both **Bash** (4.0+) and **Zsh** (5.0+).
 
 ## 🚀 Quick Start
 
@@ -29,6 +29,33 @@ source ~/.bashrc  # or ~/.zshrc
 ### 📝 Quick Reference
 
 Use `sc` command to see all available shortcuts and their descriptions.
+
+### 🚫 Excluding Shortcuts
+
+Set `EXCLUDE_SHORTCUTS` to a space-separated list of names **before** sourcing
+`shortcuts.sh`. Excluded names are never defined, and any alias or function you
+already have under that name is left untouched:
+
+```bash
+export EXCLUDE_SHORTCUTS="p hashit sc"
+source ~/terminal_shortcuts/shortcuts.sh
+```
+
+### 📦 Requirements
+
+Core shortcuts rely on standard POSIX tools. Individual functions degrade
+gracefully and tell you what is missing:
+
+| Tool | Used by |
+|------|---------|
+| `bc` | `calc`, `log2`, `pow2`, `numconv`, `unitconv` |
+| `openssl` | `randstr`, `hashit` (password hashes) |
+| `xxd` | `strconv hex-decode` |
+| `jq` or `python3` | `jsonpp` |
+| `curl` | `apitest`, `isup`, `myip` |
+| `python3` | all `p*` Python shortcuts |
+| `zip`, `unzip`, `7z`, `unrar` | matching `compress` / `extract` formats |
+| `exiftool`, `pdfinfo`, `mediainfo` | richer `meta` output |
 
 ## 📋 Features Overview
 
@@ -75,7 +102,7 @@ Use `sc` command to see all available shortcuts and their descriptions.
 - **Virtual environment**: `svenv` for automatic venv activation, `cdsvenv` for navigate and activate
 - **Create and bootstrap venv**: `cvenv` to create .venv with conda's Python, activate it, and upgrade pip
 - **Quick Python access**: `p` alias for python3
-- **Package management**: `pipi`, `pupu`, `pipl` for pip operations
+- **Package management**: `pipi`, `pipu`, `pipl` for pip operations
 - **Dependency analysis**: `preq` for analyzing project dependencies and environment
 - **Testing with coverage**: `pytestcov` for running tests with coverage reports
 - **Code formatting**: `pfmt` for formatting and linting with black, isort, and flake8
@@ -230,17 +257,20 @@ $ extract backup.rar        # Extract RAR file
 $ extract package.7z        # Extract 7-Zip file
 ```
 
-Supports: `.zip`, `.tar`, `.tar.gz`, `.tar.bz2`, `.tar.xz`, `.rar`, `.7z`, `.gz`, `.bz2`, `.xz`, and more.
+Supports: `.zip`, `.tar`, `.tar.gz`, `.tgz`, `.tar.bz2`, `.tbz2`, `.rar`, `.7z`, `.gz`, `.bz2`, `.Z`.
 
 #### 📦 Archive Creator (`compress`)
-Create archives with optional volume splitting:
+Create archives with optional volume splitting (`--split` / `-s`, sizes in `b`, `k`, `m`, `g`):
 
 ```bash
-$ compress myfile.zip file1.txt file2.txt     # Create ZIP archive
-$ compress backup.tar.gz folder/             # Create gzipped tar
-$ compress data.7z -v100M file1 file2        # Create 7z with 100MB volumes
-$ compress split.zip -v1G large_folder/      # Create ZIP with 1GB volumes
+$ compress myfile.zip file1.txt file2.txt        # Create ZIP archive
+$ compress backup.tar.gz folder/                 # Create gzipped tar
+$ compress --split 100m data.7z file1 file2      # Create 7z with 100MB volumes
+$ compress -s 1g split.zip large_folder/         # Create ZIP with 1GB volumes
 ```
+
+Supports: `.tar.gz`, `.tgz`, `.tar.bz2`, `.tbz2`, `.tar`, `.zip`, `.7z`, `.gz`, `.bz2`.
+Volume splitting is available for every format except `.gz` and `.bz2`.
 
 ### 📁 File Operations
 
@@ -254,31 +284,38 @@ $ ff "test*.js"       # Find JavaScript test files
 ```
 
 #### 🔎 Search in Files (`search`)
-Advanced text search with regex support:
+Advanced text search with regex support. Flags: `-r` recursive, `-i` ignore case,
+`-E` extended regex, `-z` include `.gz` files. Short flags can be bundled (`-riE`):
 
 ```bash
-$ search "pattern" file.txt                    # Basic search
-$ search -i "case insensitive" *.txt          # Case insensitive
-$ search -r "regex.*pattern" directory/       # Extended regex
-$ search -g "compressed" archive.gz           # Search in gzipped files
+$ search "pattern" file.txt                    # Basic search (BRE)
+$ search -i "case insensitive" notes.txt       # Case insensitive
+$ search -r "pattern" directory/               # Recursive
+$ search -E "^(GET|POST)" access.log           # Extended regex
+$ search -z "compressed" archive.gz            # Search in gzipped files
+$ search -rz "exception" logs/                 # Recursive, including .gz files
 ```
 
 #### 📝 Find and Replace (`replace`)
-Replace text in strings, files, or stdin:
+Replace text in strings, files, or stdin. The argument order is
+`replace <input> <search> <replacement>`, and matching is literal, not regex:
 
 ```bash
-$ replace "old" "new" "old text here"         # Replace in string
-$ replace "old" "new" file.txt               # Replace in file
-$ echo "old text" | replace "old" "new" -   # Replace from stdin
+$ replace "old text here" "old" "new"         # Replace in string
+$ replace file.txt "old" "new"                # Replace in file (in place)
+$ replace file.txt "old" "new" --backup       # Replace in file, keeping a backup
+$ echo "old text" | replace - "old" "new"     # Replace from stdin
 ```
 
 #### 🗄️ File Backup (`backup`)
-Create timestamped backups with optional compression:
+Create timestamped backups with optional compression
+(`--compress <tar.gz|tar.bz2|zip|7z|tar>`):
 
 ```bash
-$ backup file.txt                    # Create backup: file.txt.backup.20231201-143022
-$ backup -c folder/                  # Create compressed backup: folder.backup.20231201-143022.tar.gz
-$ backup -c -z file.txt             # Create gzipped backup
+$ backup file.txt                          # Copy backup: file.txt.backup.20231201_143022
+$ backup project/                          # Copy backup of a directory
+$ backup project/ --compress tar.gz        # Compressed backup: project.backup.20231201_143022.tar.gz
+$ backup config.ini --compress zip         # Compressed single-file backup
 ```
 
 #### 🏷️ File Metadata Analysis (`meta`)
@@ -312,12 +349,12 @@ $ meta program                       # Show executable architecture, libraries
 
 ### 👀 File Monitoring
 
-#### 👁️‍🗨️ Watch Log Files (`watchlog`)
-Monitor log file changes in real-time:
+#### 👁️‍🗨️ Watch Files (`watchfile`)
+Monitor file changes in real-time (`tail -f`):
 
 ```bash
-$ watchlog /var/log/nginx/access.log    # Monitor nginx access log
-$ watchlog app.log                      # Monitor application log
+$ watchfile /var/log/nginx/access.log   # Monitor nginx access log
+$ watchfile app.log                     # Monitor application log
 ```
 
 #### 🗂️ Watch Directory (`watchdir`)
@@ -330,15 +367,15 @@ $ watchdir .                           # Watch current directory
 
 ### 🐍 Python Development Tools
 
-#### 📦 Package Management (`pipi`, `pupu`, `pipl`)
+#### 📦 Package Management (`pipi`, `pipu`, `pipl`)
 Simplified pip operations:
 
 ```bash
 $ pipi requests flask       # Install packages
 $ pipi requirements.txt     # Install from requirements file
-$ pupu requests            # Upgrade specific package
-$ pupu                     # Upgrade all packages
-$ pupu requirements.txt    # Upgrade packages from requirements
+$ pipu requests            # Upgrade specific package
+$ pipu                     # Upgrade all packages (asks for confirmation)
+$ pipu requirements.txt    # Upgrade packages from requirements
 $ pipl                     # List installed packages
 ```
 
@@ -347,17 +384,19 @@ Automatically detect and activate Python virtual environments:
 
 ```bash
 $ svenv
-Activated virtual environment: /home/user/project/.venv
+Activating virtual environment: .venv/bin/activate
 ```
 
-Searches for virtual environments in: `.venv/`, `venv/`, `.virtualenv/`
+Checks `.venv/`, `venv/`, `env/` and `.virtualenv/` first, then falls back to a
+depth-limited search for any `*/bin/activate` script.
 
 #### 📂 Navigate and Activate (`cdsvenv`)
-Navigate to project directory and activate virtual environment:
+Navigate to project directory and activate virtual environment. The directory
+argument is required:
 
 ```bash
 $ cdsvenv ~/myproject        # Navigate and activate venv
-$ cdsvenv                   # Use current directory
+$ cdsvenv ../other_project   # Relative paths work too
 ```
 
 #### 🏗️ Create Virtual Environment (`cvenv`)
@@ -524,7 +563,7 @@ $ ni --lts                 # Install latest LTS version
 Get current time and date information:
 
 ```bash
-$ now                      # Current date and time: 2023-12-01 14:30:22
+$ now                      # Current time and date: 14:30:22 2023-12-01
 $ nowtime                  # Current time only: 14:30:22
 $ nowdate                  # Current date only: 2023-12-01
 ```
@@ -546,10 +585,12 @@ Check website availability:
 
 ```bash
 $ isup google.com
-google.com is UP
+Checking: http://google.com
+✅ Website is UP (HTTP 200 - OK)
 
 $ isup badsite.xyz
-badsite.xyz is DOWN
+Checking: http://badsite.xyz
+❌ Website is DOWN (connection failed, curl exit code: 6)
 ```
 
 Show IP address information:
@@ -558,11 +599,15 @@ Show IP address information:
 $ myip
 === IP ADDRESS INFORMATION ===
 
-Local IP Address:
+Local IP Addresses:
   192.168.1.100
 
 External IP Address:
   203.0.113.45
+
+Network Interfaces:
+  lo
+  eth0
 ```
 
 ### 🌐 Network Utilities (`ports`)
@@ -581,18 +626,12 @@ Display comprehensive Git repository status:
 
 ```bash
 $ gitinfo
-=== GIT REPOSITORY INFORMATION ===
-
-Repository Path: /home/user/myproject
-Branch: main
-Status: Clean working directory
-
-Remote Origin:
-  https://github.com/user/myproject.git
-
-Recent Commits:
-  a1b2c3d - Fix bug in authentication (2 hours ago)
-  d4e5f6g - Add new feature (1 day ago)
+=== GIT REPOSITORY INFO ===
+Current branch: main
+Repository: myproject
+Last commit: a1b2c3d - Fix bug in authentication (2 hours ago)
+Status:
+  Working tree clean - no changes to commit
 ```
 
 ### ⚙️ Configuration Management
@@ -652,12 +691,13 @@ $ l                        # Compact column format (ls -CF)
 Improved file viewing with enhanced less functionality:
 
 ```bash
-$ less file.txt            # Enhanced less with colors and mouse support
+$ less file.txt            # Enhanced less (less -RMNi --use-color)
 $ le file.txt              # Alias for less
 $ tle file.txt             # Open file with less, start at end (+G)
 ```
 
-Features include syntax highlighting, mouse support, and improved navigation.
+Flags used: `-R` raw colour escapes, `-M` verbose prompt, `-N` line numbers,
+`-i` case-insensitive search, `--use-color` colourised output (requires less 580+).
 
 ### 🛤️ System Path and History
 
@@ -673,7 +713,7 @@ Quick access to command history:
 
 ```bash
 $ h                        # Display command history
-$ h pattern                # Search history for pattern
+$ h | grep pattern         # Search history for a pattern
 ```
 
 ### 🖥️ tmux Session Management (`ta`)
@@ -682,7 +722,6 @@ Quick tmux session attachment:
 
 ```bash
 $ ta session_name          # Attach to named tmux session
-$ ta                       # Attach to most recent session
 ```
 
 ### 🛠️ Development Tools
@@ -806,15 +845,20 @@ Supports:
 - **Binary**: `bin`/`binary` (integers to binary numbers, strings to ASCII binary)
 
 #### 🔢 Number Base Converter (`numconv`)
-Convert numbers between different bases (2-36) with auto-detection:
+Convert numbers between different bases (2-36). The signature is
+`numconv <number|range> [target_base] [source_base]`; the source base is
+auto-detected from a `0x`, `0b` or leading-`0` prefix when omitted, and the
+target base defaults to decimal:
 
 ```bash
-$ numconv 255                    # Auto-detect: 255 (decimal) = 0xff (hex) = 0o377 (octal) = 0b11111111 (binary)
-$ numconv 0xff                   # Hex to all: 0xff = 255 (decimal) = 0o377 (octal) = 0b11111111 (binary)
-$ numconv 0b1010                 # Binary to all: 0b1010 = 10 (decimal) = 0xa (hex) = 0o12 (octal)
-$ numconv 777 8                  # Convert 777 from base 8: 777₈ = 511 (decimal)
-$ numconv 255 16                 # Convert 255 to base 16: 255 = ff₁₆
-$ numconv abc 16 2               # Convert abc from base 16 to base 2: abc₁₆ = 101010111100₂
+$ numconv 255                    # Decimal in, decimal out: 255
+$ numconv 0xff                   # Hex in, decimal out: 255
+$ numconv 0b1010                 # Binary in, decimal out: 10
+$ numconv 255 hex                # Decimal to hex: FF
+$ numconv 255 bin                # Decimal to binary: 11111111
+$ numconv 255 16                 # Same, using the numeric base: FF
+$ numconv 377 hex 8              # Octal 377 to hex: FF
+$ numconv 1000 36                # Decimal to base 36: RS
 ```
 
 **Range conversion** (convert multiple consecutive numbers):
@@ -877,28 +921,32 @@ $ unitconv 1 l ml                # Convert 1 liter to ml: 1000
 - Comprehensive error handling and validation
 
 #### 🔐 Random Password Generator (`randstr`)
-Generate secure random passwords:
+Generate secure random strings from `openssl rand` (Base64 alphabet: `A-Z a-z 0-9 + /`).
+The default length is 16 characters:
 
 ```bash
-$ randstr              # Generate 12-character password: aB3$xY9!mN2@
-$ randstr 16           # Generate 16-character password
-$ randstr 8            # Generate 8-character password
+$ randstr              # Generate 16-character string: kR3xPq7Za1MvBn8W
+$ randstr 32           # Generate 32-character string
+$ randstr 64           # Generate 64-character string
 ```
 
 #### 🧮 Mathematical Calculators (`calc`, `log2`, `pow2`)
 
-**Calculator (`calc`):**
+**Calculator (`calc`):** results are printed with 3 decimal places. Available
+functions: `sqrt`, `sin`, `cos`, `tan`, `atan`, `ln`, `log` (base 10), `exp`;
+constants `pi` and `e`.
+
 ```bash
 $ calc "2 + 3 * 4"          # Result: 14
-$ calc "sqrt(16)"           # Result: 4
-$ calc "sin(pi/2)"          # Result: 1
-$ calc "log(100)"           # Result: 2 (base 10)
+$ calc "sqrt(16)"           # Result: 4.000
+$ calc "sin(pi/2)"          # Result: 1.000
+$ calc "log(100)"           # Result: 2.000 (base 10)
 ```
 
-**Base-2 Logarithm (`log2`):**
+**Base-2 Logarithm (`log2`):** results are printed with 6 decimal places.
 ```bash
-$ log2 8                    # Result: 3 (since 2³ = 8)
-$ log2 1024                 # Result: 10 (since 2¹⁰ = 1024)
+$ log2 8                    # Result: 3.000000 (since 2³ = 8)
+$ log2 1024                 # Result: 10.000000 (since 2¹⁰ = 1024)
 ```
 
 **Powers of 2 (`pow2`):**
@@ -916,18 +964,41 @@ $ echo '{"a":1,"b":2}' | jsonpp -    # Pretty-print JSON from stdin
 ```
 
 #### 📝 Wordlist Processor (`wordlist`)
-Advanced wordlist filtering and processing:
+Advanced wordlist filtering and processing. Run `wordlist --help` for the full
+option list:
 
 ```bash
-$ wordlist -l 8-12 passwords.txt          # Filter by length 8-12 characters
-$ wordlist -a words.txt                   # Filter alphabetic only
-$ wordlist -n data.txt                    # Filter numeric only
-$ wordlist -e 4.0- entropy.txt           # Filter by minimum entropy 4.0
-$ wordlist -r "^[a-z]+$" words.txt        # Filter by regex pattern
-$ wordlist -s size output.txt input.txt   # Sort and remove duplicates
-$ wordlist -x 10 random.txt              # Randomize and take 10 entries
-$ wordlist --split-mb 100 large.txt      # Split into 100MB files
+$ wordlist -min 8 -max 12 passwords.txt              # Filter by length 8-12 characters
+$ wordlist -regex "^[a-z]+$" words.txt               # Keep only lowercase words
+$ wordlist -notregex "[0-9]" words.txt               # Exclude words containing digits
+$ wordlist -i -regex "PASS" words.txt                # Case-insensitive regex
+$ wordlist -minentropy 4.0 entropy.txt               # Filter by minimum entropy
+$ wordlist -minnum 2 -minspecial 1 passwords.txt     # Filter by character classes
+$ wordlist -su words.txt                             # Sort and remove duplicates
+$ wordlist -r -o random.txt words.txt                # Randomize word order
+$ wordlist -split 100MB -o parts.txt large.txt       # Split into 100MB files
+$ wordlist -splitpct "30 30 40" -o parts.txt in.txt  # Split by percentage
+$ cat passwords.txt | wordlist -su -                 # Read from stdin
 ```
+
+**Options:**
+
+| Option | Effect |
+|--------|--------|
+| `-s` / `-u` / `-su` | Sort / deduplicate / both |
+| `-r` | Randomize word order |
+| `-i` / `-I` | Case-insensitive / case-sensitive regex (default `-I`) |
+| `-min N` / `-max N` | Word length bounds |
+| `-minentropy E` / `-maxentropy E` | Shannon entropy bounds |
+| `-minnum` / `-maxnum` | Count of digits |
+| `-minlower` / `-maxlower` | Count of lowercase letters |
+| `-minupper` / `-maxupper` | Count of uppercase letters |
+| `-minspecial` / `-maxspecial` | Count of special characters |
+| `-regex P` / `-notregex P` | Keep / exclude words matching a pattern |
+| `-keepws` / `-removews` | Keep only / drop words containing whitespace |
+| `-o FILE` | Write to a file instead of stdout |
+| `-split SIZE` | Split output into `SIZE` chunks (requires `-o`) |
+| `-splitpct "X Y Z"` | Split output by percentage, must sum to 100 (requires `-o`) |
 
 ### 📚 Cheatsheets (`csvim`, `cstmux`, `csless`, `csterminator`, `csterminal`)
 

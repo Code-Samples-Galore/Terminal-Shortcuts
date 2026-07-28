@@ -69,19 +69,23 @@ if ! should_exclude "isup" 2>/dev/null; then
     echo "Checking: $url"
     
     if command -v curl >/dev/null 2>&1; then
-      local response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url")
-      local exit_code=$?
-      
+      # Declared first, then assigned: "local var=$(cmd)" reports the exit
+      # status of 'local', not of curl, so failures looked like successes.
+      local response exit_code
+      response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url")
+      exit_code=$?
+
       if [[ $exit_code -eq 0 ]]; then
         case "$response" in
-          200) echo "✅ Website is UP (HTTP $response - OK)" ;;
+          2*) echo "✅ Website is UP (HTTP $response - OK)" ;;
           3*) echo "⚠️  Website is UP (HTTP $response - Redirected)" ;;
           4*) echo "❌ Website error (HTTP $response - Client Error)" ;;
           5*) echo "❌ Website error (HTTP $response - Server Error)" ;;
           *) echo "⚠️  Unexpected response (HTTP $response)" ;;
         esac
       else
-        echo "❌ Website is DOWN (Connection failed)"
+        echo "❌ Website is DOWN (connection failed, curl exit code: $exit_code)"
+        return 1
       fi
     else
       echo "Error: curl not found. Please install curl to use this function."
@@ -230,7 +234,9 @@ if ! should_exclude "fastping" 2>/dev/null; then
     echo "Fast ping test: $host ($count packets)"
     echo "Press Ctrl+C to stop early"
     echo
-    
-    ping -c "$count" "$host"
+
+    # 'command' bypasses the ping alias (ping -c 5) defined above, which would
+    # otherwise be expanded into this body and pass -c twice.
+    command ping -c "$count" "$host"
   }
 fi

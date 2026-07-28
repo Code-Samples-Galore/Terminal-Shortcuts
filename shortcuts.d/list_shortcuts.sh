@@ -61,7 +61,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  la          - List all files including hidden (ls -la)"
     echo "  ll          - List files with details (ls -lh)"
     echo "  le          - View file with less"
-    echo "  less        - Enhanced less (less -Ni --mouse --use-color)"
+    echo "  less        - Enhanced less (less -RMNi --use-color)"
     echo "  meta        - Display comprehensive file type information and metadata"
     echo "  mkdir       - Create directories with verbose output"
     echo "  mkcd        - Create directory and navigate into it"

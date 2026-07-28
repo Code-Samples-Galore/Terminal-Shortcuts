@@ -68,16 +68,57 @@ if ! should_exclude "gr" 2>/dev/null; then alias gr='git rm --cached'; fi
 # Git commit with auto-generated message based on changes
 if ! should_exclude "gac" 2>/dev/null; then
   gac() {
-    git add .
-    local files_changed=$(git diff --cached --name-only | wc -l)
-    local message="Auto commit: $files_changed files changed"
-    git commit -m "$message"
+    # gac stages and commits everything, so it must recognise --help rather
+    # than treating it as a signal to go ahead and commit.
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: gac"
+      echo ""
+      echo "Stage every change in the working tree and commit it with an"
+      echo "auto-generated message naming the number of files changed."
+      echo ""
+      echo "Examples:"
+      echo "  gac                          # git add . && git commit -m 'Auto commit: N files changed'"
+      echo ""
+      echo "Note: This command takes no arguments and commits ALL changes."
+      echo "      Use 'gaa' then 'gc \"message\"' to write your own message."
+      return 0
+    fi
+
+    if [[ $# -gt 0 ]]; then
+      echo "Error: gac takes no arguments"
+      echo "Use 'gac --help' for more information"
+      return 1
+    fi
+
+    git add . || return 1
+    local files_changed
+    # tr strips the padding that BSD wc adds, which otherwise lands in the
+    # commit message.
+    files_changed=$(git diff --cached --name-only | wc -l | tr -d '[:space:]')
+    if [[ "$files_changed" -eq 0 ]]; then
+      echo "Nothing staged to commit"
+      return 1
+    fi
+    git commit -m "Auto commit: $files_changed files changed"
   }
 fi
 
 # Show git branch info in a nice format
 if ! should_exclude "gitinfo" 2>/dev/null; then
   gitinfo() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: gitinfo"
+      echo ""
+      echo "Display current branch, repository name, last commit and status"
+      echo "for the Git repository in the current directory."
+      echo ""
+      echo "Examples:"
+      echo "  gitinfo                      # Show repository information"
+      echo ""
+      echo "Note: This command takes no arguments"
+      return 0
+    fi
+
     # Check if we're in a git repository first
     if ! git rev-parse --git-dir >/dev/null 2>&1; then
       echo "Not a git repository"
@@ -86,7 +127,7 @@ if ! should_exclude "gitinfo" 2>/dev/null; then
     
     echo "=== GIT REPOSITORY INFO ==="
     echo "Current branch: $(git branch --show-current)"
-    echo "Repository: $(basename $(git rev-parse --show-toplevel))"
+    echo "Repository: $(basename "$(git rev-parse --show-toplevel)")"
     echo "Last commit: $(git log -1 --format='%h - %s (%cr)' 2>/dev/null || echo 'No commits yet')"
     echo "Status:"
     local status_output=$(git status -s)

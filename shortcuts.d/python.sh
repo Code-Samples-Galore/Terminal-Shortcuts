@@ -103,7 +103,15 @@ if ! should_exclude "pipu" 2>/dev/null; then
         echo "Operation cancelled"
         return 1
       fi
-      python3 -m pip list --outdated | grep -v '^\-e' | awk '{print $1}' | tail -n +3 | xargs -n1 python3 -m pip install -U
+      local outdated
+      outdated=$(python3 -m pip list --outdated | tail -n +3 | grep -v '^-e' | awk '{print $1}')
+      if [[ -z "$outdated" ]]; then
+        echo "All packages are already up to date"
+        return 0
+      fi
+      # Guarded rather than piped straight into xargs: with no input, xargs
+      # would still run "pip install -U" once with no package names.
+      printf '%s\n' "$outdated" | xargs -n1 python3 -m pip install -U
     elif [[ "$1" == "requirements.txt" || "$1" == *.txt ]]; then
       # Upgrade packages from requirements file
       python3 -m pip install -U -r "$@"
@@ -143,9 +151,22 @@ if ! should_exclude "svenv" 2>/dev/null; then
       return 1
     fi
     
-    # Find activate script in current directory and subdirectories
-    local activate_file=$(find . -name "activate" -path "*/bin/activate" -type f 2>/dev/null | head -1)
-    
+    # Check the conventional locations first. The previous unbounded
+    # "find ." walked the entire tree, which is very slow in large projects.
+    local activate_file=""
+    local candidate
+    for candidate in .venv venv env .virtualenv; do
+      if [[ -f "$candidate/bin/activate" ]]; then
+        activate_file="$candidate/bin/activate"
+        break
+      fi
+    done
+
+    # Fall back to a shallow search for non-standard layouts
+    if [[ -z "$activate_file" ]]; then
+      activate_file=$(find . -maxdepth 3 -type f -path "*/bin/activate" 2>/dev/null | head -1)
+    fi
+
     if [[ -n "$activate_file" ]]; then
       echo "Activating virtual environment: $activate_file"
       source "$activate_file"
@@ -633,7 +654,7 @@ if ! should_exclude "preq" 2>/dev/null; then
       if [[ -n "$req_packages" ]]; then
         echo "$req_packages" | while read -r package; do
           if [[ -n "$package" ]]; then
-            pip show "$package" >/dev/null 2>&1 && echo "  ✅ $package" || echo "  ❌ $package (not installed)"
+            python3 -m pip show "$package" >/dev/null 2>&1 && echo "  ✅ $package" || echo "  ❌ $package (not installed)"
           fi
         done
       else
@@ -681,7 +702,7 @@ if ! should_exclude "preq" 2>/dev/null; then
     # Check for outdated packages
     echo "🔍 Checking for outdated packages..."
     local outdated_output
-    outdated_output=$(pip list --outdated 2>/dev/null)
+    outdated_output=$(python3 -m pip list --outdated 2>/dev/null)
     
     if [[ -n "$outdated_output" ]]; then
       echo "$outdated_output"
@@ -759,14 +780,22 @@ if ! should_exclude "pytestcov" 2>/dev/null; then
       return 0
     fi
     
-    local test_path="${1:-.}"
-    
+    # Only treat a leading non-option argument as the test path, so
+    # "pytestcov -v" passes -v to pytest instead of looking for a file named -v.
+    local test_path="."
+    local -a pytest_args
+    if [[ $# -gt 0 && "$1" != -* ]]; then
+      test_path="$1"
+      shift
+    fi
+    pytest_args=("$@")
+
     # Validate test path exists
     if [[ ! -e "$test_path" ]]; then
       echo "Error: Test path '$test_path' does not exist"
       return 1
     fi
-    
+
     echo "🧪 Running Python tests with coverage analysis..."
     echo "📍 Test path: $test_path"
     echo
@@ -775,17 +804,17 @@ if ! should_exclude "pytestcov" 2>/dev/null; then
     echo "📦 Checking required packages..."
     local packages_to_install=()
     
-    if ! pip show pytest >/dev/null 2>&1; then
+    if ! python3 -m pip show pytest >/dev/null 2>&1; then
       packages_to_install+=("pytest")
     fi
-    
-    if ! pip show pytest-cov >/dev/null 2>&1; then
+
+    if ! python3 -m pip show pytest-cov >/dev/null 2>&1; then
       packages_to_install+=("pytest-cov")
     fi
-    
+
     if [[ ${#packages_to_install[@]} -gt 0 ]]; then
       echo "Installing required packages: ${packages_to_install[*]}"
-      pip install "${packages_to_install[@]}" || {
+      python3 -m pip install "${packages_to_install[@]}" || {
         echo "Error: Failed to install required packages"
         return 1
       }
@@ -797,11 +826,11 @@ if ! should_exclude "pytestcov" 2>/dev/null; then
     
     # Run tests with coverage
     echo "🔬 Running tests with coverage..."
-    echo "Command: pytest \"$test_path\" --cov=. --cov-report=html --cov-report=term-missing ${*:2}"
+    echo "Command: pytest \"$test_path\" --cov=. --cov-report=html --cov-report=term-missing ${pytest_args[*]}"
     echo
-    
+
     # Execute pytest with coverage
-    pytest "$test_path" --cov=. --cov-report=html --cov-report=term-missing "${@:2}"
+    pytest "$test_path" --cov=. --cov-report=html --cov-report=term-missing "${pytest_args[@]}"
     local exit_code=$?
     
     echo
@@ -883,11 +912,13 @@ if ! should_exclude "pfmt" 2>/dev/null; then
       return 0
     fi
     
-    local target="${1:-.}"
+    # Starts empty and defaults to "." after parsing: seeding it with "$1"
+    # made "pfmt --check" try to format a file literally named "--check".
+    local target=""
     local check_only=false
     local show_diff=false
     local line_length=88
-    
+
     # Parse options
     while [[ $# -gt 0 ]]; do
       case $1 in
@@ -919,12 +950,15 @@ if ! should_exclude "pfmt" 2>/dev/null; then
       esac
     done
     
+    # Default to the current directory when only options were given
+    [[ -z "$target" ]] && target="."
+
     # Validate target exists
     if [[ ! -e "$target" ]]; then
       echo "Error: Target '$target' does not exist"
       return 1
     fi
-    
+
     # Validate line length
     if ! [[ "$line_length" =~ ^[0-9]+$ ]] || [[ "$line_length" -lt 40 ]]; then
       echo "Error: Line length must be a number >= 40"
@@ -945,21 +979,21 @@ if ! should_exclude "pfmt" 2>/dev/null; then
     echo "📦 Checking required tools..."
     local tools_to_install=()
     
-    if ! pip show black >/dev/null 2>&1; then
+    if ! python3 -m pip show black >/dev/null 2>&1; then
       tools_to_install+=("black")
     fi
     
-    if ! pip show isort >/dev/null 2>&1; then
+    if ! python3 -m pip show isort >/dev/null 2>&1; then
       tools_to_install+=("isort")
     fi
     
-    if ! pip show flake8 >/dev/null 2>&1; then
+    if ! python3 -m pip show flake8 >/dev/null 2>&1; then
       tools_to_install+=("flake8")
     fi
     
     if [[ ${#tools_to_install[@]} -gt 0 ]]; then
       echo "Installing required tools: ${tools_to_install[*]}"
-      pip install "${tools_to_install[@]}" || {
+      python3 -m pip install "${tools_to_install[@]}" || {
         echo "Error: Failed to install required tools"
         return 1
       }
@@ -971,50 +1005,52 @@ if ! should_exclude "pfmt" 2>/dev/null; then
     
     local overall_success=true
     
+    # Mode flags are collected in an array. A plain string such as
+    # "isort --check-only" is not word-split by zsh and would be looked up as a
+    # single command name.
+    local -a mode_flags
+    mode_flags=()
+    if [[ "$check_only" == true ]]; then
+      mode_flags=(--check-only)
+    elif [[ "$show_diff" == true ]]; then
+      mode_flags=(--diff)
+    fi
+
     # Run isort
     echo "🔄 Organizing imports with isort..."
-    local isort_cmd="isort"
-    if [[ "$check_only" == true ]]; then
-      isort_cmd="$isort_cmd --check-only"
-    elif [[ "$show_diff" == true ]]; then
-      isort_cmd="$isort_cmd --diff"
-    fi
-    
-    $isort_cmd --profile black "$target"
-    if [[ $? -ne 0 ]]; then
+    if isort "${mode_flags[@]}" --profile black "$target"; then
+      echo "✅ Import organization complete"
+    else
       overall_success=false
       echo "⚠️  isort found issues"
-    else
-      echo "✅ Import organization complete"
     fi
     echo
-    
+
+    # black spells the check flag --check rather than --check-only
+    mode_flags=()
+    if [[ "$check_only" == true ]]; then
+      mode_flags=(--check)
+    elif [[ "$show_diff" == true ]]; then
+      mode_flags=(--diff)
+    fi
+
     # Run black
     echo "🖤 Formatting code with black..."
-    local black_cmd="black --line-length $line_length"
-    if [[ "$check_only" == true ]]; then
-      black_cmd="$black_cmd --check"
-    elif [[ "$show_diff" == true ]]; then
-      black_cmd="$black_cmd --diff"
-    fi
-    
-    $black_cmd "$target"
-    if [[ $? -ne 0 ]]; then
+    if black --line-length "$line_length" "${mode_flags[@]}" "$target"; then
+      echo "✅ Code formatting complete"
+    else
       overall_success=false
       echo "⚠️  black found formatting issues"
-    else
-      echo "✅ Code formatting complete"
     fi
     echo
     
     # Run flake8
     echo "🔍 Checking code style with flake8..."
-    flake8 "$target" --max-line-length="$line_length" --extend-ignore=E203,W503
-    if [[ $? -ne 0 ]]; then
+    if flake8 "$target" --max-line-length="$line_length" --extend-ignore=E203,W503; then
+      echo "✅ Code style check passed"
+    else
       overall_success=false
       echo "⚠️  flake8 found style issues"
-    else
-      echo "✅ Code style check passed"
     fi
     echo
     
