@@ -88,6 +88,7 @@ if ! should_exclude "sc" 2>/dev/null; then
     echo "  gitinfo     - Display Git repository information"
     echo "  gl          - Git log one line"
     echo "  gp          - Git push"
+    echo "  gpullall    - Recursively 'git pull' every repo under a directory (skips dirty repos and repos where the merge would conflict)"
     echo "  gr          - Git remove from cache"
     echo "  gs          - Git status"
     echo "  gu          - Git pull"

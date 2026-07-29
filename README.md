@@ -75,6 +75,7 @@ gracefully and tell you what is missing:
 - **Quick git operations**: `gs`, `gc`, `gp`, `ga`, `gaa`, etc.
 - **AI-powered commits**: `gcm` with GitHub Copilot for intelligent commit messages
 - **Auto-commit**: `gac` with intelligent commit messages
+- **Recursive pull**: `gpullall` pulls every repo under a directory, skipping any that would fail or conflict
 - **Repository info**: `gitinfo` for comprehensive repo status
 - **Branch management**: Simplified checkout and branch creation
 
@@ -671,6 +672,27 @@ $ gac                      # Add all files and commit with auto message
 ```
 
 Automatically generates commit message based on number of files changed.
+
+#### 🔁 Recursive Pull (`gpullall`)
+
+Recursively find every Git repository under a directory and run `git pull`,
+but only where it is safe to do so:
+
+```bash
+$ gpullall                 # Pull every repo under the current directory
+$ gpullall ~/Projects      # Pull every repo under ~/Projects
+```
+
+A repository is skipped (not failed) when:
+
+- the working tree has uncommitted changes (including unresolved merges),
+- the current branch has no upstream configured, or
+- merging the fetched upstream into `HEAD` would produce a conflict
+  (detected up-front with `git merge-tree`, before the pull runs).
+
+Output is one block per repo followed by a summary of how many were pulled,
+skipped, and failed. Exits non-zero only if any `fetch`/`pull` actually
+errored — a skipped repo is not a failure.
 
 ### �🔎 Git Repository Information (`gitinfo`)
 

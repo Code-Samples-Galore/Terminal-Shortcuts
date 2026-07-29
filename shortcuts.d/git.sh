@@ -8,6 +8,9 @@
 # Functions:
 #   gac        - Git add all and commit with auto-generated message
 #   gitinfo    - Display comprehensive Git repository information
+#   gpullall   - Recursively git pull every repo under a directory,
+#                skipping any where the working tree is dirty, no upstream
+#                is set, or the merge would introduce a conflict
 #
 # Aliases:
 #   gs         - Git status
@@ -32,6 +35,9 @@
 #   $ gitinfo                    # Show current repo status and info
 #   $ gcb feature-branch         # Create and checkout new branch
 #   $ gr file.txt                # Remove file from git cache
+#   $ gpullall ~/Projects        # Pull every repo under ~/Projects
+#                                # (skips dirty repos and repos where the
+#                                #  merge would conflict)
 
 # Unset any existing conflicting aliases/functions before defining new ones
 cleanup_shortcut "gs"
@@ -49,6 +55,7 @@ cleanup_shortcut "gdc"
 cleanup_shortcut "gr"
 cleanup_shortcut "gac"
 cleanup_shortcut "gitinfo"
+cleanup_shortcut "gpullall"
 
 # Git Operations
 if ! should_exclude "gs" 2>/dev/null; then alias gs='git status'; fi
@@ -136,5 +143,130 @@ if ! should_exclude "gitinfo" 2>/dev/null; then
     else
       echo "$status_output"
     fi
+  }
+fi
+
+# Recursively pull every git repo under a directory, but skip repos where
+# the pull would fail or introduce a merge conflict.
+if ! should_exclude "gpullall" 2>/dev/null; then
+  gpullall() {
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      echo "Usage: gpullall [directory]"
+      echo ""
+      echo "Recursively find every Git repository under [directory] (default: current"
+      echo "directory) and run 'git pull' in each one. A repo is skipped when:"
+      echo "  - the working tree has uncommitted changes"
+      echo "  - the current branch has no upstream configured"
+      echo "  - merging the fetched upstream would produce a conflict"
+      echo ""
+      echo "Examples:"
+      echo "  gpullall                     # Pull every repo under \$PWD"
+      echo "  gpullall ~/Projects          # Pull every repo under ~/Projects"
+      echo ""
+      echo "Exit status: 0 if every repo was pulled cleanly or skipped safely,"
+      echo "1 if any repo failed (fetch or pull error)."
+      return 0
+    fi
+
+    if [[ $# -gt 1 ]]; then
+      echo "Error: gpullall takes at most one directory argument"
+      echo "Use 'gpullall --help' for more information"
+      return 1
+    fi
+
+    if ! command -v git >/dev/null 2>&1; then
+      echo "Error: git is not installed"
+      return 1
+    fi
+
+    local root="${1:-.}"
+    if [[ ! -d "$root" ]]; then
+      echo "Error: '$root' is not a directory"
+      return 1
+    fi
+
+    local repo="" dir="" label=""
+    local pulled=0 skipped=0 failed=0
+
+    while IFS= read -r -d '' repo; do
+      dir=$(dirname "$repo")
+      # Show a relative path when possible; otherwise the full path.
+      label=${dir#"$root"/}
+      [[ "$label" == "$dir" ]] && label="$dir"
+      [[ "$dir" == "$root" ]] && label="$root"
+
+      echo "=== $label ==="
+
+      (
+        cd "$dir" 2>/dev/null || { echo "  fail: cannot enter directory"; exit 3; }
+
+        # Confirm this really is a git working tree.
+        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+          echo "  skip: not a git working tree"
+          exit 2
+        fi
+
+        # 1. Working tree must be clean (this also catches unresolved merges).
+        if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
+          echo "  skip: uncommitted local changes"
+          exit 2
+        fi
+
+        # 2. Current branch must have an upstream to pull from.
+        upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)
+        if [[ -z "$upstream" ]]; then
+          echo "  skip: no upstream configured"
+          exit 2
+        fi
+
+        # 3. Fetch so the merge-tree check has the latest upstream tip.
+        if ! git fetch --quiet 2>/dev/null; then
+          echo "  fail: git fetch failed"
+          exit 3
+        fi
+
+        # 4. Predict whether merging upstream into HEAD would conflict.
+        # Prefer 'git merge-tree --write-tree' (git 2.38+): exit 0 = clean,
+        # exit 1 = conflict. Fall back to the 3-arg form on older git and
+        # look for conflict markers in its diff output ('+<<<<<<< ' because
+        # merge-tree emits its conflict hunks as diff-format additions).
+        git merge-tree --write-tree HEAD "$upstream" >/dev/null 2>&1
+        mt_rc=$?
+        if [[ $mt_rc -eq 1 ]]; then
+          echo "  skip: pulling would cause a merge conflict"
+          exit 2
+        elif [[ $mt_rc -gt 1 ]]; then
+          base=$(git merge-base HEAD "$upstream" 2>/dev/null)
+          if [[ -z "$base" ]]; then
+            echo "  skip: no common ancestor with $upstream"
+            exit 2
+          fi
+          if git merge-tree "$base" HEAD "$upstream" 2>/dev/null \
+               | command grep -q '^+<<<<<<< '; then
+            echo "  skip: pulling would cause a merge conflict"
+            exit 2
+          fi
+        fi
+
+        # 5. Actually pull. Force merge mode so the pull's outcome matches
+        # what merge-tree predicted above — a user-configured pull.rebase=true
+        # would otherwise attempt a rebase whose conflict behavior differs.
+        if git pull --quiet --no-rebase --no-edit; then
+          echo "  ok: pulled from $upstream"
+          exit 0
+        fi
+        echo "  fail: git pull failed"
+        exit 3
+      )
+      case $? in
+        0) pulled=$((pulled + 1)) ;;
+        2) skipped=$((skipped + 1)) ;;
+        *) failed=$((failed + 1)) ;;
+      esac
+    done < <(command find "$root" -name .git -prune -print0 2>/dev/null)
+
+    echo
+    echo "Summary: $pulled pulled, $skipped skipped, $failed failed"
+    [[ $failed -eq 0 ]]
   }
 fi
