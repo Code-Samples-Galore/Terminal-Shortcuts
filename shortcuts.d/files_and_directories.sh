@@ -39,9 +39,9 @@ cleanup_shortcut "..."
 cleanup_shortcut "...."
 cleanup_shortcut "~"
 cleanup_shortcut "mkdir"
-cleanup_shortcut "cp"
-cleanup_shortcut "mv"
-cleanup_shortcut "rm"
+#cleanup_shortcut "cp"
+#cleanup_shortcut "mv"
+#cleanup_shortcut "rm"
 cleanup_shortcut "grep"
 cleanup_shortcut "tree"
 cleanup_shortcut "extract"
@@ -66,9 +66,9 @@ if ! should_exclude "..." 2>/dev/null; then alias ...='cd ../..'; fi
 if ! should_exclude "...." 2>/dev/null; then alias ....='cd ../../..'; fi
 if ! should_exclude "~" 2>/dev/null; then alias ~='cd ~'; fi
 if ! should_exclude "mkdir" 2>/dev/null; then alias mkdir='mkdir -pv'; fi
-if ! should_exclude "cp" 2>/dev/null; then alias cp='cp -iv'; fi
-if ! should_exclude "mv" 2>/dev/null; then alias mv='mv -iv'; fi
-if ! should_exclude "rm" 2>/dev/null; then alias rm='rm -i'; fi
+#if ! should_exclude "cp" 2>/dev/null; then alias cp='cp -iv'; fi
+#if ! should_exclude "mv" 2>/dev/null; then alias mv='mv -iv'; fi
+#if ! should_exclude "rm" 2>/dev/null; then alias rm='rm -i'; fi
 if ! should_exclude "grep" 2>/dev/null; then alias grep='grep --color=auto'; fi
 if ! should_exclude "tree" 2>/dev/null; then alias tree='tree -C'; fi
 if ! should_exclude "less" 2>/dev/null; then alias less='less -RMNi --use-color'; fi
@@ -111,15 +111,15 @@ if ! should_exclude "extract" 2>/dev/null; then
       echo "  • For RAR files: requires unrar command"
       return 1
     fi
-    
+
     if [[ ! -f "$1" ]]; then
       echo "Error: '$1' is not a valid file or does not exist"
       return 1
     fi
-    
+
     echo "=== EXTRACTION INFORMATION ==="
     echo "Archive file: $1"
-    
+
     # Calculate and display checksum of input archive
     if command -v hashit >/dev/null 2>&1; then
       echo -n "SHA256 checksum: "
@@ -127,15 +127,15 @@ if ! should_exclude "extract" 2>/dev/null; then
     else
       echo "SHA256 checksum: hashit function not available"
     fi
-    
+
     echo ""
     echo "Extracting: $1"
-    
+
     case "$1" in
       *.tar.bz2)   tar xjf "$1"     ;;
       *.tar.gz)    tar xzf "$1"     ;;
       *.bz2)       bunzip2 "$1"     ;;
-      *.rar)       
+      *.rar)
         if command -v unrar >/dev/null 2>&1; then
           unrar x "$1"
         else
@@ -147,7 +147,7 @@ if ! should_exclude "extract" 2>/dev/null; then
       *.tar)       tar xf "$1"      ;;
       *.tbz2)      tar xjf "$1"     ;;
       *.tgz)       tar xzf "$1"     ;;
-      *.zip)       
+      *.zip)
         if command -v unzip >/dev/null 2>&1; then
           unzip "$1"
         else
@@ -155,7 +155,7 @@ if ! should_exclude "extract" 2>/dev/null; then
           return 1
         fi
         ;;
-      *.Z)         
+      *.Z)
         if command -v uncompress >/dev/null 2>&1; then
           uncompress "$1"
         else
@@ -163,7 +163,7 @@ if ! should_exclude "extract" 2>/dev/null; then
           return 1
         fi
         ;;
-      *.7z)        
+      *.7z)
         local sevenzip_cmd=""
         if command -v 7z >/dev/null 2>&1; then
           sevenzip_cmd="7z"
@@ -177,13 +177,13 @@ if ! should_exclude "extract" 2>/dev/null; then
         fi
         "$sevenzip_cmd" x "$1"
         ;;
-      *)           
+      *)
         echo "Error: '$1' cannot be extracted - unsupported format"
         echo "Supported formats: .tar.gz, .tgz, .tar.bz2, .tbz2, .tar, .zip, .7z, .rar, .gz, .bz2, .Z"
         return 1
         ;;
     esac
-    
+
     if [[ $? -eq 0 ]]; then
       echo "Successfully extracted: $1"
     else
@@ -221,11 +221,11 @@ if ! should_exclude "compress" 2>/dev/null; then
       echo "  compress -s 1g archive.zip files/"
       return 1
     fi
-    
+
     local split_size=""
     local archive_name=""
     local files=()
-    
+
     # Parse arguments for split option
     while [[ $# -gt 0 ]]; do
       case "$1" in
@@ -248,12 +248,12 @@ if ! should_exclude "compress" 2>/dev/null; then
           ;;
       esac
     done
-    
+
     if [[ -z "$archive_name" || ${#files[@]} -eq 0 ]]; then
       echo "Error: Archive name and files are required"
       return 1
     fi
-    
+
     # Check if files/directories exist
     for item in "${files[@]}"; do
       if [[ ! -e "$item" ]]; then
@@ -261,7 +261,7 @@ if ! should_exclude "compress" 2>/dev/null; then
         return 1
       fi
     done
-    
+
     # Validate split size format if provided
     if [[ -n "$split_size" ]]; then
       if ! [[ "$split_size" =~ ^[0-9]+[bkmg]?$ ]]; then
@@ -269,7 +269,7 @@ if ! should_exclude "compress" 2>/dev/null; then
         return 1
       fi
     fi
-    
+
     case "$archive_name" in
       *.tar.gz|*.tgz)
         if [[ -n "$split_size" ]]; then
@@ -376,7 +376,7 @@ if ! should_exclude "compress" 2>/dev/null; then
           echo "Error: No 7-Zip command found. Please install 7-Zip (7z, 7zz, or 7za)."
           return 1
         fi
-        
+
         if [[ -n "$split_size" ]]; then
           # Convert size format for 7z
           local szip_size
@@ -547,14 +547,14 @@ if ! should_exclude "search" 2>/dev/null; then
       echo "  search -E \"^(GET|POST)\" access.log        # Extended regex with alternation"
       return 1
     fi
-    
+
     local recursive=false
     local ignore_case=false
     local extended_regex=false
     local include_gzip=false
     local pattern=""
     local target=""
-    
+
     # Parse options
     while [[ $# -gt 0 ]]; do
       case "$1" in
@@ -611,23 +611,23 @@ if ! should_exclude "search" 2>/dev/null; then
           ;;
       esac
     done
-    
+
     if [[ -z "$pattern" ]]; then
       echo "Error: Search pattern is required"
       return 1
     fi
-    
+
     # Default to current directory if no target specified
     if [[ -z "$target" ]]; then
       target="."
     fi
-    
+
     # Check if target exists
     if [[ ! -e "$target" ]]; then
       echo "Error: '$target' does not exist"
       return 1
     fi
-    
+
     # Build grep options as an array: zsh does not word-split unquoted scalars,
     # so a single "-niE" style string would not survive expansion there.
     local -a grep_opts
@@ -661,7 +661,7 @@ if ! should_exclude "search" 2>/dev/null; then
       echo "Regex mode: Basic (BRE) - supports [a-z], ^, \$, ., *, \\{\\}"
     fi
     echo ""
-    
+
     # Collect matches into a temp file: this keeps memory flat for large trees
     # and lets the match count be derived from the real output.
     local results_file
@@ -741,31 +741,31 @@ if ! should_exclude "backup" 2>/dev/null; then
       echo "  backup data/ --compress 7z             # 7z compressed backup"
       return 1
     fi
-    
+
     local source_path="$1"
     local compress_format=""
     local use_compression=false
-    
+
     # Parse compression option
     if [[ "$2" == "--compress" && -n "$3" ]]; then
       compress_format="$3"
       use_compression=true
     fi
-    
+
     # Check if source exists
     if [[ ! -e "$source_path" ]]; then
       echo "Error: '$source_path' does not exist"
       return 1
     fi
-    
+
     # Generate timestamp
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local basename=$(basename "$source_path")
-    
+
     # Remove trailing slash for consistency
     source_path="${source_path%/}"
     basename="${basename%/}"
-    
+
     if [[ "$use_compression" == true ]]; then
       # Validate compression format
       case "$compress_format" in
@@ -777,10 +777,10 @@ if ! should_exclude "backup" 2>/dev/null; then
           return 1
           ;;
       esac
-      
+
       # Create compressed backup
       local backup_name="${basename}.backup.${timestamp}.${compress_format}"
-      
+
       echo "Creating compressed backup: $backup_name"
       if compress "$backup_name" "$source_path"; then
         echo "Compressed backup created successfully: $backup_name"
@@ -826,7 +826,7 @@ if ! should_exclude "watchfile" 2>/dev/null; then
       echo "Note: Press Ctrl+C to stop monitoring"
       return 1
     fi
-    
+
     if [[ -f "$1" ]]; then
       tail -f "$1"
     else
@@ -853,23 +853,23 @@ if ! should_exclude "watchdir" 2>/dev/null; then
       echo "Note: Press Ctrl+C to stop monitoring"
       return 1
     fi
-    
+
     local target_dir="${1:-.}"
-    
+
     if [[ ! -d "$target_dir" ]]; then
       echo "Error: '$target_dir' is not a directory or does not exist"
       return 1
     fi
-    
+
     if ! command -v watch >/dev/null 2>&1; then
       echo "Error: 'watch' command not found. Please install it to use this function."
       return 1
     fi
-    
+
     echo "Monitoring directory: $target_dir"
     echo "Press Ctrl+C to stop monitoring"
     echo ""
-    
+
     watch -n 2 ls -lh -- "$target_dir"
   }
 fi
@@ -909,15 +909,15 @@ if ! should_exclude "meta" 2>/dev/null; then
       echo "  meta program                    # Show executable information"
       return 1
     fi
-    
+
     local file_path="$1"
-    
+
     # Check if file exists
     if [[ ! -e "$file_path" ]]; then
       echo "Error: '$file_path' does not exist"
       return 1
     fi
-    
+
     # Get basic file information
     local file_type=$(file -b "$file_path" 2>/dev/null)
     # -d so directories report themselves rather than their contents
@@ -925,7 +925,7 @@ if ! should_exclude "meta" 2>/dev/null; then
     local file_perms=$(ls -ld "$file_path" 2>/dev/null | awk '{print $1}')
     local file_owner=$(ls -ld "$file_path" 2>/dev/null | awk '{print $3":"$4}')
     local file_modified=$(stat -c "%y" "$file_path" 2>/dev/null || stat -f "%Sm" "$file_path" 2>/dev/null)
-    
+
     echo "=== FILE METADATA ANALYSIS ==="
     echo "File: $(basename "$file_path")"
     echo "Path: $file_path"
@@ -934,24 +934,24 @@ if ! should_exclude "meta" 2>/dev/null; then
     echo "Permissions: $file_perms"
     echo "Owner: $file_owner"
     echo "Modified: $file_modified"
-    
+
     # Calculate and display file hash if hashit is available
     if command -v hashit >/dev/null 2>&1; then
       echo -n "SHA256: "
       hashit sha256 "$file_path"
     fi
-    
+
     echo ""
     echo "=== DETAILED METADATA ==="
-    
+
     # Determine file category and extract specific metadata
     local file_lower=$(echo "$file_type" | tr '[:upper:]' '[:lower:]')
-    
+
     case "$file_lower" in
       *image*|*jpeg*|*jpg*|*png*|*gif*|*tiff*|*bmp*|*webp*)
         echo "📷 IMAGE FILE DETECTED"
         echo ""
-        
+
         # Try exiftool first (most comprehensive)
         if command -v exiftool >/dev/null 2>&1; then
           echo "--- EXIF Data (exiftool) ---"
@@ -964,11 +964,11 @@ if ! should_exclude "meta" 2>/dev/null; then
           echo "Install 'exiftool' or 'imagemagick' for detailed image metadata"
         fi
         ;;
-        
+
       *pdf*)
         echo "📄 PDF DOCUMENT DETECTED"
         echo ""
-        
+
         if command -v pdfinfo >/dev/null 2>&1; then
           echo "--- PDF Information ---"
           pdfinfo "$file_path" 2>/dev/null | grep --color=never -E "^(Title|Author|Subject|Pages|Creator|Producer|CreationDate|ModDate|Encrypted|PDF version):"
@@ -979,11 +979,11 @@ if ! should_exclude "meta" 2>/dev/null; then
           echo "Install 'poppler-utils' (for pdfinfo) for detailed PDF metadata"
         fi
         ;;
-        
+
       *video*|*mp4*|*avi*|*mov*|*mkv*|*webm*|*flv*)
         echo "🎬 VIDEO FILE DETECTED"
         echo ""
-        
+
         if command -v exiftool >/dev/null 2>&1; then
           echo "--- Video Metadata (exiftool) ---"
           exiftool -S -f "$file_path" 2>/dev/null | grep --color=never -E "^(GPSAltitude|GPSLatitude|GPSLongitude|Duration|ImageWidth|ImageHeight|FrameRate|VideoCodec|AudioCodec|Bitrate|CreateDate|FileType|MajorBrand):"
@@ -997,11 +997,11 @@ if ! should_exclude "meta" 2>/dev/null; then
           echo "Install 'mediainfo', 'exiftool', or 'ffmpeg' for detailed video metadata"
         fi
         ;;
-        
+
       *audio*|*mp3*|*wav*|*flac*|*ogg*|*m4a*|*aac*)
         echo "🎵 AUDIO FILE DETECTED"
         echo ""
-        
+
         if command -v mediainfo >/dev/null 2>&1; then
           echo "--- Audio Information (mediainfo) ---"
           mediainfo "$file_path" 2>/dev/null | grep --color=never -E "^(Performer|Composer|Duration|Bit rate|Format|Format profile|Album|Artist|Title|Genre|Track|Date)[ ]*:"
@@ -1012,11 +1012,11 @@ if ! should_exclude "meta" 2>/dev/null; then
           echo "Install 'mediainfo' or 'exiftool' for detailed audio metadata"
         fi
         ;;
-        
+
       *archive*|*zip*|*tar*|*gzip*|*compressed*|*rar*|*7-zip*)
         echo "📦 ARCHIVE FILE DETECTED"
         echo ""
-        
+
         case "$file_lower" in
           *zip*)
             if command -v unzip >/dev/null 2>&1; then
@@ -1050,26 +1050,26 @@ if ! should_exclude "meta" 2>/dev/null; then
             ;;
         esac
         ;;
-        
+
       *text*|*ascii*|*utf-8*|*script*)
         echo "📝 TEXT FILE DETECTED"
         echo ""
-        
+
         echo "--- Text File Statistics ---"
         local line_count=$(wc -l < "$file_path" 2>/dev/null)
         local word_count=$(wc -w < "$file_path" 2>/dev/null)
         local char_count=$(wc -c < "$file_path" 2>/dev/null)
         local encoding=""
-        
+
         if command -v file >/dev/null 2>&1; then
           encoding=$(file -bi "$file_path" 2>/dev/null | grep --color=never -o 'charset=[^;]*' | cut -d= -f2)
         fi
-        
+
         echo "Lines: $line_count"
         echo "Words: $word_count"
         echo "Characters: $char_count"
         [[ -n "$encoding" ]] && echo "Encoding: $encoding"
-        
+
         # Show first few lines if it's a script
         if [[ "$file_lower" == *script* ]] || [[ "$file_path" == *.sh ]] || [[ "$file_path" == *.py ]] || [[ "$file_path" == *.pl ]]; then
           echo ""
@@ -1077,23 +1077,23 @@ if ! should_exclude "meta" 2>/dev/null; then
           head -10 "$file_path" 2>/dev/null
         fi
         ;;
-        
+
       *executable*|*elf*|*mach-o*|*pe32*)
         echo "⚙️  EXECUTABLE FILE DETECTED"
         echo ""
-        
+
         echo "--- Executable Information ---"
         if command -v file >/dev/null 2>&1; then
           file "$file_path" 2>/dev/null
         fi
-        
+
         # Additional info for ELF files on Linux
         if [[ "$file_lower" == *elf* ]] && command -v readelf >/dev/null 2>&1; then
           echo ""
           echo "--- ELF Header Information ---"
           readelf -h "$file_path" 2>/dev/null | grep --color=never -E "(Class|Data|Machine|Entry point)"
         fi
-        
+
         # Show linked libraries if available
         if command -v ldd >/dev/null 2>&1 && [[ "$file_lower" == *elf* ]]; then
           echo ""
@@ -1101,11 +1101,11 @@ if ! should_exclude "meta" 2>/dev/null; then
           ldd "$file_path" 2>/dev/null | head -10
         fi
         ;;
-        
+
       *)
         echo "🔍 GENERAL FILE ANALYSIS"
         echo ""
-        
+
         # Try exiftool as last resort for any file
         if command -v exiftool >/dev/null 2>&1; then
           echo "--- General Metadata (exiftool) ---"
@@ -1118,9 +1118,8 @@ if ! should_exclude "meta" 2>/dev/null; then
         fi
         ;;
     esac
-    
+
     echo ""
     echo "=== ANALYSIS COMPLETE ==="
   }
 fi
-
