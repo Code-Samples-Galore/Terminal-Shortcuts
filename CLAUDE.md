@@ -4,7 +4,7 @@ Guidance for Claude Code (claude.ai/code) when working in this repository.
 
 ## What this is
 
-A library of ~114 shell aliases and functions that a user sources from their
+A library of shell aliases and functions that a user sources from their
 `~/.bashrc` or `~/.zshrc`. There is no build step, no package manager, and no
 test framework — the code *is* the deliverable, and it runs inside the user's
 interactive shell.
@@ -90,9 +90,11 @@ process substitution `< <(...)`, and C-style `for (( ))` loops.
 
 Aliases are expanded when a function body is *parsed*. Since each file defines
 its aliases before its functions, and files are sourced alphabetically, a
-function that calls `rm`, `cp`, `mv`, `mkdir`, `grep`, `ping`, `less` or `tree`
-picks up this repo's alias for it — turning `cp` into an interactive `cp -iv`,
-`rm` into a prompting `rm -i`, and `ping -c "$n"` into `ping -c 5 -c "$n"`.
+function that calls `mkdir`, `grep`, `ping`, `less` or `tree` picks up this
+repo's alias for it — turning `ping -c "$n"` into `ping -c 5 -c "$n"`. The
+`rm`, `cp` and `mv` aliases (`rm -i`, `cp -iv`, ...) are commented out at the
+moment, but treat them the same way: they can be re-enabled, and users have
+their own.
 
 **Inside a function, always call these through `command`:** `command rm -f ...`,
 `command cp ...`, `command mkdir -p ...`, `command grep ...`.
@@ -116,24 +118,28 @@ The shell being polluted here is the user's own. Keep it clean:
 
 ## Verifying changes
 
-There is no test suite. At minimum, before committing:
+There is no test suite. At minimum, before committing (run from the repo
+root; `$SC` points at the working copy, which is not necessarily where the
+user's installed copy lives):
 
 ```bash
+SC="$PWD/shortcuts.sh"; export SC
+
 # 1. Both shells must parse every file
 for f in shortcuts.sh shortcuts.d/*.sh cheatsheets.d/*.sh; do
   bash -n "$f" && zsh -n "$f" || echo "FAIL: $f"
 done
 
 # 2. Both shells must load cleanly from an unrelated directory
-(cd /tmp && bash -c 'source ~/terminal_shortcuts/shortcuts.sh && sc >/dev/null && echo bash ok')
-(cd /tmp && zsh  -c 'source ~/terminal_shortcuts/shortcuts.sh && sc >/dev/null && echo zsh ok')
+(cd /tmp && bash -c 'source "$SC" && sc >/dev/null && echo bash ok')
+(cd /tmp && zsh  -c 'source "$SC" && sc >/dev/null && echo zsh ok')
 
 # 3. Exercise the changed function in BOTH shells, not just your own
-for s in bash zsh; do $s -c 'source ~/terminal_shortcuts/shortcuts.sh; <your function> <args>'; done
+for s in bash zsh; do $s -c 'source "$SC"; <your function> <args>'; done
 
 # 4. Exclusion still works in both
 for s in bash zsh; do
-  EXCLUDE_SHORTCUTS="sc" $s -c 'source ~/terminal_shortcuts/shortcuts.sh; type sc'
+  EXCLUDE_SHORTCUTS="sc" $s -c 'source "$SC"; type sc'
 done
 ```
 
